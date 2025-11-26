@@ -330,7 +330,7 @@ export default async function HomePage(ctx) {
       </section>
 
       {/* LAST MINUTE */}
-      <section className="bg-gradient-to-b from-sky-900 to-slate-950">
+      <section className="">
         <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
           <div className="rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-500 via-sky-400 to-sky-600 p-5 text-white shadow-2xl sm:p-7">
             <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
