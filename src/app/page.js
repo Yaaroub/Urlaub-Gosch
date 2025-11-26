@@ -6,7 +6,7 @@ import WeatherWidget from "@/components/WeatherWidget";
 import RegionTeasers from "@/components/RegionTeasers";
 import LastMinuteTeaser from "@/components/LastMinuteTeaser";
 import { buildPropertyWhere } from "@/lib/search-utils";
-
+import Link from "next/link";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -180,72 +180,73 @@ export default async function HomePage(ctx) {
 
       {/* THEMEN-KACHELN / „BESONDERES“ */}
       <section className="bg-slate-50">
-        <div className="mx-auto max-w-6xl px-4 pb-8 pt-8 md:pb-10 md:pt-10">
-          <h2 className="text-lg font-semibold text-slate-900 md:text-xl">
-            Wie möchtest du reisen?
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Wähle dein Urlaubsthema – wir zeigen dir passende Unterkünfte.
+  <div className="mx-auto max-w-6xl px-4 pb-8 pt-8 md:pb-10 md:pt-10">
+    <h2 className="text-lg font-semibold text-slate-900 md:text-xl">
+      Wie möchtest du reisen?
+    </h2>
+    <p className="mt-1 text-sm text-slate-600">
+      Wähle dein Urlaubsthema – wir zeigen dir passende Unterkünfte.
+    </p>
+
+    <div className="mt-5 grid gap-4 sm:grid-cols-3">
+      {/* 1 */}
+      <Link
+        href="/?location=Strand"
+        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 p-4 text-white shadow-md ring-1 ring-sky-300/50"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.22),transparent_55%)] opacity-80" />
+        <div className="relative space-y-1">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-sky-100">
+            Direkt am Wasser
           </p>
-
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            <a
-              href="/?location=Strand"
-              className="group relative overflow-hidden rounded-2xl border border-slate-300 bg-gradient-to-br from-sky-500 to-sky-700 p-4 text-white shadow-md"
-            >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.18),transparent_55%)] opacity-80" />
-              <div className="relative space-y-1">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-sky-100">
-                  Direkt am Wasser
-                </p>
-                <h3 className="text-base font-semibold">
-                  Meerblick &amp; Hafenflair
-                </h3>
-                <p className="text-xs text-sky-50/90">
-                  Wohnungen mit Blick aufs Wasser oder fußläufig zum Strand.
-                </p>
-              </div>
-            </a>
-
-            <a
-              href="/?dogs=true"
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-md"
-            >
-              <div className="absolute right-[-30px] top-[-30px] h-24 w-24 rounded-full bg-sky-50 group-hover:scale-110 transition-transform" />
-              <div className="relative space-y-1">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-sky-700">
-                  Hunde willkommen
-                </p>
-                <h3 className="text-base font-semibold">
-                  Urlaub mit Hund &amp; Familie
-                </h3>
-                <p className="text-xs text-slate-600">
-                  Unterkünfte mit Garten, Nähe zu Spazierwegen und Strand.
-                </p>
-              </div>
-            </a>
-
-            <a
-              href="/?persons=2"
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-md"
-            >
-              <div className="absolute left-[-24px] bottom-[-24px] h-20 w-20 rounded-full bg-sky-50 group-hover:scale-110 transition-transform" />
-              <div className="relative space-y-1">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-sky-700">
-                  Kurzurlaub
-                </p>
-                <h3 className="text-base font-semibold">
-                  Wochenende am Meer
-                </h3>
-                <p className="text-xs text-slate-600">
-                  Kleine Apartments für 2–3 Personen, perfekt für den
-                  spontanen Trip.
-                </p>
-              </div>
-            </a>
-          </div>
+          <h3 className="text-base font-semibold">Meerblick &amp; Hafenflair</h3>
+          <p className="text-xs text-sky-50/90">
+            Wohnungen mit Blick aufs Wasser oder fußläufig zum Strand.
+          </p>
         </div>
-      </section>
+      </Link>
+
+      {/* 2 */}
+      <Link
+        href="/?dogs=true"
+        className="group relative overflow-hidden rounded-2xl bg-white p-4 text-slate-900 shadow-md ring-1 ring-sky-100"
+      >
+        <div className="absolute right-[-30px] top-[-30px] h-24 w-24 rounded-full bg-sky-100 group-hover:scale-110 transition-transform" />
+        <div className="relative space-y-1">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-sky-700">
+            Hunde willkommen
+          </p>
+          <h3 className="text-base font-semibold">
+            Urlaub mit Hund &amp; Familie
+          </h3>
+          <p className="text-xs text-slate-600">
+            Unterkünfte mit Garten, Nähe zu Spazierwegen und Strand.
+          </p>
+        </div>
+      </Link>
+
+      {/* 3 */}
+      <Link
+        href="/?persons=2"
+        className="group relative overflow-hidden rounded-2xl bg-white p-4 text-slate-900 shadow-md ring-1 ring-sky-100"
+      >
+        <div className="absolute left-[-24px] bottom-[-24px] h-20 w-20 rounded-full bg-sky-50 group-hover:scale-110 transition-transform" />
+        <div className="relative space-y-1">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-sky-700">
+            Kurzurlaub
+          </p>
+          <h3 className="text-base font-semibold">
+            Wochenende am Meer
+          </h3>
+          <p className="text-xs text-slate-600">
+            Kleine Apartments für 2–3 Personen, perfekt für den
+            spontanen Trip.
+          </p>
+        </div>
+      </Link>
+    </div>
+  </div>
+</section>
 
       {/* UNTERKÜNFTE */}
       <section className="bg-white">
