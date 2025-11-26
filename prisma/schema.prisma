@@ -1,0 +1,188 @@
+// ===== Generator & Datasource ===============================================
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // für normale Queries (Pooler ok)
+  directUrl = env("DIRECT_DATABASE_URL") // für Migrate/Introspect (ohne Pooler!)
+}
+
+// ===== Modelle ===============================================================
+
+/**
+ * Unterkunft
+ */
+model Property {
+  id           Int              @id @default(autoincrement())
+  slug         String           @unique
+  title        String
+  description  String?
+  location     String
+  maxPersons   Int
+  dogsAllowed  Boolean          @default(false)
+  amenities    Amenity[]
+  pricePeriods PricePeriod[]
+  bookings     Booking[]
+  extras       ExtraCost[]
+  images       PropertyImage[]
+  requests     BookingRequest[]
+
+  // iCal
+  icalUrl       String?
+  icalUpdatedAt DateTime?
+  icalLastRunAt DateTime?
+
+  // 🔁 Backrelations korrekt:
+  favorites        Favorite[]
+  lastMinuteOffers LastMinuteOffer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/**
+ * Ausstattung (M:N)
+ */
+model Amenity {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  properties Property[] // implicit many-to-many
+}
+
+/**
+ * Preiszeiten (Ende exklusiv)
+ */
+model PricePeriod {
+  id            Int      @id @default(autoincrement())
+  startDate     DateTime
+  endDate       DateTime
+  pricePerNight Decimal  @db.Decimal(10, 2) // Geldwerte als Decimal
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId Int
+
+  @@index([propertyId, startDate, endDate])
+}
+
+/**
+ * Buchung (harte Belegung)
+ */
+model Booking {
+  id        Int      @id @default(autoincrement())
+  startDate DateTime
+  endDate   DateTime
+  guestName String?
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId Int
+
+  createdAt DateTime @default(now())
+
+  @@index([propertyId, startDate, endDate])
+}
+
+/**
+ * Nebenkosten (z. B. Endreinigung, Kurtaxe)
+ * amount in Cent; isDaily = true => pro Nacht, sonst einmalig pro Aufenthalt
+ */
+model ExtraCost {
+  id      Int     @id @default(autoincrement())
+  title   String
+  amount  Int // Cent
+  isDaily Boolean @default(false)
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId Int
+}
+
+/**
+ * Bilder der Unterkunft
+ */
+model PropertyImage {
+  id         Int      @id @default(autoincrement())
+  url        String
+  alt        String?
+  sort       Int      @default(0)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId Int
+}
+
+/**
+ * Unverbindliche Anfrage (weiche Blockierung, z. B. gelb im Kalender)
+ * status: PENDING → APPROVED/DECLINED
+ */
+model BookingRequest {
+  id         Int           @id @default(autoincrement())
+  startDate  DateTime
+  endDate    DateTime
+  guestName  String?
+  guestEmail String?
+  message    String?
+  status     RequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId Int
+
+  @@index([propertyId, startDate, endDate])
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  name      String?
+  password  String // bcrypt-hash
+  favorites Favorite[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Favorite {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId Int
+
+  @@unique([userId, propertyId])
+}
+
+model LastMinuteOffer {
+  id         Int      @id @default(autoincrement())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId Int
+  startDate  DateTime
+  endDate    DateTime
+  discount   Int // Prozent-Rabatt z.B. 20 = -20%
+  note       String? // Optional Hinweis „Nur noch wenige Tage!“
+  createdAt  DateTime @default(now())
+}
+enum BookingStatus {
+  PENDING      // Anfrage/Reservierung, noch nicht bezahlt
+  CONFIRMED    // bezahlt/fix
+  CANCELLED    // storniert
+}
+enum PaymentMethod {
+  NONE
+  PAYPAL
+  CARD
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  NOT_REQUIRED
+  REQUIRES_PAYMENT
+  AUTHORIZED
+  PAID
+  REFUNDED
+  CANCELED
+}

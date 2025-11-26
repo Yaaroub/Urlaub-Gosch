@@ -2,22 +2,39 @@
   "name": "urlaub-gosch",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "seed": "node --env-file=.env prisma/seed.js"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:seed": "prisma db seed"
   },
   "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "bcrypt": "^6.0.0",
+    "date-fns": "^4.1.0",
+    "ics": "^3.8.1",
+    "jose": "^6.1.0",
+    "lucide-react": "^0.543.0",
+    "next": "15.5.2",
+    "node-ical": "^0.20.1",
+    "nodemailer": "^7.0.10",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.2"
+    "react-day-picker": "^9.9.0",
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "@types/node": "24.3.1",
+    "@types/react": "19.1.12",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
-    "@eslint/eslintrc": "^3"
+    "prisma": "^6.15.0",
+    "tailwindcss": "^4"
   }
 }
