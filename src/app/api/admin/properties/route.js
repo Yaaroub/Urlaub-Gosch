@@ -8,7 +8,6 @@ async function uniqueSlug(base) {
     .slice(0, 80) || "objekt";
   let slug = raw, n = 1;
   // falls existiert, hochzählen
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const hit = await prisma.property.findUnique({ where: { slug } });
     if (!hit) return slug;
