@@ -20,7 +20,7 @@
     "jose": "^6.1.0",
     "lucide-react": "^0.543.0",
     "motion": "^12.27.5",
-    "next": "15.5.2",
+    "next": "15.5.9",
     "node-ical": "^0.20.1",
     "nodemailer": "^7.0.10",
     "react": "19.1.0",
