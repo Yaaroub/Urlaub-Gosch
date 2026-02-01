@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Calendar, MapPin, Users, Dog, RotateCcw, Search } from "lucide-react";
 
 export default function SearchForm({ initialParams, amenities }) {
   const router = useRouter();
@@ -14,6 +15,13 @@ export default function SearchForm({ initialParams, amenities }) {
   const [amenityValues, setAmenityValues] = useState(
     Array.isArray(initialParams.amenity) ? initialParams.amenity : []
   );
+
+  const amenitiesSorted = useMemo(() => {
+    const arr = Array.isArray(amenities) ? amenities : [];
+    return [...arr].sort((a, b) =>
+      String(a?.name || "").localeCompare(String(b?.name || ""), "de")
+    );
+  }, [amenities]);
 
   function toggleAmenity(val) {
     setAmenityValues((prev) =>
@@ -42,124 +50,177 @@ export default function SearchForm({ initialParams, amenities }) {
     if (persons) params.set("persons", persons);
     if (dogs) params.set("dogs", "true");
 
-    amenityValues.forEach((a) => {
-      params.append("amenity", a.toLowerCase());
-    });
+    amenityValues.forEach((a) => params.append("amenity", a.toLowerCase()));
 
     const qs = params.toString();
     router.push(qs ? `/?${qs}` : "/");
   }
 
   return (
-    <form onSubmit={submit} className="space-y-5">
-      {/* Obere Eingabefelder */}
-      <div className="grid gap-3 md:grid-cols-4">
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-slate-700">
-            Anreise
-          </label>
-          <input
-            type="date"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
-            value={arrival}
-            onChange={(e) => setArrival(e.target.value)}
-          />
+    <form onSubmit={submit} className="space-y-4">
+      {/* GRID */}
+      <div className="grid gap-3">
+        {/* Dates */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="CHECK IN" icon={Calendar}>
+            <input
+              type="date"
+              value={arrival}
+              onChange={(e) => {
+                const v = e.target.value;
+                setArrival(v);
+                // wenn Abreise vor Anreise liegt -> leeren
+                if (departure && v && departure < v) setDeparture("");
+              }}
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="CHECK OUT" icon={Calendar}>
+            <input
+              type="date"
+              value={departure}
+              min={arrival || undefined}
+              onChange={(e) => setDeparture(e.target.value)}
+              className={inputClass}
+            />
+          </Field>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-slate-700">
-            Abreise
-          </label>
-          <input
-            type="date"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
-            value={departure}
-            onChange={(e) => setDeparture(e.target.value)}
-          />
+        {/* Location + Guests */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="LOCATION" icon={MapPin}>
+            <input
+              type="text"
+              placeholder="z.B. Nordsee, Ostsee, Insel…"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="GUESTS" icon={Users}>
+            <input
+              type="number"
+              min={1}
+              inputMode="numeric"
+              value={persons}
+              onChange={(e) => {
+                const v = e.target.value;
+                // nur positive Werte zulassen, leer ok
+                if (v === "") return setPersons("");
+                const n = Math.max(1, Number(v || 1));
+                setPersons(String(n));
+              }}
+              className={inputClass}
+            />
+          </Field>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-slate-700">Ort</label>
-          <input
-            type="text"
-            placeholder="z.B. Nordsee, Ostsee, Insel…"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </div>
+        {/* Dogs */}
+        <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-800">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200">
+              <Dog className="h-4 w-4 text-slate-700" />
+            </span>
+            Hund erlaubt
+          </span>
 
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-slate-700">
-            Personen
-          </label>
-          <input
-            type="number"
-            min={1}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
-            value={persons}
-            onChange={(e) => setPersons(e.target.value)}
-          />
-        </div>
-      </div>
+          <span className="inline-flex items-center gap-2">
+            <span className="text-xs text-slate-500">nur anzeigen</span>
+            <input
+              type="checkbox"
+              checked={dogs}
+              onChange={(e) => setDogs(e.target.checked)}
+              className="h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+              aria-label="Nur Unterkünfte mit Hund erlaubt"
+            />
+          </span>
+        </label>
 
-      {/* Hunde-Checkbox */}
-      <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800">
-        <input
-          type="checkbox"
-          className="h-4 w-4 rounded border-slate-400 text-sky-600 focus:ring-sky-500"
-          checked={dogs}
-          onChange={(e) => setDogs(e.target.checked)}
-        />
-        <span>Nur Unterkünfte, in denen Hunde erlaubt sind</span>
-      </label>
-
-      {/* Amenity-Pills */}
-      {amenities && amenities.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Ausstattung
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {amenities.map((a) => {
-              const val = a.name.toLowerCase();
-              const active = amenityValues.includes(val);
-              return (
+        {/* Amenities */}
+        {amenitiesSorted.length > 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-slate-500">
+                Amenities
+              </p>
+              {amenityValues.length > 0 && (
                 <button
                   type="button"
-                  key={a.id}
-                  onClick={() => toggleAmenity(val)}
-                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition ${
-                    active
-                      ? "border-sky-500 bg-sky-50 text-sky-800"
-                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                  }`}
+                  onClick={() => setAmenityValues([])}
+                  className="text-xs font-medium text-slate-500 hover:text-slate-700"
                 >
-                  {a.name}
+                  löschen
                 </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+              )}
+            </div>
 
-      {/* Aktionen */}
+            <div className="flex flex-wrap gap-2">
+              {amenitiesSorted.map((a) => {
+                const val = String(a.name || "").toLowerCase();
+                const active = amenityValues.includes(val);
+                return (
+                  <button
+                    type="button"
+                    key={a.id}
+                    onClick={() => toggleAmenity(val)}
+                    className={[
+                      "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition",
+                      active
+                        ? "border-sky-500 bg-sky-50 text-sky-900"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                    ].join(" ")}
+                  >
+                    {a.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ACTIONS */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <button
           type="button"
           onClick={resetForm}
-          className="text-xs font-medium text-slate-500 hover:text-slate-700"
+          className="inline-flex items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
         >
+          <RotateCcw className="h-4 w-4" />
           Filter zurücksetzen
         </button>
 
         <button
           type="submit"
-          className="inline-flex items-center rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/70"
+          className="inline-flex items-center gap-2 rounded-2xl bg-amber-400 px-4 py-2.5 text-sm font-extrabold tracking-[0.14em] uppercase text-slate-900 shadow-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/70"
         >
-          Unterkünfte anzeigen
+          <Search className="h-4 w-4" />
+          Show Results
         </button>
       </div>
     </form>
   );
 }
+
+/* Helpers */
+
+function Field({ label, icon: Icon, children }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-slate-500">
+          {label}
+        </span>
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-50 ring-1 ring-slate-200">
+          <Icon className="h-4 w-4 text-slate-700" />
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50";
