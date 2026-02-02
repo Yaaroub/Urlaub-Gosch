@@ -53,7 +53,7 @@ export default function Header() {
         <div className="mx-auto max-w-6xl px-3 sm:px-4">
           <div
             className={[
-              "relative rounded-2xl border backdrop-blur-xl"
+              "relative rounded-2xl  backdrop-blur-xl"
 ,
               "transition-all duration-300 ease-out",
               scrolled
