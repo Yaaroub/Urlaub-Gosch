@@ -97,27 +97,29 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
       {/* CONTENT */}
       <div className="relative mx-auto max-w-6xl px-3 sm:px-4">
         {/* Platz für fixed header */}
-        <div className="min-h-[70svh] pt-28 pb-12 md:min-h-[66vh] md:pt-32 md:pb-16">
+        <div className="min-h-[70svh] pt-28 pb-12 md:min-h-[98vh] md:pt-32 md:pb-16">
           {/* Accent line (wie Header) */}
           <div className="mb-6 h-[2px] w-40 bg-gradient-to-r from-transparent via-sky-400/80 to-transparent" />
 
           <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl">
-            <motion.div variants={item} className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/urlaub-gosch-logo.png"
-                alt="URLAUB-GOSCH Logo"
-                className="h-12 w-auto drop-shadow-md"
-              />
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs font-semibold tracking-[0.22em] uppercase text-sky-100">
-                  Urlaub-GOSCH
-                </span>
-                <span className="text-[11px] text-sky-100/80">
-                  Nord- &amp; Ostsee • handverlesen
-                </span>
-              </div>
-            </motion.div>
+           <motion.div variants={item} className="flex items-center gap-3">
+  <div className="flex items-center gap-3 rounded-xl bg-black/45 px-3 py-2 backdrop-blur-md border border-white/10">
+    <img
+      src="/urlaub-gosch-logo.png"
+      alt="URLAUB-GOSCH Logo"
+      className="h-12 w-auto drop-shadow-[0_6px_18px_rgba(0,0,0,0.7)]"
+    />
+    <div className="flex flex-col leading-tight">
+      <span className="text-xs font-semibold tracking-[0.22em] uppercase text-white">
+        Urlaub-GOSCH
+      </span>
+      <span className="text-[11px] text-white/75">
+        Nord- & Ostsee • handverlesen
+      </span>
+    </div>
+  </div>
+</motion.div>
+
 
             <motion.p
               variants={item}
