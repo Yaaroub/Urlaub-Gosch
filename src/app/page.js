@@ -51,12 +51,17 @@ export default async function HomePage(ctx) {
         location: true,
         maxPersons: true,
         dogsAllowed: true,
+        amenities: {
+          select: { id: true, name: true },
+          take: 6,
+        },
         images: {
           orderBy: { sort: "asc" },
           take: 1,
           select: { url: true, alt: true },
         },
       },
+      
     });
   } catch (e) {
     console.error("DB error:", e?.message || e);

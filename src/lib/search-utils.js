@@ -10,7 +10,6 @@ export const AMENITY_LABELS = {
   seaview: "Meerblick",
   washer: "Waschmaschine",
   fenced: "Eingezäunt",
-  fencedGround: "Eingezäuntes Grundstück",
   parking: "Parkplatz",
   balcony: "Balkon / Terrasse",
   beach: "Strandnah",

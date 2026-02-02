@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import FavButton from "@/components/FavButton";
 import LastMinuteBadge from "./LastMinuteBadge";
+import { getAmenityIcon, normalizeAmenityName } from "@/lib/amenity-icons";
 
 /** Favoriten nach oben sortieren (sekundär nach Titel) */
 function sortByFavoritesFirst(list, favSet) {
@@ -198,6 +199,36 @@ export default function PropertyGridClient({
                     {p.title}
                   </h3>
                   <p className="mt-1 text-sm text-slate-600">{p.location}</p>
+{/* Amenity Icons (klein) */}
+{Array.isArray(p.amenities) && p.amenities.length > 0 && (
+  <div className="mt-2 flex items-center gap-2 text-slate-500">
+    {(() => {
+      // duplikate raus (z.B. Eingezäunt / Eingezäuntes Grundstück)
+      const seen = new Set();
+      const list = [];
+      for (const a of p.amenities) {
+        const key = normalizeAmenityName(a?.name);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        list.push(a);
+        if (list.length >= 6) break;
+      }
+      return list.map((a) => {
+        const Icon = getAmenityIcon(a.name);
+        return (
+          <span
+            key={a.id ?? a.name}
+            className="inline-flex items-center"
+            title={a.name}
+            aria-label={a.name}
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+        );
+      });
+    })()}
+  </div>
+)}
 
                   <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
                     <span>

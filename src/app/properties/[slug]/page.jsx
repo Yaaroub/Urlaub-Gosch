@@ -6,6 +6,8 @@ import BookingBox from "@/components/BookingBox";
 import Gallery from "@/components/Gallery";
 import Image from "next/image";
 import Link from "next/link";
+import AmenitiesList from "@/components/AmenitiesList";
+
 import {
   MapPin,
   Users,
@@ -135,20 +137,8 @@ export default async function PropertyPage({ params }) {
           {/* Ausstattung */}
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-6">
             <h3 className="font-semibold mb-3">Ausstattung</h3>
-            {property.amenities.length ? (
-              <ul className="flex flex-wrap gap-2">
-                {property.amenities.map((a) => (
-                  <li
-                    key={a.id}
-                    className="text-xs rounded-full bg-slate-100 px-3 py-1 text-slate-700"
-                  >
-                    {a.name}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-slate-600">–</p>
-            )}
+            <AmenitiesList amenities={property.amenities} />
+
           </div>
 
           {/* Nebenkosten */}

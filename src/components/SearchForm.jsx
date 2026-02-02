@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, MapPin, Users, Dog, RotateCcw, Search } from "lucide-react";
+import { getAmenityIcon, normalizeAmenityName } from "@/lib/amenity-icons";
 
 export default function SearchForm({ initialParams, amenities }) {
   const router = useRouter();
@@ -12,9 +13,15 @@ export default function SearchForm({ initialParams, amenities }) {
   const [location, setLocation] = useState(initialParams.location || "");
   const [persons, setPersons] = useState(initialParams.persons || "");
   const [dogs, setDogs] = useState(initialParams.dogs === "true");
-  const [amenityValues, setAmenityValues] = useState(
-    Array.isArray(initialParams.amenity) ? initialParams.amenity : []
-  );
+
+  // ✅ robust: amenity kann string oder array sein -> immer array -> normalisiert
+  const [amenityValues, setAmenityValues] = useState(() => {
+    const a = initialParams?.amenity;
+    const arr = Array.isArray(a) ? a : a ? [a] : [];
+    return arr
+      .map((x) => normalizeAmenityName(x))
+      .filter(Boolean);
+  });
 
   const amenitiesSorted = useMemo(() => {
     const arr = Array.isArray(amenities) ? amenities : [];
@@ -47,10 +54,16 @@ export default function SearchForm({ initialParams, amenities }) {
     if (arrival) params.set("arrival", arrival);
     if (departure) params.set("departure", departure);
     if (location) params.set("location", location);
-    if (persons) params.set("persons", persons);
+
+    if (persons) {
+      const n = Number(persons);
+      if (Number.isFinite(n) && n > 0) params.set("persons", String(n));
+    }
+
     if (dogs) params.set("dogs", "true");
 
-    amenityValues.forEach((a) => params.append("amenity", a.toLowerCase()));
+    // ✅ bereits normalisiert -> einfach append
+    amenityValues.forEach((a) => params.append("amenity", a));
 
     const qs = params.toString();
     router.push(qs ? `/?${qs}` : "/");
@@ -69,7 +82,6 @@ export default function SearchForm({ initialParams, amenities }) {
               onChange={(e) => {
                 const v = e.target.value;
                 setArrival(v);
-                // wenn Abreise vor Anreise liegt -> leeren
                 if (departure && v && departure < v) setDeparture("");
               }}
               className={inputClass}
@@ -107,7 +119,6 @@ export default function SearchForm({ initialParams, amenities }) {
               value={persons}
               onChange={(e) => {
                 const v = e.target.value;
-                // nur positive Werte zulassen, leer ok
                 if (v === "") return setPersons("");
                 const n = Math.max(1, Number(v || 1));
                 setPersons(String(n));
@@ -158,20 +169,23 @@ export default function SearchForm({ initialParams, amenities }) {
 
             <div className="flex flex-wrap gap-2">
               {amenitiesSorted.map((a) => {
-                const val = String(a.name || "").toLowerCase();
+                const val = normalizeAmenityName(a.name);
                 const active = amenityValues.includes(val);
+                const Icon = getAmenityIcon(a.name);
+
                 return (
                   <button
                     type="button"
                     key={a.id}
                     onClick={() => toggleAmenity(val)}
                     className={[
-                      "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition",
+                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition",
                       active
                         ? "border-sky-500 bg-sky-50 text-sky-900"
                         : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
                     ].join(" ")}
                   >
+                    <Icon className="h-4 w-4" />
                     {a.name}
                   </button>
                 );
