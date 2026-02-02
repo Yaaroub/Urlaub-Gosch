@@ -7,15 +7,14 @@ import RegionTeasers from "@/components/RegionTeasers";
 import LastMinuteTeaser from "@/components/LastMinuteTeaser";
 import { buildPropertyWhere } from "@/lib/search-utils";
 import Link from "next/link";
-
-import HomeHero from "@/components/HomeHero"; // NEU
+import HomeHero from "@/components/HomeHero";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function HomePage(ctx) {
-  const spRaw = ctx?.searchParams;
-  const sp = spRaw ? await spRaw : {};
+  // ✅ searchParams in Next.js App Router ist ein Objekt (kein Promise)
+  const sp = ctx?.searchParams ?? {};
 
   const arrival = sp.arrival || "";
   const departure = sp.departure || "";
@@ -24,11 +23,7 @@ export default async function HomePage(ctx) {
   const dogsStr = sp.dogs ?? "";
 
   const dogs =
-    dogsStr === "true"
-      ? true
-      : dogsStr === "false"
-      ? false
-      : undefined;
+    dogsStr === "true" ? true : dogsStr === "false" ? false : undefined;
 
   const amenitiesSelected = []
     .concat(sp.amenity ?? [])
@@ -88,58 +83,63 @@ export default async function HomePage(ctx) {
         typeof dogs === "boolean"
     ) || Boolean(arrival && departure);
 
+  // ✅ Das war der Bug: resultsCount war im JSX benutzt, aber nie definiert
+  const resultsCount = properties.length;
+
   return (
     <>
-      {/* HERO (NEU) – ähnlich Screenshot, aber deine Sky-Farben + Auto-Slider */}
+      {/* HERO */}
       <HomeHero
-        arrival={arrival}
-        departure={departure}
-        location={location}
-        persons={persons}
-        dogs={dogs}
-        amenitiesSelected={amenitiesSelected}
-        allAmenities={allAmenities}
         hasActiveFilters={hasActiveFilters}
-        resultsCount={properties.length}
-        SearchForm={SearchForm}
+        resultsCount={resultsCount}
       />
-<section id="suche" className="bg-[#050e1a]">
-  <div className="mx-auto max-w-6xl px-3 sm:px-4 pb-16">
-    <div className="relative -mt-10 md:-mt-14">
-      <div className="rounded-3xl border border-white/10 bg-[#061423]/55 p-4 backdrop-blur-xl shadow-[0_18px_55px_rgba(0,0,0,0.55)]">
-        <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-400/80 to-transparent" />
 
-        <div className="mb-3 flex items-start justify-between gap-3 pt-3">
-          <div>
-            <h2 className="text-sm font-semibold text-white">Unterkunft finden</h2>
-            <p className="text-[11px] text-sky-100/75">Daten wählen und freie Objekte sehen.</p>
+      {/* SEARCH SECTION */}
+      <section id="suche" className="bg-[#050e1a]">
+        <div className="mx-auto max-w-6xl px-3 sm:px-4 pb-16">
+          <div className="relative -mt-10 md:-mt-14">
+            <div className="rounded-3xl border border-white/10 bg-[#061423]/55 p-4 backdrop-blur-xl shadow-[0_18px_55px_rgba(0,0,0,0.55)]">
+              <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-400/80 to-transparent" />
+
+              <div className="mb-3 flex items-start justify-between gap-3 pt-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-white">
+                    Unterkunft finden
+                  </h2>
+                  <p className="text-[11px] text-sky-100/75">
+                    Daten wählen und freie Objekte sehen.
+                  </p>
+                </div>
+                <span className="rounded-full bg-sky-500/90 px-3 py-1 text-[11px] font-semibold text-white">
+                  BOOK NOW
+                </span>
+              </div>
+
+              <div className="rounded-2xl bg-white/95 p-3 ring-1 ring-slate-200">
+                <SearchForm
+                  initialParams={{
+                    arrival,
+                    departure,
+                    location,
+                    persons,
+                    dogs: dogs === true ? "true" : dogs === false ? "false" : "",
+                    amenity: amenitiesSelected,
+                  }}
+                  amenities={allAmenities}
+                />
+              </div>
+
+              {hasActiveFilters && (
+                <p className="mt-3 text-[11px] text-sky-100/70">
+                  {resultsCount} passende Unterkünfte gefunden.
+                </p>
+              )}
+            </div>
           </div>
-          <span className="rounded-full bg-sky-500/90 px-3 py-1 text-[11px] font-semibold text-white">BOOK NOW</span>
         </div>
+      </section>
 
-        <div className="rounded-2xl bg-white/95 p-3 ring-1 ring-slate-200">
-          <SearchForm
-            initialParams={{
-              arrival,
-              departure,
-              location,
-              persons,
-              dogs: dogs === true ? "true" : dogs === false ? "false" : "",
-              amenity: amenitiesSelected,
-            }}
-            amenities={allAmenities}
-          />
-        </div>
-
-        {hasActiveFilters && (
-          <p className="mt-3 text-[11px] text-sky-100/70">{resultsCount} passende Unterkünfte gefunden.</p>
-        )}
-      </div>
-    </div>
-  </div>
-</section>
-
-      {/* THEMEN-KACHELN / „BESONDERES“ */}
+      {/* THEMEN-KACHELN */}
       <section className="bg-slate-50">
         <div className="mx-auto max-w-6xl px-4 pb-8 pt-8 md:pb-10 md:pt-10">
           <h2 className="text-lg font-semibold text-slate-900 md:text-xl">
@@ -150,7 +150,6 @@ export default async function HomePage(ctx) {
           </p>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            {/* 1 */}
             <Link
               href="/?location=Strand"
               className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 p-4 text-white shadow-md ring-1 ring-sky-300/50"
@@ -169,7 +168,6 @@ export default async function HomePage(ctx) {
               </div>
             </Link>
 
-            {/* 2 */}
             <Link
               href="/?dogs=true"
               className="group relative overflow-hidden rounded-2xl bg-white p-4 text-slate-900 shadow-md ring-1 ring-sky-100"
@@ -188,7 +186,6 @@ export default async function HomePage(ctx) {
               </div>
             </Link>
 
-            {/* 3 */}
             <Link
               href="/?persons=2"
               className="group relative overflow-hidden rounded-2xl bg-white p-4 text-slate-900 shadow-md ring-1 ring-sky-100"
@@ -221,34 +218,31 @@ export default async function HomePage(ctx) {
                 Ausgewählte Ferienobjekte in den schönsten Küstenregionen.
               </p>
             </div>
-            {properties.length > 0 && (
+
+            {resultsCount > 0 && (
               <span className="text-xs text-slate-500">
-                {properties.length} Unterkunft
-                {properties.length === 1 ? "" : "en"} aktuell im Überblick
+                {resultsCount} Unterkunft{resultsCount === 1 ? "" : "en"} aktuell
+                im Überblick
               </span>
             )}
           </div>
 
-          {properties.length === 0 ? (
+          {resultsCount === 0 ? (
             <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-600">
               Keine Treffer für die aktuelle Suche. Entferne einzelne Filter
               oder löse die Datumsangabe, um mehr Unterkünfte zu sehen.
             </p>
           ) : (
-            <PropertyGridClient
-              items={properties}
-              showAvailabilityBadge={false}
-            />
+            <PropertyGridClient items={properties} showAvailabilityBadge={false} />
           )}
         </div>
       </section>
 
-      {/* MOSAIK: WETTER / REGIONEN / FAVORITEN */}
+      {/* MOSAIK */}
       <section className="bg-slate-50">
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-8 md:pb-12">
           <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="grid gap-5 md:grid-cols-2">
-              {/* Wetter */}
               <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-sky-500 to-sky-700 p-4 text-white shadow-md">
                 <h3 className="mb-2 text-sm font-semibold">
                   Wetter an der Küste
@@ -258,7 +252,6 @@ export default async function HomePage(ctx) {
                 </div>
               </div>
 
-              {/* Regionen */}
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-md">
                 <h3 className="mb-2 text-sm font-semibold text-slate-900">
                   Beliebte Regionen
@@ -271,7 +264,6 @@ export default async function HomePage(ctx) {
               </div>
             </div>
 
-            {/* Favoriten */}
             <div className="flex flex-col rounded-2xl border border-slate-700/60 bg-slate-900 p-5 text-white shadow-xl">
               <h3 className="text-sm font-semibold mb-2">Deine Merkliste</h3>
               <p className="text-xs text-slate-200 mb-4">
