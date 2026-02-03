@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, MapPin, Users, Dog, RotateCcw, Search } from "lucide-react";
 import { getAmenityIcon, normalizeAmenityName } from "@/lib/amenity-icons";
 
 export default function SearchForm({ initialParams, amenities }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const [arrival, setArrival] = useState(initialParams.arrival || "");
   const [departure, setDeparture] = useState(initialParams.departure || "");
@@ -18,9 +19,7 @@ export default function SearchForm({ initialParams, amenities }) {
   const [amenityValues, setAmenityValues] = useState(() => {
     const a = initialParams?.amenity;
     const arr = Array.isArray(a) ? a : a ? [a] : [];
-    return arr
-      .map((x) => normalizeAmenityName(x))
-      .filter(Boolean);
+    return arr.map((x) => normalizeAmenityName(x)).filter(Boolean);
   });
 
   const amenitiesSorted = useMemo(() => {
@@ -43,31 +42,48 @@ export default function SearchForm({ initialParams, amenities }) {
     setPersons("");
     setDogs(false);
     setAmenityValues([]);
-    router.push("/");
+  
+    startTransition(() => {
+      router.replace("/", { scroll: false });
+    });
+  
+    setTimeout(() => {
+      document.getElementById("suche")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
   }
+  
 
   function submit(e) {
     e.preventDefault();
-
+  
     const params = new URLSearchParams();
-
+  
     if (arrival) params.set("arrival", arrival);
     if (departure) params.set("departure", departure);
     if (location) params.set("location", location);
-
+  
     if (persons) {
       const n = Number(persons);
       if (Number.isFinite(n) && n > 0) params.set("persons", String(n));
     }
-
+  
     if (dogs) params.set("dogs", "true");
-
-    // ✅ bereits normalisiert -> einfach append
+  
     amenityValues.forEach((a) => params.append("amenity", a));
-
+  
     const qs = params.toString();
-    router.push(qs ? `/?${qs}` : "/");
+  
+    startTransition(() => {
+      router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+    });
+  
+    // ✅ nach Navigation smooth zu Ergebnissen scrollen
+    setTimeout(() => {
+      const el = document.getElementById("unterkuenfte");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
   }
+  
 
   return (
     <form onSubmit={submit} className="space-y-4">
@@ -200,7 +216,8 @@ export default function SearchForm({ initialParams, amenities }) {
         <button
           type="button"
           onClick={resetForm}
-          className="inline-flex items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
+          disabled={isPending}
+          className="inline-flex items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <RotateCcw className="h-4 w-4" />
           Filter zurücksetzen
@@ -208,10 +225,11 @@ export default function SearchForm({ initialParams, amenities }) {
 
         <button
           type="submit"
-          className="inline-flex items-center gap-2 rounded-2xl bg-amber-400 px-4 py-2.5 text-sm font-extrabold tracking-[0.14em] uppercase text-slate-900 shadow-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/70"
+          disabled={isPending}
+          className="inline-flex items-center gap-2 rounded-2xl bg-amber-400 px-4 py-2.5 text-sm font-extrabold tracking-[0.14em] uppercase text-slate-900 shadow-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/70 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Search className="h-4 w-4" />
-          Show Results
+          {isPending ? "Loading…" : "Show Results"}
         </button>
       </div>
     </form>

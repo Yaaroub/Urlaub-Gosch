@@ -242,7 +242,7 @@ export default function PriceEditorPage() {
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 md:py-10">
+    <section className="mx-auto max-w-6xl px-4 py-8 md:py-10 mt-24">
       {/* Messages */}
       <div className="mb-4 space-y-2">
         {msg && msg.t === "error" && (

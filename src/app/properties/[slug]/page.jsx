@@ -7,6 +7,7 @@ import Gallery from "@/components/Gallery";
 import Image from "next/image";
 import Link from "next/link";
 import AmenitiesList from "@/components/AmenitiesList";
+import GoogleMapEmbed from "@/components/GoogleMapEmbed";
 
 import {
   MapPin,
@@ -77,8 +78,8 @@ export default async function PropertyPage({ params }) {
   }));
 
   return (
-    <section className="mx-auto max-w-6xl">
-      {/* Backlink */}
+<section className="mx-auto max-w-6xl pt-24 md:pt-28 pb-30">
+{/* Backlink */}
       <div className="px-4 pt-6">
         <Link
           href="/"
@@ -213,7 +214,13 @@ export default async function PropertyPage({ params }) {
               </p>
             </div>
           )}
+<GoogleMapEmbed
+  query={property.address || property.location}
+  title="Lage auf Google Maps"
+  height={320}
+/>
         </div>
+{/* Karte */}
 
         {/* rechts */}
         <aside className="lg:sticky lg:top-6 h-fit space-y-6">

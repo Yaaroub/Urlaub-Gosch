@@ -58,7 +58,7 @@ export default function AdminHome() {
   ];
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10">
+    <section className="mx-auto max-w-6xl pt-35 px-4 py-10">
       <div className="mb-8">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">
           Admin Dashboard
@@ -71,7 +71,7 @@ export default function AdminHome() {
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5  sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => {
           const Icon = item.icon;
           return (

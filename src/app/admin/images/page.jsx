@@ -83,14 +83,15 @@ export default function AdminImagesPage() {
 
   function onPick(e) {
     const files = Array.from(e.target.files || []);
-
+    e.target.value = "";
+  
     setSelectedNew((prev) => {
       const baseSortStart = prev.length;
       const mapped = files.map((file, i) => {
         const url = URL.createObjectURL(file);
-        const name = file.name || "";
-        const base = name.replace(/\.[^/.]+$/, ""); // Dateiname ohne Extension
+        const base = (file.name || "").replace(/\.[^/.]+$/, "");
         return {
+          id: crypto.randomUUID(), // ✅ stabil
           file,
           preview: url,
           alt: base,
@@ -100,6 +101,7 @@ export default function AdminImagesPage() {
       return [...prev, ...mapped];
     });
   }
+  
 
   function updateNewAlt(idx, val) {
     setSelectedNew((s) =>
@@ -132,62 +134,78 @@ export default function AdminImagesPage() {
 
   async function uploadAll() {
     if (!propertyId || selectedNew.length === 0) return;
+  
     setBusy(true);
     setErr("");
     setMsg(null);
-
+  
     try {
+      // ---------- 1) UPLOAD ----------
       const fd = new FormData();
       selectedNew.forEach((s) => fd.append("files", s.file));
-
-      const up = await fetch("/api/admin/upload", {
+  
+      const uploadRes = await fetch("/api/admin/upload", {
         method: "POST",
         body: fd,
       });
-
-      if (up.status === 401) {
-        window.location.href = "/admin";
-        return;
+  
+      const uploadText = await uploadRes.text();
+      let uploadJson = null;
+      try { uploadJson = JSON.parse(uploadText); } catch {}
+  
+      if (!uploadRes.ok) {
+        console.error("UPLOAD FAIL", uploadRes.status, uploadText);
+        throw new Error(uploadJson?.error || `Upload fehlgeschlagen (${uploadRes.status})`);
       }
-
-      const upJson = await up.json();
-      if (!up.ok) throw new Error(upJson?.error || "Upload fehlgeschlagen");
-
+  
+      if (!uploadJson?.files || uploadJson.files.length !== selectedNew.length) {
+        console.error("UPLOAD SHAPE WRONG", uploadJson);
+        throw new Error("Upload-Antwort ungültig (files fehlt/Anzahl falsch).");
+      }
+  
+      // ---------- 2) SAVE IN DB ----------
       const images = selectedNew.map((s, i) => ({
-        url: upJson.files[i].url,
+        url: uploadJson.files[i].url,
         alt: s.alt || null,
+        sort: i, // ✅ Reihenfolge wie Preview, 0 = Titelbild
       }));
-
-      const res = await fetch("/api/admin/images", {
+  
+      const saveRes = await fetch("/api/admin/images", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           propertyId: Number(propertyId),
+          mode: "replace",
           images,
         }),
       });
-
-      if (res.status === 401) {
-        window.location.href = "/admin";
-        return;
+  
+      const saveText = await saveRes.text();
+      let saveJson = null;
+      try { saveJson = JSON.parse(saveText); } catch {}
+  
+      if (!saveRes.ok) {
+        console.error("SAVE FAIL", saveRes.status, saveText);
+        throw new Error(saveJson?.error || `Speichern fehlgeschlagen (${saveRes.status})`);
       }
-
-      const fresh = await res.json();
-      if (!res.ok) throw new Error(fresh?.error || "Speichern fehlgeschlagen");
-
-      setItems(fresh);
+  
+      const freshImages = saveJson?.images ?? saveJson; // je nach Route-Response
+      setItems(Array.isArray(freshImages) ? freshImages : []);
       setSelectedExisting(new Set());
+  
       selectedNew.forEach((s) => URL.revokeObjectURL(s.preview));
       setSelectedNew([]);
+  
       setMsg({ t: "ok", m: "Bilder wurden hochgeladen und gespeichert." });
     } catch (e) {
       console.error(e);
-      setErr(e.message || "Fehler beim Upload.");
+      setErr(e?.message || "Fehler beim Upload/Speichern.");
       setMsg({ t: "error", m: "Upload oder Speichern fehlgeschlagen." });
     } finally {
       setBusy(false);
     }
   }
+  
 
   // -------------------------------------------------
   // Bestehende Bilder bearbeiten/speichern
@@ -379,7 +397,7 @@ export default function AdminImagesPage() {
   // -------------------------------------------------
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 md:py-10">
+    <section className="mx-auto max-w-6xl px-4 py-8 md:py-10 mt-24">
       {/* Messages */}
       <div className="mb-4 space-y-2">
         {msg && msg.t === "error" && (

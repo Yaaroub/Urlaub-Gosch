@@ -170,7 +170,7 @@ function Lightbox({ images, index, onClose, onChange }) {
       aria-modal="true"
       aria-label="Bildanzeige"
       tabIndex={-1}
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-3 md:p-6 grid"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-3 md:p-6 grid "
       onClick={onClose}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}

@@ -119,7 +119,7 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 md:py-10 relative">
+    <section className="mx-auto max-w-6xl px-4 py-8 md:py-10 relative mt-24">
       {/* Messages */}
       <div className="space-y-2 mb-4">
         {errorMsg && (

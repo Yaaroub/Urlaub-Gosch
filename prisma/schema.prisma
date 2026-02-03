@@ -20,6 +20,7 @@ model Property {
   title        String
   description  String?
   location     String
+  address      String? 
   maxPersons   Int
   dogsAllowed  Boolean          @default(false)
   amenities    Amenity[]

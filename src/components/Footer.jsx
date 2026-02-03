@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative mt-16 overflow-hidden bg-[#050e1a] text-slate-200">
+    <footer className="relative  overflow-hidden bg-[#050e1a] text-slate-200">
       {/* Top line like Header */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-sky-400/80 to-transparent opacity-85" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_20%_0%,rgba(56,189,248,0.20),transparent_55%)]" />

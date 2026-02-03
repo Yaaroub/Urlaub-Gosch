@@ -16,20 +16,30 @@ export default async function HomePage(ctx) {
   // ✅ searchParams in Next.js App Router ist ein Objekt (kein Promise)
   const sp = ctx?.searchParams ?? {};
 
-  const arrival = sp.arrival || "";
-  const departure = sp.departure || "";
-  const location = sp.location || "";
-  const persons = sp.persons || "";
-  const dogsStr = sp.dogs ?? "";
-
+  // ✅ safe getter (verhindert sync-dynamic warning in Next 15)
+  const getSP = (key) => {
+    try {
+      return sp?.[key];
+    } catch {
+      return undefined;
+    }
+  };
+  
+  const arrival = String(getSP("arrival") ?? "");
+  const departure = String(getSP("departure") ?? "");
+  const location = String(getSP("location") ?? "");
+  const persons = String(getSP("persons") ?? "");
+  const dogsStr = String(getSP("dogs") ?? "");
+  
   const dogs =
     dogsStr === "true" ? true : dogsStr === "false" ? false : undefined;
-
-  const amenitiesSelected = []
-    .concat(sp.amenity ?? [])
+  
+  // ✅ amenity immer als Array
+  const rawAmenity = getSP("amenity");
+  const amenitiesSelected = (Array.isArray(rawAmenity) ? rawAmenity : rawAmenity ? [rawAmenity] : [])
     .filter(Boolean)
     .map((a) => String(a).toLowerCase());
-
+  
   const where = buildPropertyWhere({
     arrival,
     departure,
@@ -212,7 +222,7 @@ export default async function HomePage(ctx) {
       </section>
 
       {/* UNTERKÜNFTE */}
-      <section id="unterkuenfte" className="bg-white">
+      <section id="unterkuenfte" className="scroll-mt-24 bg-white" >
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-6 md:pb-12 md:pt-8">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>

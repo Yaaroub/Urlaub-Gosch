@@ -1,145 +1,131 @@
+// prisma/seed.js (clean, CommonJS)
 const fs = require("fs");
 const path = require("path");
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-async function main() {
-  /* ---------- Amenities ---------- */
-  const amenityNames = [
-    "WLAN",
-    "Sauna",
-    "Kamin",
-    "Meerblick",
-    "Waschmaschine",
-    "Eingezäunt",
-    "Eingezäuntes Grundstück"
-  ];
+const CORE_AMENITIES = [
+  "WLAN",
+  "Sauna",
+  "Kamin",
+  "Meerblick",
+  "Waschmaschine",
+  "Eingezäuntes Grundstück", // ✅ nur diese (kein "Eingezäunt")
+];
 
-  const amenities = await Promise.all(
-    amenityNames.map((name) =>
-      prisma.amenity.upsert({
-        where: { name },
-        update: {},
-        create: { name }
-      })
-    )
-  );
-
-  /* ---------- Beispiel Property ---------- */
-  await prisma.property.upsert({
-    where: { slug: "meerblick" },
-    update: {},
-    create: {
-      slug: "meerblick",
-      title: "Wohnung Meerblick",
-      description: "Helle Ferienwohnung mit Meerblick – 200m zum Strand.",
-      location: "Holm",
-      maxPersons: 4,
-      dogsAllowed: true,
-
-      amenities: {
-        connect: amenities
-          .filter(a => ["WLAN","Sauna","Meerblick"].includes(a.name))
-          .map(a => ({ id: a.id }))
-      },
-
-      pricePeriods: {
-        create: [
-          {
-            startDate: new Date("2025-10-01"),
-            endDate: new Date("2025-10-31"),
-            pricePerNight: 120
-          },
-          {
-            startDate: new Date("2025-11-01"),
-            endDate: new Date("2025-12-20"),
-            pricePerNight: 95
-          }
-        ]
-      }
-    }
-  });
-
-/* ---------- JSON Import ---------- */
-const fs = require("fs");
-const path = require("path");
-
+// Keyword-Erkennung NUR für Kern-Amenities (damit nicht “explodiert”)
 const AMENITY_KEYWORDS = [
   { name: "WLAN", keys: ["wlan", "wifi", "wi-fi", "internet"] },
   { name: "Sauna", keys: ["sauna"] },
-  { name: "Kamin", keys: ["kamin", "kaminofen", "offener kamin"] },
+  { name: "Kamin", keys: ["kamin", "kaminofen", "offener kamin", "ofen"] },
   { name: "Meerblick", keys: ["meerblick", "blick aufs meer", "seeblick", "ostseeblick", "nordseeblick"] },
   { name: "Waschmaschine", keys: ["waschmaschine"] },
-  { name: "Eingezäunt", keys: ["eingezäunt", "eingezäunte", "eingezäuntes"] },
+  { name: "Eingezäuntes Grundstück", keys: ["eingezäuntes grundstück", "eingezäunt"] },
 ];
 
-const importPath = path.join(__dirname, "import.json");
+function normalizeText(x) {
+  return String(x || "").toLowerCase();
+}
 
-if (fs.existsSync(importPath)) {
+async function main() {
+  // 1) Kern-Amenities sicher anlegen
+  const coreRows = await Promise.all(
+    CORE_AMENITIES.map((name) =>
+      prisma.amenity.upsert({
+        where: { name },
+        update: {},
+        create: { name },
+      })
+    )
+  );
+  const amenityIdByName = new Map(coreRows.map((a) => [a.name, a.id]));
+
+  // 2) JSON importieren (Properties + Bilder + address)
+  const importPath = path.join(__dirname, "import.json");
+  if (!fs.existsSync(importPath)) {
+    console.log("ℹ️ prisma/import.json nicht gefunden – nur Kern-Amenities angelegt.");
+    return;
+  }
+
   const raw = fs.readFileSync(importPath, "utf8");
   const items = JSON.parse(raw);
 
   for (const p of items) {
+    // Pflichtfelder absichern
+    const slug = String(p.slug || "").trim();
+    if (!slug) continue;
+
     const personsNum = Number(p.maxPersons ?? p.persons);
     const maxPersons = Number.isFinite(personsNum) && personsNum > 0 ? personsNum : 2;
+
+    const title =
+      typeof p.title === "string" && p.title.trim() ? p.title.trim() : slug;
+
+    const description = p.description ?? null;
 
     const location =
       typeof p.location === "string" && p.location.trim() ? p.location.trim() : "Unbekannt";
 
-    const title =
-      typeof p.title === "string" && p.title.trim() ? p.title.trim() : p.slug;
+    const address =
+      typeof p.address === "string" && p.address.trim() ? p.address.trim() : null;
 
-    const description = p.description ?? null;
-
-    // ---- amenities aus Text erkennen ----
-    const haystack = `${title} ${description ?? ""}`.toLowerCase();
-
-    const amenityIdsToConnect = AMENITY_KEYWORDS
-      .filter(({ keys }) => keys.some((k) => haystack.includes(k)))
-      .map(({ name }) => amenities.find((a) => a.name === name))
-      .filter(Boolean)
-      .map((a) => ({ id: a.id }));
-
-    // ---- images mapping (dein Schema: sort) ----
+    // Bilder
     const imagesCreate = (p.images ?? []).map((img, idx) => ({
       url: img.url,
       alt: img.alt ?? null,
       sort: Number(img.sort ?? img.sortOrder ?? idx) || 0,
     }));
 
+    // ✅ Amenities: NUR Kern-Amenities verbinden
+    let amenityConnect = [];
+
+    // Wenn JSON amenities hat → nur die, die zu Kernliste passen
+    if (Array.isArray(p.amenities) && p.amenities.length) {
+      const set = new Set(p.amenities.map((x) => String(x).trim()));
+      amenityConnect = CORE_AMENITIES
+        .filter((name) => set.has(name))
+        .map((name) => ({ id: amenityIdByName.get(name) }))
+        .filter((x) => x.id);
+    } else {
+      // sonst Keyword-Erkennung (auch nur Kern)
+      const haystack = normalizeText(`${title} ${description ?? ""}`);
+      amenityConnect = AMENITY_KEYWORDS
+        .filter(({ keys }) => keys.some((k) => haystack.includes(k)))
+        .map(({ name }) => ({ id: amenityIdByName.get(name) }))
+        .filter((x) => x.id);
+    }
+
+    // Upsert Property
     await prisma.property.upsert({
-      where: { slug: p.slug },
+      where: { slug },
       update: {
         title,
         description,
         location,
+        address, // ✅ für Google Maps
         maxPersons,
         dogsAllowed: !!p.dogsAllowed,
 
-        // nur connect (nichts löschen)
-        amenities: amenityIdsToConnect.length ? { connect: amenityIdsToConnect } : undefined,
+        // nur connect (kein delete)
+        amenities: amenityConnect.length ? { connect: amenityConnect } : undefined,
       },
       create: {
-        slug: p.slug,
+        slug,
         title,
         description,
         location,
+        address, // ✅ für Google Maps
         maxPersons,
         dogsAllowed: !!p.dogsAllowed,
 
-        amenities: amenityIdsToConnect.length ? { connect: amenityIdsToConnect } : undefined,
+        amenities: amenityConnect.length ? { connect: amenityConnect } : undefined,
         images: imagesCreate.length ? { create: imagesCreate } : undefined,
       },
     });
   }
 
-  console.log("✅ JSON Import inkl. Amenities fertig:", items.length, "Einträge");
-}
-
-
-
-  console.log("✅ Seed fertig");
+  console.log("✅ Seed clean fertig:", items.length, "Objekte importiert");
 }
 
 main()
