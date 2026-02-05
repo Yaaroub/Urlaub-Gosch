@@ -21,7 +21,7 @@ const AMENITY_KEYWORDS = [
   { name: "Kamin", keys: ["kamin", "kaminofen", "offener kamin", "ofen"] },
   { name: "Meerblick", keys: ["meerblick", "blick aufs meer", "seeblick", "ostseeblick", "nordseeblick"] },
   { name: "Waschmaschine", keys: ["waschmaschine"] },
-  { name: "Eingezäuntes Grundstück", keys: ["eingezäuntes grundstück", "eingezäunt"] },
+  { name: "Eingezäunt", keys: ["eingezäunt", "eingezäunte", "eingezäuntes"] },
 ];
 
 function normalizeText(x) {

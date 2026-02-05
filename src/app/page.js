@@ -8,6 +8,8 @@ import LastMinuteTeaser from "@/components/LastMinuteTeaser";
 import { buildPropertyWhere } from "@/lib/search-utils";
 import Link from "next/link";
 import HomeHero from "@/components/HomeHero";
+import ActivityMapClient from "@/components/ActivityMapClient";
+import { activities } from "@/lib/activities";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -253,49 +255,152 @@ export default async function HomePage(ctx) {
         </div>
       </section>
 
-      {/* MOSAIK */}
-      <section className="bg-slate-50">
-        <div className="mx-auto max-w-6xl px-4 pb-10 pt-8 md:pb-12">
-          <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-sky-500 to-sky-700 p-4 text-white shadow-md">
-                <h3 className="mb-2 text-sm font-semibold">
-                  Wetter an der Küste
-                </h3>
-                <div className="-mx-1">
-                  <WeatherWidget />
-                </div>
-              </div>
+{/* MOSAIK */}
+<section className="relative overflow-hidden bg-slate-50">
+  {/* soft background blobs */}
+  <div className="pointer-events-none absolute inset-0">
+    <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-sky-200/40 blur-3xl" />
+    <div className="absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-indigo-200/30 blur-3xl" />
+  </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-md">
-                <h3 className="mb-2 text-sm font-semibold text-slate-900">
-                  Beliebte Regionen
-                </h3>
-                <p className="mb-3 text-xs text-slate-500">
-                  Von bekannten Klassikern bis hin zu stillen Buchten – entdecke
-                  deine Lieblingsregion.
-                </p>
-                <RegionTeasers />
-              </div>
-            </div>
+  <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-10 md:pb-16 md:pt-12">
+    {/* Header */}
+    <div className="mb-6 flex flex-col gap-2 md:mb-8 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">
+          Entdecken & Planen
+        </h2>
+        <p className="mt-1 max-w-2xl text-sm text-slate-600">
+          Wetter-Überblick, beliebte Regionen und Ausflugsziele – alles auf einen Blick.
+        </p>
+      </div>
 
-            <div className="flex flex-col rounded-2xl border border-slate-700/60 bg-slate-900 p-5 text-white shadow-xl">
-              <h3 className="text-sm font-semibold mb-2">Deine Merkliste</h3>
-              <p className="text-xs text-slate-200 mb-4">
-                Tippe auf das Herz-Icon bei einer Unterkunft und speichere sie
-                für später – perfekt, um verschiedene Optionen in Ruhe zu
-                vergleichen.
+      <div className="flex items-center gap-2">
+        <Link
+          href="/ausflugsziele"
+          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+        >
+          Ausflugsziele
+          <span className="ml-1">→</span>
+        </Link>
+        <Link
+          href="/aktivitaete"
+          className="inline-flex items-center justify-center rounded-xl bg-sky-700 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-600"
+        >
+          Karte öffnen
+          <span className="ml-1">↗</span>
+        </Link>
+      </div>
+    </div>
+
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+      {/* Left column */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+        {/* Weather */}
+        <div className="rounded-2xl border border-white/60 bg-gradient-to-br from-sky-600 via-sky-700 to-indigo-700 p-4 text-white shadow-md">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">Wetter an der Küste</h3>
+              <p className="mt-0.5 text-xs text-white/80">
+                Schnellcheck für die nächsten Tage.
               </p>
-              <a
-                href="/favorites"
-                className="mt-auto inline-flex items-center justify-center rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-400"
-              >
-                Favoriten ansehen
-              </a>
             </div>
+
+            <span className="rounded-full bg-white/15 px-2 py-1 text-[11px] font-semibold text-white/90 ring-1 ring-white/20">
+              Live
+            </span>
+          </div>
+
+          <div className="-mx-1">
+            <WeatherWidget />
           </div>
         </div>
-      </section>
+
+        {/* Popular Regions (placeholder block) */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-md">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Beliebte Regionen
+              </h3>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Klassiker & stille Buchten.
+              </p>
+            </div>
+
+            <Link
+              href="/regionen"
+              className="text-xs font-semibold text-sky-700 hover:text-sky-600"
+            >
+              Alle ansehen →
+            </Link>
+          </div>
+
+          {/* simple chips (optional) */}
+          <div className="flex flex-wrap gap-2">
+            {["Fehmarn", "Hohwacht", "Probstei", "Scharbeutz", "Kieler Förde"].map((r) => (
+              <Link
+                key={r}
+                href={`/regionen/${r.toLowerCase().replace(/\s+/g, "-")}`}
+                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                {r}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right column: MAP */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-md">
+        {/* Card header */}
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">
+              Ausflugsziele & Aktivitäten
+            </h3>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Entdecke Highlights rund um deine Unterkunft – nach Kategorie filterbar.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/aktivitaete"
+              className="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+            >
+              Alle ansehen →
+            </Link>
+          </div>
+        </div>
+
+        {/* Map area */}
+        <div className="p-3 sm:p-4">
+          <div className="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+            <div className="h-[320px] sm:h-[380px] md:h-[420px] lg:h-[520px]">
+              <ActivityMapClient
+                items={activities}
+                center={[54.35, 10.13]}
+                zoom={8}
+              />
+            </div>
+          </div>
+
+          {/* Footer hint */}
+          <div className="mt-3 flex flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Tipp: Klick auf einen Pin → Details & Navigation öffnen.
+            </span>
+            <span className="font-semibold text-slate-700">
+              {activities?.length || 0} Ziele verfügbar
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       {/* LAST MINUTE */}
       <section className="">

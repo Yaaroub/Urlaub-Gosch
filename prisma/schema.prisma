@@ -21,6 +21,13 @@ model Property {
   description  String?
   location     String
   address      String? 
+    // Geo (für Map, Nearby-Suche)
+  lat         Float?
+  lng         Float?
+
+  // Optional (für Filter/SEO, kann später genutzt werden)
+  region      String?
+
   maxPersons   Int
   dogsAllowed  Boolean          @default(false)
   amenities    Amenity[]

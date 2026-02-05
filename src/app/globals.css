@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "mapbox-gl/dist/mapbox-gl.css";
+
 
 /* Optional: eigene Variablen */
 :root { --radius: 1.25rem; }

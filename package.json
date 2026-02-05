@@ -15,17 +15,22 @@
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "bcrypt": "^6.0.0",
+    "cheerio": "^1.2.0",
     "date-fns": "^4.1.0",
     "ics": "^3.8.1",
     "jose": "^6.1.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.543.0",
+    "mapbox-gl": "^3.18.1",
     "motion": "^12.27.5",
     "next": "15.5.9",
     "node-ical": "^0.20.1",
     "nodemailer": "^7.0.10",
     "react": "19.1.0",
     "react-day-picker": "^9.9.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-leaflet": "^5.0.0",
+    "react-map-gl": "^8.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
