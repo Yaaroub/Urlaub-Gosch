@@ -765,7 +765,7 @@
   {
     "slug": "achnasheen",
     "title": "Ferienhaus Achnasheen Schönberger Strand",
-    "location": "24217 Schönberger Strand",
+    "location": "Schönberger Strand",
     "address": "Seebrückenweg 15, 24217 Schönberger Strand",
     "description": "Das Ostsee-Ferienhaus \"Achnasheen\" - benannt nach einem schottischen Dorf - liegt in unmittelbarer Nähe der Seebrücke im Ostseebad Schönberger Strand. Das Friesenhaus im klassischen Stil steht Ihnen für Ihre schönsten Tage im Jahr zur Verfügung. Spielplatz sowie Edeka mit den leckeren Frühstücksbrötchen sind ca. 100m vom Haus entfernt. Das Haus kann mit max. 8 Personen belegt werden und verspricht Ihnen einen unvergesslichen Urlaub - Sauna, Kamin nebst Holz, WLAN, Strandkorb am Strand, Bibliothek, eingezäuntes Grundstück sowie Nintendo Wii Station und Balanceboard.",
     "priceFrom": null,
@@ -1388,9 +1388,9 @@
   {
     "slug": "dat-picok-huus",
     "title": "Ferienhaus Dat Picok-Huus Kalifornien",
-    "location": "24217 Kalifornien",
+    "location": "Kalifornien",
     "address": "Moorweg 19, 24217 Kalifornien",
-    "description": "Das Ferienhaus Picok-Huus liegt in Schönberg-Kalifornien in der Papageiensiedlung am Ende einer Sackgasse direkt am Naturschutzgebiet. Das Haus ist mit u.a. Roller und Laufrad sehr kinderfreundlich eingerichtet. Von der 30 qm großen Terrasse, auf welcher auf ein Strandkorb steht, sowie von den Balkonen können Sie das ganze Jahr die Tiere beobachten, verschiedene Enten- und Gänsearten, aber auch Fasane, Hasen und Kaninchen.",
+    "description": "",
     "priceFrom": null,
     "size": 100,
     "persons": 6,
@@ -1430,7 +1430,36 @@
       "Wasserkocher",
       "viel Rasen"
     ],
-    "images": []
+    "images": [
+  { "url": "/objects/Picok/picok-start.JPG", "alt": "Ferienhaus Außenansicht", "sort": 0 },
+  { "url": "/objects/Picok/picok_luftbild.jpg", "alt": "Luftbild und Umgebung", "sort": 1 },
+
+  { "url": "/objects/Picok/picok_wohneg.JPG", "alt": "Wohnzimmer", "sort": 2 },
+  { "url": "/objects/Picok/picok_wohnl.JPG", "alt": "Wohnzimmer zweite Ansicht", "sort": 3 },
+  { "url": "/objects/Picok/picok_wohnII.JPG", "alt": "Wohnzimmer weitere Ansicht", "sort": 4 },
+
+  { "url": "/objects/Picok/picok_essenI.JPG", "alt": "Essbereich", "sort": 5 },
+  { "url": "/objects/Picok/picok_essenII.JPG", "alt": "Essbereich zweite Ansicht", "sort": 6 },
+
+  { "url": "/objects/Picok/picok_küche.JPG", "alt": "Küche", "sort": 7 },
+
+  { "url": "/objects/Picok/picok_blick.JPG", "alt": "Ausblick", "sort": 8 },
+  { "url": "/objects/Picok/picok_blick_balkon.JPG", "alt": "Balkonblick", "sort": 9 },
+  { "url": "/objects/Picok/picok_terrasse.JPG", "alt": "Terrasse", "sort": 10 },
+
+  { "url": "/objects/Picok/picok_bado.JPG", "alt": "Badezimmer", "sort": 11 },
+  { "url": "/objects/Picok/picok_badu.JPG", "alt": "Badezimmer zweite Ansicht", "sort": 12 },
+
+  { "url": "/objects/Picok/picok_stockbett.JPG", "alt": "Kinderzimmer mit Stockbett", "sort": 13 },
+  { "url": "/objects/Picok/picok_dzo.JPG", "alt": "Schlafzimmer", "sort": 14 },
+  { "url": "/objects/Picok/picok_dzu.JPG", "alt": "Schlafzimmer zweite Ansicht", "sort": 15 },
+
+  { "url": "/objects/Picok/picok_carport.JPG", "alt": "Carport und Parkplatz", "sort": 16 },
+
+  { "url": "/objects/Picok/picok_tv.JPG", "alt": "Wohnzimmer TV", "sort": 17 },
+  { "url": "/objects/Picok/picok_stereo.JPG", "alt": "Stereoanlage", "sort": 18 }
+]
+
   },
   {
     "slug": "det-lille-strandhuus",
@@ -3779,7 +3808,7 @@
   {
     "slug": "piratennest",
     "title": "Ferienhaus Piratennest Kalifornien",
-    "location": "24217 Kalifornien",
+    "location": "Kalifornien",
     "address": "Seesternweg 14, 24217 Kalifornien",
     "description": "Frisch renoviert und liebevoll eingerichtet ist das kleine Ostsee-Ferienhaus Piratennest ab sofort wieder zu mieten. Das Haus liegt in Kalifornien in zweiter Reihe hinterm Deich, dessen teilüberdachte Terrasse nach Süden ausgerichtet ist. Über einen kleinen Sandweg fast direkt vor der Haustür ist man nur 150m vom weißen und feinsandigen Strand entfernt. Das kleine Häuschen hat neben einer Küche und einem Wohn-Esszimmer auch ein kleines Duschbad sowie 2 Schlafzimmer, wovon eines ein Durchgangszimmer ist. Das Haus kann mit max. 4 Personen belegt werden. Das Grundstück ist komplett eingezäunt und ein Hund ist herzlich Willkommen. Für die kalte Jahreszeit ist das Ferienhaus neben einem Kaminofen und dem dazugehörigen Ofenholz auch mit einer Faßsauna im Garten ausgestattet. Diese ist ganzjährig nutzbar. Im Zuge der Renovierung wurde das Haus mit einer Luft-Wärmepumpe ausgestattet. Ein kleiner Kaufmann, Fischbuden, Minigolf als auch Bäcker sind fußläufig in 200m Entfernung zu finden.",
     "priceFrom": null,

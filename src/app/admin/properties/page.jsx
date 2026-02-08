@@ -1,14 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Eye,
-  Calendar,
-  Euro,
-  Pencil,
-  Trash2,
-  Save,
-  Plus,
-} from "lucide-react";
+import { Eye, Calendar, Euro, Pencil, Trash2, Save, Plus } from "lucide-react";
 
 export default function AdminPropertiesPage() {
   const [items, setItems] = useState([]);
@@ -101,7 +93,7 @@ export default function AdminPropertiesPage() {
   }
 
   async function addAmenityInline(e) {
-    e.preventDefault();
+    e?.preventDefault?.();
     setMsg(null);
     const name = newAmenityName.trim();
     if (!name) return;
@@ -113,7 +105,9 @@ export default function AdminPropertiesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      const data = await r.json();
+
+      const data = await r.json().catch(() => null);
+
       if (r.status === 401) {
         window.location.href = "/admin";
         return;
@@ -177,7 +171,8 @@ export default function AdminPropertiesPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await r.json();
+        const data = await r.json().catch(() => null);
+
         if (r.status === 401) {
           window.location.href = "/admin";
           return;
@@ -200,7 +195,8 @@ export default function AdminPropertiesPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await r.json();
+        const data = await r.json().catch(() => null);
+
         if (r.status === 401) {
           window.location.href = "/admin";
           return;
@@ -265,6 +261,7 @@ export default function AdminPropertiesPage() {
         method: "DELETE",
       });
       const data = await r.json().catch(() => ({}));
+
       if (r.status === 401) {
         window.location.href = "/admin";
         return;
@@ -359,6 +356,7 @@ export default function AdminPropertiesPage() {
               placeholder="z. B. Ferienhaus Düne 7"
             />
           </label>
+
           <label className="grid gap-1">
             <span className="text-xs text-slate-500">Ort *</span>
             <input
@@ -370,6 +368,7 @@ export default function AdminPropertiesPage() {
               placeholder="z. B. Holm"
             />
           </label>
+
           <label className="grid gap-1">
             <span className="text-xs text-slate-500">Max. Personen</span>
             <input
@@ -385,12 +384,15 @@ export default function AdminPropertiesPage() {
               }
             />
           </label>
+
           <label className="grid gap-1">
             <span className="text-xs text-slate-500">Slug (optional)</span>
             <input
               className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
               value={form.slug}
-              onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, slug: e.target.value }))
+              }
               placeholder="wird sonst automatisch erzeugt"
             />
           </label>
@@ -424,9 +426,8 @@ export default function AdminPropertiesPage() {
         {/* Amenities Auswahl */}
         <div className="space-y-2">
           <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-900">
-              Ausstattung
-            </h3>
+            <h3 className="text-sm font-semibold text-slate-900">Ausstattung</h3>
+
             <button
               type="button"
               onClick={() => {
@@ -440,26 +441,32 @@ export default function AdminPropertiesPage() {
             </button>
           </div>
 
+          {/* ✅ FIX: no nested <form> */}
           {showAmenityInput && (
-            <form
-              onSubmit={addAmenityInline}
-              className="mb-2 flex flex-wrap items-center gap-2"
-            >
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               <input
                 className="w-full max-w-xs rounded-xl border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
                 placeholder="z. B. WLAN"
                 value={newAmenityName}
                 onChange={(e) => setNewAmenityName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault(); // prevent submit of main form
+                    addAmenityInline(e);
+                  }
+                }}
               />
+
               <button
-                type="submit"
+                type="button"
                 disabled={busy}
+                onClick={addAmenityInline}
                 className="inline-flex items-center gap-1 rounded-xl bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-500 disabled:opacity-60"
               >
                 <Save className="h-3 w-3" />
                 Hinzufügen
               </button>
-            </form>
+            </div>
           )}
 
           {amenities.length === 0 ? (
@@ -487,6 +494,7 @@ export default function AdminPropertiesPage() {
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-3">
+          {/* هذا زر submit افتراضيًا ✅ */}
           <button
             disabled={busy}
             className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 disabled:opacity-60"
@@ -494,6 +502,7 @@ export default function AdminPropertiesPage() {
             <Save className="h-4 w-4" />
             {editing ? "Änderungen speichern" : "Objekt anlegen"}
           </button>
+
           {editing && (
             <button
               type="button"
@@ -511,6 +520,7 @@ export default function AdminPropertiesPage() {
         <h3 className="mb-3 text-sm font-semibold text-slate-900">
           Objektliste
         </h3>
+
         {loading ? (
           <p className="text-sm text-slate-500">Lade Objekte…</p>
         ) : items.length === 0 ? (
@@ -607,6 +617,7 @@ export default function AdminPropertiesPage() {
             <p className="mt-1 text-[11px] text-slate-500">
               {pendingDelete.title} · {pendingDelete.location}
             </p>
+
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
@@ -615,6 +626,7 @@ export default function AdminPropertiesPage() {
               >
                 Abbrechen
               </button>
+
               <button
                 type="button"
                 onClick={confirmRemove}
