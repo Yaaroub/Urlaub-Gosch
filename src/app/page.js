@@ -14,17 +14,12 @@ import { activities } from "@/lib/activities";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function HomePage(ctx) {
-  // ✅ searchParams in Next.js App Router ist ein Objekt (kein Promise)
-  const sp = ctx?.searchParams ?? {};
+export default async function HomePage({ searchParams }) {
+  const sp = (await searchParams) ?? {};
 
-  // ✅ safe getter (verhindert sync-dynamic warning in Next 15)
   const getSP = (key) => {
-    try {
-      return sp?.[key];
-    } catch {
-      return undefined;
-    }
+    const value = sp?.[key];
+    return Array.isArray(value) ? value[0] : value;
   };
   
   const arrival = String(getSP("arrival") ?? "");
