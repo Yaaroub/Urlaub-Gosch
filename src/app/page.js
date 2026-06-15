@@ -1,42 +1,47 @@
-// app/page.js
 import prisma from "@/lib/db";
 import SearchForm from "@/components/SearchForm";
 import PropertyGridClient from "@/components/PropertyGridClient";
 import WeatherWidget from "@/components/WeatherWidget";
-import RegionTeasers from "@/components/RegionTeasers";
 import LastMinuteTeaser from "@/components/LastMinuteTeaser";
+import { regions } from "@/lib/regions";
 import { buildPropertyWhere } from "@/lib/search-utils";
 import Link from "next/link";
 import HomeHero from "@/components/HomeHero";
-import ActivityMapClient from "@/components/ActivityMapClient";
+import LazyActivityMap from "@/components/LazyActivityMap";
 import { activities } from "@/lib/activities";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
+// NICHT:
+// export const dynamic = "force-dynamic";
+// export const revalidate = 0;
 
-export default async function HomePage({ searchParams }) {
-  const sp = (await searchParams) ?? {};
+export default async function HomePage(props) {
+  const sp = (await props.searchParams) ?? {};
 
   const getSP = (key) => {
-    const value = sp?.[key];
+    const value = sp[key];
     return Array.isArray(value) ? value[0] : value;
   };
-  
+
+  const getSPArray = (key) => {
+    const value = sp[key];
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  };
+
   const arrival = String(getSP("arrival") ?? "");
   const departure = String(getSP("departure") ?? "");
   const location = String(getSP("location") ?? "");
   const persons = String(getSP("persons") ?? "");
   const dogsStr = String(getSP("dogs") ?? "");
-  
+
   const dogs =
     dogsStr === "true" ? true : dogsStr === "false" ? false : undefined;
-  
-  // ✅ amenity immer als Array
-  const rawAmenity = getSP("amenity");
-  const amenitiesSelected = (Array.isArray(rawAmenity) ? rawAmenity : rawAmenity ? [rawAmenity] : [])
-    .filter(Boolean)
-    .map((a) => String(a).toLowerCase());
-  
+
+const amenitiesSelected = getSPArray("amenity")
+  .filter(Boolean)
+  .map((a) => String(a).toLowerCase());
+
   const where = buildPropertyWhere({
     arrival,
     departure,
@@ -46,9 +51,8 @@ export default async function HomePage({ searchParams }) {
     amenities: amenitiesSelected,
   });
 
-  let properties = [];
-  try {
-    properties = await prisma.property.findMany({
+  const [properties, allAmenities] = await Promise.all([
+    prisma.property.findMany({
       where,
       orderBy: { id: "asc" },
       select: {
@@ -59,33 +63,31 @@ export default async function HomePage({ searchParams }) {
         maxPersons: true,
         dogsAllowed: true,
         amenities: {
-          select: { id: true, name: true },
+          select: {
+            id: true,
+            name: true,
+          },
           take: 6,
         },
         images: {
           orderBy: { sort: "asc" },
           take: 1,
-          select: { url: true, alt: true },
+          select: {
+            url: true,
+            alt: true,
+          },
         },
       },
-      
-    });
-  } catch (e) {
-    console.error("DB error:", e?.message || e);
-  }
+    }),
 
-  let allAmenities = [];
-  try {
-    allAmenities = await prisma.amenity.findMany({
+    prisma.amenity.findMany({
       orderBy: { name: "asc" },
       select: {
         id: true,
         name: true,
       },
-    });
-  } catch (e) {
-    console.error("Amenity fetch error:", e?.message || e);
-  }
+    }),
+  ]);
 
   const hasActiveFilters =
     Boolean(
@@ -95,18 +97,15 @@ export default async function HomePage({ searchParams }) {
         typeof dogs === "boolean"
     ) || Boolean(arrival && departure);
 
-  // ✅ Das war der Bug: resultsCount war im JSX benutzt, aber nie definiert
   const resultsCount = properties.length;
 
   return (
     <>
-      {/* HERO */}
       <HomeHero
         hasActiveFilters={hasActiveFilters}
         resultsCount={resultsCount}
       />
 
-      {/* SEARCH SECTION */}
       <section id="suche" className="bg-[#050e1a]">
         <div className="mx-auto max-w-6xl px-3 sm:px-4 pb-16">
           <div className="relative -mt-10 md:-mt-14">
@@ -122,6 +121,7 @@ export default async function HomePage({ searchParams }) {
                     Daten wählen und freie Objekte sehen.
                   </p>
                 </div>
+
                 <span className="rounded-full bg-sky-500/90 px-3 py-1 text-[11px] font-semibold text-white">
                   BOOK NOW
                 </span>
@@ -134,7 +134,12 @@ export default async function HomePage({ searchParams }) {
                     departure,
                     location,
                     persons,
-                    dogs: dogs === true ? "true" : dogs === false ? "false" : "",
+                    dogs:
+                      dogs === true
+                        ? "true"
+                        : dogs === false
+                        ? "false"
+                        : "",
                     amenity: amenitiesSelected,
                   }}
                   amenities={allAmenities}
@@ -151,272 +156,210 @@ export default async function HomePage({ searchParams }) {
         </div>
       </section>
 
-      {/* THEMEN-KACHELN */}
-      <section className="bg-slate-50">
-        <div className="mx-auto max-w-6xl px-4 pb-8 pt-8 md:pb-10 md:pt-10">
-          <h2 className="text-lg font-semibold text-slate-900 md:text-xl">
-            Wie möchtest du reisen?
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Wähle dein Urlaubsthema – wir zeigen dir passende Unterkünfte.
-          </p>
-
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            <Link
-              href="/?location=Strand"
-              className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 p-4 text-white shadow-md ring-1 ring-sky-300/50"
-            >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.22),transparent_55%)] opacity-80" />
-              <div className="relative space-y-1">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-sky-100">
-                  Direkt am Wasser
-                </p>
-                <h3 className="text-base font-semibold">
-                  Meerblick &amp; Hafenflair
-                </h3>
-                <p className="text-xs text-sky-50/90">
-                  Wohnungen mit Blick aufs Wasser oder fußläufig zum Strand.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/?dogs=true"
-              className="group relative overflow-hidden rounded-2xl bg-white p-4 text-slate-900 shadow-md ring-1 ring-sky-100"
-            >
-              <div className="absolute right-[-30px] top-[-30px] h-24 w-24 rounded-full bg-sky-100 group-hover:scale-110 transition-transform" />
-              <div className="relative space-y-1">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-sky-700">
-                  Hunde willkommen
-                </p>
-                <h3 className="text-base font-semibold">
-                  Urlaub mit Hund &amp; Familie
-                </h3>
-                <p className="text-xs text-slate-600">
-                  Unterkünfte mit Garten, Nähe zu Spazierwegen und Strand.
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              href="/?persons=2"
-              className="group relative overflow-hidden rounded-2xl bg-white p-4 text-slate-900 shadow-md ring-1 ring-sky-100"
-            >
-              <div className="absolute left-[-24px] bottom-[-24px] h-20 w-20 rounded-full bg-sky-50 group-hover:scale-110 transition-transform" />
-              <div className="relative space-y-1">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-sky-700">
-                  Kurzurlaub
-                </p>
-                <h3 className="text-base font-semibold">Wochenende am Meer</h3>
-                <p className="text-xs text-slate-600">
-                  Kleine Apartments für 2–3 Personen, perfekt für den spontanen
-                  Trip.
-                </p>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* UNTERKÜNFTE */}
-      <section id="unterkuenfte" className="scroll-mt-24 bg-white" >
-        <div className="mx-auto max-w-6xl px-4 pb-10 pt-6 md:pb-12 md:pt-8">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">
-                Unsere Unterkünfte
-              </h2>
-              <p className="text-sm text-slate-600">
-                Ausgewählte Ferienobjekte in den schönsten Küstenregionen.
-              </p>
-            </div>
-
-            {resultsCount > 0 && (
-              <span className="text-xs text-slate-500">
-                {resultsCount} Unterkunft{resultsCount === 1 ? "" : "en"} aktuell
-                im Überblick
-              </span>
-            )}
-          </div>
-
-          {resultsCount === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-              Keine Treffer für die aktuelle Suche. Entferne einzelne Filter
-              oder löse die Datumsangabe, um mehr Unterkünfte zu sehen.
-            </p>
-          ) : (
-            <PropertyGridClient items={properties} showAvailabilityBadge={false} />
-          )}
-        </div>
-      </section>
-
-{/* MOSAIK */}
-<section className="relative overflow-hidden bg-slate-50">
-  {/* soft background blobs */}
+      <section className="relative overflow-hidden bg-[#f7fafc] py-14 md:py-20">
+  {/* dezenter Hintergrund */}
   <div className="pointer-events-none absolute inset-0">
-    <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-sky-200/40 blur-3xl" />
-    <div className="absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-indigo-200/30 blur-3xl" />
+    <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-sky-100/70 to-transparent" />
+    <div className="absolute left-1/2 top-10 h-[420px] w-[900px] -translate-x-1/2 rounded-full bg-cyan-100/60 blur-3xl" />
   </div>
 
-  <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-10 md:pb-16 md:pt-12">
+  <div className="relative mx-auto max-w-7xl px-4">
     {/* Header */}
-    <div className="mb-6 flex flex-col gap-2 md:mb-8 md:flex-row md:items-end md:justify-between">
+    <div className="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">
+        <span className="inline-flex rounded-full border border-sky-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700 shadow-sm">
+          Ostsee Guide
+        </span>
+
+        <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950 md:text-5xl">
           Entdecken & Planen
         </h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-600">
-          Wetter-Überblick, beliebte Regionen und Ausflugsziele – alles auf einen Blick.
+
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
+          Finde schöne Ausflugsziele, beliebte Küstenorte und aktuelle
+          Wetterinformationen für deine Reise an die Ostsee.
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <Link
           href="/ausflugsziele"
-          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+          className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md"
         >
-          Ausflugsziele
-          <span className="ml-1">→</span>
+          Ausflugsziele ansehen
+          <span className="ml-2">→</span>
         </Link>
+
         <Link
           href="/aktivitaete"
-          className="inline-flex items-center justify-center rounded-xl bg-sky-700 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-600"
+          className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl"
         >
           Karte öffnen
-          <span className="ml-1">↗</span>
+          <span className="ml-2">↗</span>
         </Link>
       </div>
     </div>
 
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
-      {/* Left column */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
-        {/* Weather */}
-        <div className="rounded-2xl border border-white/60 bg-gradient-to-br from-sky-600 via-sky-700 to-indigo-700 p-4 text-white shadow-md">
-          <div className="mb-3 flex items-center justify-between">
+    {/* Große Karte oben */}
+    <div className="overflow-hidden rounded-[2rem] border border-white bg-white shadow-2xl shadow-slate-900/10">
+      <div className="flex flex-col gap-4 border-b border-slate-100 bg-white p-5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700">
+            Interaktive Karte
+          </p>
+
+          <h3 className="mt-1 text-xl font-bold text-slate-950 md:text-2xl">
+            Ausflugsziele & Aktivitäten rund um die Ostsee
+          </h3>
+
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            Entdecke Strände, Naturorte, Familienziele und besondere Highlights
+            in der Nähe deiner Unterkunft.
+          </p>
+        </div>
+
+        <div className="hidden rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600 md:block">
+          {activities?.length || 0} Ziele verfügbar
+        </div>
+      </div>
+
+      <div className="p-3 md:p-5">
+        <div className="relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-100">
+          <div className="h-[420px] sm:h-[520px] lg:h-[620px]">
+            <LazyActivityMap
+              items={activities}
+              center={[54.35, 10.13]}
+              zoom={8}
+            />
+          </div>
+
+          <div className="pointer-events-none absolute left-4 top-4 hidden rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-xl backdrop-blur-xl sm:block">
+            <p className="text-xs font-bold text-slate-950">
+              Ostsee entdecken
+            </p>
+            <p className="mt-0.5 text-[11px] text-slate-500">
+              Klick auf einen Pin für Details
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Unten Wetter + Regionen */}
+    <div className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+      {/* Wetter */}
+      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-900/5">
+        <div className="border-b border-slate-100 p-5">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-sm font-semibold">Wetter an der Küste</h3>
-              <p className="mt-0.5 text-xs text-white/80">
-                Schnellcheck für die nächsten Tage.
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700">
+                Live Wetter
+              </p>
+
+              <h3 className="mt-1 text-lg font-bold text-slate-950">
+                Wetter an der Küste
+              </h3>
+
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                Schnellcheck für deine nächsten Urlaubstage.
               </p>
             </div>
 
-            <span className="rounded-full bg-white/15 px-2 py-1 text-[11px] font-semibold text-white/90 ring-1 ring-white/20">
+            <span className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 ring-1 ring-sky-100">
               Live
             </span>
           </div>
+        </div>
 
-          <div className="-mx-1">
+        <div className="bg-gradient-to-br from-sky-50 to-white p-4">
+          <div className="rounded-[1.5rem] border border-sky-100 bg-white p-3 shadow-inner">
             <WeatherWidget />
           </div>
         </div>
+      </div>
 
-        {/* Popular Regions (placeholder block) */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-md">
-          <div className="mb-3 flex items-start justify-between gap-3">
+      {/* Regionen */}
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5">
+  <div className="mb-5 flex items-start justify-between gap-4">
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700">
+        Regionen
+      </p>
+
+      <h3 className="mt-1 text-lg font-bold text-slate-950">
+        Beliebte Küstenorte an der Ostsee
+      </h3>
+
+      <p className="mt-1 text-sm leading-6 text-slate-500">
+        Entdecke schöne Ostseeorte, Strände, Naturregionen und Ausflugsziele
+        für deinen Urlaub in Schleswig-Holstein.
+      </p>
+    </div>
+
+    <Link
+      href="/regionen"
+      aria-label="Alle Ostsee Regionen ansehen"
+      className="shrink-0 rounded-full bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-sky-50 hover:text-sky-700"
+    >
+      Alle →
+    </Link>
+  </div>
+
+  <div className="grid gap-3 sm:grid-cols-2">
+    {regions.slice(0, 6).map((region) => (
+      <Link
+        key={region.slug}
+        href={`/regionen/${region.slug}`}
+        title={region.seoTitle}
+        aria-label={`${region.title} entdecken`}
+        className="group rounded-3xl border border-slate-100 bg-slate-50/80 p-4 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-lg"
+      >
+        <article>
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                Beliebte Regionen
-              </h3>
-              <p className="mt-0.5 text-xs text-slate-500">
-                Klassiker & stille Buchten.
+              <span className="inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-sky-700">
+                {region.badge}
+              </span>
+
+              <h4 className="mt-2 text-sm font-bold text-slate-950">
+                {region.title}
+              </h4>
+
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                {region.shortDescription}
+              </p>
+
+              <p className="mt-2 text-[11px] font-semibold text-sky-700">
+                Mehr über {region.title} erfahren
               </p>
             </div>
 
-            <Link
-              href="/regionen"
-              className="text-xs font-semibold text-sky-700 hover:text-sky-600"
-            >
-              Alle ansehen →
-            </Link>
-          </div>
-
-          {/* simple chips (optional) */}
-          <div className="flex flex-wrap gap-2">
-            {["Fehmarn", "Hohwacht", "Probstei", "Scharbeutz", "Kieler Förde"].map((r) => (
-              <Link
-                key={r}
-                href={`/regionen/${r.toLowerCase().replace(/\s+/g, "-")}`}
-                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-              >
-                {r}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Right column: MAP */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-md">
-        {/* Card header */}
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900">
-              Ausflugsziele & Aktivitäten
-            </h3>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Entdecke Highlights rund um deine Unterkunft – nach Kategorie filterbar.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/aktivitaete"
-              className="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
-            >
-              Alle ansehen →
-            </Link>
-          </div>
-        </div>
-
-        {/* Map area */}
-        <div className="p-3 sm:p-4">
-          <div className="overflow-hidden rounded-2xl ring-1 ring-slate-200">
-            <div className="h-[320px] sm:h-[380px] md:h-[420px] lg:h-[520px]">
-              <ActivityMapClient
-                items={activities}
-                center={[54.35, 10.13]}
-                zoom={8}
-              />
-            </div>
-          </div>
-
-          {/* Footer hint */}
-          <div className="mt-3 flex flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              Tipp: Klick auf einen Pin → Details & Navigation öffnen.
-            </span>
-            <span className="font-semibold text-slate-700">
-              {activities?.length || 0} Ziele verfügbar
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-slate-400 shadow-sm transition group-hover:bg-sky-600 group-hover:text-white">
+              →
             </span>
           </div>
-        </div>
-      </div>
+        </article>
+      </Link>
+    ))}
+  </div>
+</div>
     </div>
   </div>
 </section>
 
+      <section id="unterkuenfte" className="bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-10">
+          {resultsCount === 0 ? (
+            <p>Keine Treffer</p>
+          ) : (
+            <PropertyGridClient items={properties} />
+          )}
+        </div>
+      </section>
 
-      {/* LAST MINUTE */}
-      <section className="">
-        <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
-          <div className="rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-500 via-sky-400 to-sky-600 p-5 text-white shadow-2xl sm:p-7">
-            <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-100">
-                  Last Minute
-                </p>
-                <h2 className="text-xl font-bold md:text-2xl">
-                  Kurzfristig ans Meer – unsere aktuellen Angebote
-                </h2>
-                <p className="mt-1 text-sm text-sky-50 max-w-xl">
-                  Perfekt für spontane Auszeiten: reduzierte Preise und freie
-                  Zeiträume in den nächsten Wochen.
-                </p>
-              </div>
-            </div>
-            <LastMinuteTeaser />
-          </div>
+      <section>
+        <div className="mx-auto max-w-6xl px-4 py-10">
+          <LastMinuteTeaser />
         </div>
       </section>
     </>

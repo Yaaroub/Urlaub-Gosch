@@ -285,7 +285,7 @@ function ExistingImagesPremium({
                           )
                         );
                       }}
-                      onBlur={() => saveAlt(it)} // pro-feeling autosave fürs Alt
+                      onBlur={() => saveAlt(it)}
                     />
                   </div>
 
@@ -330,7 +330,7 @@ export default function AdminImagesPage() {
   const [pendingDeleteOne, setPendingDeleteOne] = useState(null);
   const [pendingDeleteMany, setPendingDeleteMany] = useState(false);
 
-  // ✅ Premium: Dirty state, wenn Reihenfolge geändert wurde
+  // Dirty state, wenn Reihenfolge geändert wurde
   const [dirtyOrder, setDirtyOrder] = useState(false);
 
   // -------------------------------------------------
@@ -441,49 +441,71 @@ export default function AdminImagesPage() {
 
   async function uploadAll() {
     if (!propertyId || selectedNew.length === 0) return;
-
+  
     setBusy(true);
     setErr("");
     setMsg(null);
-
+  
     try {
-      // ---------- 1) UPLOAD ----------
-      const fd = new FormData();
-      selectedNew.forEach((s) => fd.append("files", s.file));
-
-      const uploadRes = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: fd,
-      });
-
-      const uploadText = await uploadRes.text();
-      let uploadJson = null;
-      try {
-        uploadJson = JSON.parse(uploadText);
-      } catch {}
-
-      if (!uploadRes.ok) {
-        console.error("UPLOAD FAIL", uploadRes.status, uploadText);
-        throw new Error(
-          uploadJson?.error || `Upload fehlgeschlagen (${uploadRes.status})`
-        );
+      // ---------- 1) UPLOAD EINZELN ----------
+      const uploadedFiles = [];
+  
+      for (const s of selectedNew) {
+        const fd = new FormData();
+  
+        // Deine API erwartet offenbar "files", nicht "file"
+        fd.append("files", s.file);
+        fd.append("propertyId", String(propertyId));
+  
+        const uploadRes = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: fd,
+        });
+  
+        const uploadText = await uploadRes.text();
+  
+        let uploadJson = null;
+        try {
+          uploadJson = JSON.parse(uploadText);
+        } catch {}
+  
+        if (!uploadRes.ok) {
+          console.error("UPLOAD FAIL", uploadRes.status, uploadText);
+          throw new Error(
+            uploadJson?.details ||
+              uploadJson?.error ||
+              uploadText ||
+              `Upload fehlgeschlagen (${uploadRes.status})`
+          );
+        }
+  
+        const uploaded =
+          uploadJson?.file ||
+          uploadJson?.files?.[0] ||
+          uploadJson?.uploaded?.[0] ||
+          uploadJson?.data?.files?.[0] ||
+          (Array.isArray(uploadJson) ? uploadJson[0] : null) ||
+          uploadJson;
+  
+        if (!uploaded?.url) {
+          console.error("UPLOAD SHAPE WRONG", uploadJson);
+          throw new Error(
+            `Upload-Antwort ungültig: URL fehlt. Antwort: ${JSON.stringify(
+              uploadJson
+            )}`
+          );
+        }
+  
+        uploadedFiles.push(uploaded);
       }
-
-      if (
-        !uploadJson?.files ||
-        uploadJson.files.length !== selectedNew.length
-      ) {
-        console.error("UPLOAD SHAPE WRONG", uploadJson);
-        throw new Error("Upload-Antwort ungültig (files fehlt/Anzahl falsch).");
-      }
-
+  
       // ---------- 2) SAVE IN DB ----------
       const images = selectedNew.map((s, i) => ({
-        url: uploadJson.files[i].url,
+        url: uploadedFiles[i].url,
         alt: s.alt || null,
-        sort: i, // 0 = Titelbild
+        sort: i,
       }));
-
+  
       const saveRes = await fetch("/api/admin/images", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -493,28 +515,33 @@ export default function AdminImagesPage() {
           images,
         }),
       });
-
+  
       const saveText = await saveRes.text();
+  
       let saveJson = null;
       try {
         saveJson = JSON.parse(saveText);
       } catch {}
-
+  
       if (!saveRes.ok) {
         console.error("SAVE FAIL", saveRes.status, saveText);
         throw new Error(
-          saveJson?.error || `Speichern fehlgeschlagen (${saveRes.status})`
+          saveJson?.details ||
+            saveJson?.error ||
+            saveText ||
+            `Speichern fehlgeschlagen (${saveRes.status})`
         );
       }
-
+  
       const freshImages = saveJson?.images ?? saveJson;
+  
       setItems(normalizeSort(Array.isArray(freshImages) ? freshImages : []));
       setSelectedExisting(new Set());
       setDirtyOrder(false);
-
+  
       selectedNew.forEach((s) => URL.revokeObjectURL(s.preview));
       setSelectedNew([]);
-
+  
       setMsg({ t: "ok", m: "Bilder wurden hochgeladen und gespeichert." });
     } catch (e) {
       console.error(e);
@@ -524,13 +551,13 @@ export default function AdminImagesPage() {
       setBusy(false);
     }
   }
-
   // -------------------------------------------------
   // Bestehende Bilder bearbeiten/speichern
   // -------------------------------------------------
 
   async function save(item) {
     setMsg(null);
+
     try {
       const res = await fetch("/api/admin/images", {
         method: "PUT",
@@ -559,6 +586,7 @@ export default function AdminImagesPage() {
 
       if (data.images) {
         setItems(normalizeSort(data.images));
+
         setSelectedExisting((prev) => {
           const stillExisting = new Set();
           for (const img of data.images) {
@@ -570,8 +598,10 @@ export default function AdminImagesPage() {
         const again = await fetch(
           `/api/admin/images?propertyId=${propertyId}`
         ).then((r) => r.json());
+
         setItems(normalizeSort(again || []));
       }
+
       setMsg({ t: "ok", m: "Bilddaten wurden gespeichert." });
     } catch {
       setMsg({ t: "error", m: "Netzwerkfehler beim Speichern." });
@@ -580,7 +610,10 @@ export default function AdminImagesPage() {
 
   const saveAlt = (it) => save(it);
 
-  // ✅ Premium: Reihenfolge in einem Rutsch speichern
+  // -------------------------------------------------
+  // Reihenfolge speichern
+  // -------------------------------------------------
+
   async function saveOrderAll() {
     if (!propertyId || items.length === 0) return;
 
@@ -595,7 +628,10 @@ export default function AdminImagesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           propertyId: Number(propertyId),
-          order: normalized.map((it) => ({ id: it.id, sort: it.sort })),
+          order: normalized.map((it) => ({
+            id: it.id,
+            sort: it.sort,
+          })),
         }),
       });
 
@@ -605,15 +641,20 @@ export default function AdminImagesPage() {
       }
 
       const text = await res.text();
+
       let json = null;
       try {
         json = JSON.parse(text);
       } catch {}
 
-      if (!res.ok) throw new Error(json?.error || "Speichern fehlgeschlagen.");
+      if (!res.ok) {
+        throw new Error(json?.error || "Speichern fehlgeschlagen.");
+      }
 
       const fresh = json?.images ?? json;
-      if (Array.isArray(fresh)) setItems(normalizeSort(fresh));
+      if (Array.isArray(fresh)) {
+        setItems(normalizeSort(fresh));
+      }
 
       setDirtyOrder(false);
       setMsg({ t: "ok", m: "Reihenfolge gespeichert." });
@@ -625,7 +666,7 @@ export default function AdminImagesPage() {
   }
 
   // -------------------------------------------------
-  // Einzelnes Bild löschen (Modal)
+  // Einzelnes Bild löschen
   // -------------------------------------------------
 
   function askRemoveOne(item) {
@@ -635,8 +676,10 @@ export default function AdminImagesPage() {
 
   async function confirmRemoveOne() {
     if (!pendingDeleteOne || !propertyId) return;
+
     const id = pendingDeleteOne.id;
     setBusy(true);
+
     try {
       const res = await fetch(`/api/admin/images/${id}`, {
         method: "DELETE",
@@ -654,12 +697,14 @@ export default function AdminImagesPage() {
       }
 
       const fresh = await res.json();
+
       if (fresh?.images) {
         setItems(normalizeSort(fresh.images));
       } else {
         const again = await fetch(
           `/api/admin/images?propertyId=${propertyId}`
         ).then((r) => r.json());
+
         setItems(normalizeSort(again || []));
       }
 
@@ -686,8 +731,13 @@ export default function AdminImagesPage() {
   function toggleExisting(id) {
     setSelectedExisting((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+
       return next;
     });
   }
@@ -743,6 +793,7 @@ export default function AdminImagesPage() {
         const again = await fetch(
           `/api/admin/images?propertyId=${propertyId}`
         ).then((r) => r.json());
+
         setItems(normalizeSort(again || []));
       }
 
@@ -778,6 +829,7 @@ export default function AdminImagesPage() {
             </button>
           </div>
         )}
+
         {msg && msg.t === "ok" && (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
             <span>{msg.m}</span>
@@ -798,9 +850,11 @@ export default function AdminImagesPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
             Admin · Bilder
           </p>
+
           <h1 className="text-2xl font-semibold text-slate-900">
             Bilder verwalten
           </h1>
+
           <p className="mt-1 text-sm text-slate-600">
             Bilder hochladen, Reihenfolge festlegen und Alt-Texte pflegen.
           </p>
@@ -810,12 +864,14 @@ export default function AdminImagesPage() {
           <label className="mb-1 block text-xs font-semibold text-slate-700">
             Objekt wählen
           </label>
+
           <select
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
             value={propertyId}
             onChange={(e) => setPropertyId(e.target.value)}
           >
             <option value="">— Objekt wählen —</option>
+
             {properties.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title}
@@ -840,6 +896,7 @@ export default function AdminImagesPage() {
               onChange={onPick}
               className="hidden"
             />
+
             <span className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs shadow-sm hover:bg-slate-50">
               Dateien auswählen…
             </span>
@@ -880,6 +937,7 @@ export default function AdminImagesPage() {
                     <div className="text-xs text-slate-600">
                       Reihenfolge:{" "}
                       <span className="font-semibold">{idx + 1}</span>
+
                       {idx === 0 && (
                         <span className="ml-2 inline-block rounded border border-emerald-300 bg-emerald-100 px-2 py-0.5 text-[10px] leading-none text-emerald-700">
                           wird Titelbild
@@ -897,6 +955,7 @@ export default function AdminImagesPage() {
                       >
                         ↑
                       </button>
+
                       <button
                         type="button"
                         onClick={() => moveNewImageDown(idx)}
@@ -913,6 +972,7 @@ export default function AdminImagesPage() {
                     <label className="block text-xs text-slate-600">
                       Alt-Text
                     </label>
+
                     <input
                       className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
                       value={s.alt}
@@ -926,7 +986,7 @@ export default function AdminImagesPage() {
         )}
       </div>
 
-      {/* ✅ Premium Vorhandene Bilder */}
+      {/* Vorhandene Bilder */}
       <ExistingImagesPremium
         items={items}
         setItems={setItems}
@@ -950,15 +1010,18 @@ export default function AdminImagesPage() {
             <h4 className="text-sm font-semibold text-slate-900">
               Bild löschen?
             </h4>
+
             <p className="mt-2 text-sm text-slate-600">
               Möchtest du dieses Bild wirklich löschen? Die Aktion kann nicht
               rückgängig gemacht werden.
             </p>
+
             <p className="mt-1 text-[11px] text-slate-500">
               ID: {pendingDeleteOne.id}
               {typeof pendingDeleteOne.sort === "number" &&
                 ` · Sort: ${pendingDeleteOne.sort}`}
             </p>
+
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
@@ -967,6 +1030,7 @@ export default function AdminImagesPage() {
               >
                 Abbrechen
               </button>
+
               <button
                 type="button"
                 onClick={confirmRemoveOne}
@@ -987,11 +1051,13 @@ export default function AdminImagesPage() {
             <h4 className="text-sm font-semibold text-slate-900">
               Ausgewählte Bilder löschen?
             </h4>
+
             <p className="mt-2 text-sm text-slate-600">
               Es werden{" "}
               <span className="font-semibold">{selectedExisting.size}</span>{" "}
               Bilder gelöscht. Die Aktion kann nicht rückgängig gemacht werden.
             </p>
+
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
@@ -1000,6 +1066,7 @@ export default function AdminImagesPage() {
               >
                 Abbrechen
               </button>
+
               <button
                 type="button"
                 onClick={confirmRemoveSelectedMany}

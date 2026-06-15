@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, MapPin, Star, Waves } from "lucide-react";
 
 export default function HomeHero({ hasActiveFilters, resultsCount }) {
   const slides = useMemo(
     () => [
-      { src: "/hero/hero-1.jpg", alt: "Küste & Strand" },
+      { src: "/hero/hero-1.jpg", alt: "Küste und Strand" },
       { src: "/hero/hero-2.jpg", alt: "Ferienhaus am Meer" },
-      { src: "/hero/hero-3.jpg", alt: "Hafen & Abendstimmung" },
+      { src: "/hero/hero-3.jpg", alt: "Hafen und Abendstimmung" },
     ],
     []
   );
@@ -18,198 +19,218 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
-    }, 5200);
-    return () => clearInterval(t);
+    const timer = setInterval(() => {
+      setIndex((current) => (current + 1) % slides.length);
+    }, 7500);
+
+    return () => clearInterval(timer);
   }, [slides.length]);
 
-  const container = {
-    hidden: { opacity: 0, y: 10 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.65, ease: "easeOut", staggerChildren: 0.08 },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 10, filter: "blur(6px)" },
-    show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.55, ease: "easeOut" } },
-  };
-
   return (
-    <section className="relative overflow-hidden bg-[#050e1a] text-white">
-      {/* BACKGROUND */}
-      <div className="absolute inset-0">
+    <section className="relative isolate overflow-hidden bg-[#081522] text-white">
+      {/* Background */}
+      <div className="absolute inset-0 -z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={slides[index].src}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
             className="absolute inset-0"
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
           >
-            {/* Ken Burns (subtil) */}
-            <motion.div
-              className="absolute inset-0"
-              initial={{ scale: 1.05, x: 0, y: 0 }}
-              animate={{
-                scale: 1.12,
-                x: index % 2 === 0 ? 10 : -10,
-                y: index % 2 === 0 ? -8 : 8,
-              }}
-              transition={{ duration: 6.2, ease: "easeOut" }}
-            >
-              <Image
-                src={slides[index].src}
-                alt={slides[index].alt}
-                fill
-                priority
-                className="object-cover"
-              />
-            </motion.div>
+            <Image
+              src={slides[index].src}
+              alt={slides[index].alt}
+              fill
+              priority={index === 0}
+              sizes="100vw"
+              className="object-cover"
+            />
           </motion.div>
         </AnimatePresence>
 
-        {/* Overlay (Header-Style: deep navy glass + cyan glow) */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#061423]/92 via-[#061423]/58 to-black/15" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#061423]/78 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_30%,rgba(51,188,242,0.18),transparent_46%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_22%,rgba(13,136,211,0.14),transparent_42%)]" />
+        {/* Mobile: image darker, text always readable */}
+        <div className="absolute inset-0 bg-[#081522]/55 md:bg-[#081522]/35" />
 
-        {/* Floating light blobs (subtil, premium) */}
-        <motion.div
-          aria-hidden="true"
-          className="absolute -left-24 top-24 h-64 w-64 rounded-full bg-sky-400/10 blur-3xl"
-          animate={{ y: [0, -10, 0], x: [0, 8, 0] }}
-          transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          aria-hidden="true"
-          className="absolute -right-24 top-10 h-72 w-72 rounded-full bg-sky-300/10 blur-3xl"
-          animate={{ y: [0, 12, 0], x: [0, -10, 0] }}
-          transition={{ duration: 9.5, repeat: Infinity, ease: "easeInOut" }}
-        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#081522] via-[#081522]/55 to-[#081522]/20 md:hidden" />
+
+        {/* Desktop: cinematic side overlay */}
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-[#081522]/95 via-[#081522]/68 to-[#081522]/10 md:block" />
+        <div className="absolute inset-0 hidden bg-gradient-to-t from-[#081522] via-transparent to-[#081522]/25 md:block" />
       </div>
 
-      {/* CONTENT */}
-      <div className="relative mx-auto max-w-6xl px-3 sm:px-4">
-        {/* Platz für fixed header */}
-        <div className="min-h-[70svh] pt-28 pb-12 md:min-h-[98vh] md:pt-32 md:pb-16">
-          {/* Accent line (wie Header) */}
-          <div className="mb-6 h-[2px] w-40 bg-gradient-to-r from-transparent via-sky-400/80 to-transparent" />
+      {/* Content */}
+      <div
+        className="
+          mx-auto flex w-full max-w-7xl items-center px-4
+          min-h-[calc(100svh-0px)]
+          pb-20 pt-28
+          sm:px-6 sm:pb-24 sm:pt-32
+          md:min-h-[720px] md:pb-28 md:pt-36
+          lg:min-h-[780px] lg:px-8
+          xl:min-h-[840px]
+          2xl:min-h-[900px]
+        "
+      >
+        <div className="w-full max-w-[680px] md:max-w-[740px]">
+          {/* Small label */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55 }}
+            className="
+              inline-flex max-w-full items-center gap-2 rounded-full
+              border border-white/15 bg-white/[0.09]
+              px-3.5 py-2 text-[10px] font-semibold uppercase
+              tracking-[0.16em] text-white/78 backdrop-blur-xl
+              sm:text-xs sm:tracking-[0.2em]
+            "
+          >
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#f5d89e]" />
+            <span className="truncate">Nordsee · Ostsee · Ferienunterkünfte</span>
+          </motion.div>
 
-          <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl">
-           <motion.div variants={item} className="flex items-center gap-3">
-  <div className="flex items-center gap-3 rounded-xl bg-black/45 px-3 py-2 backdrop-blur-md border border-white/10">
-    <img
-      src="/urlaub-gosch-logo.png"
-      alt="URLAUB-GOSCH Logo"
-      className="h-12 w-auto drop-shadow-[0_6px_18px_rgba(0,0,0,0.7)]"
-    />
-    <div className="flex flex-col leading-tight">
-      <span className="text-xs font-semibold tracking-[0.22em] uppercase text-white">
-        Urlaub-GOSCH
-      </span>
-      <span className="text-[11px] text-white/75">
-        Nord- & Ostsee • handverlesen
-      </span>
-    </div>
-  </div>
-</motion.div>
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.08 }}
+            className="
+              mt-6 font-semibold leading-[0.96] tracking-[-0.065em]
+              text-[clamp(2.7rem,12vw,4.2rem)]
+              sm:text-[clamp(3.4rem,10vw,5rem)]
+              md:text-[clamp(4rem,7.5vw,6.1rem)]
+            "
+          >
+            Deine Auszeit
+            <span className="block font-serif italic font-normal tracking-[-0.04em] text-[#f5d89e]">
+              am Meer.
+            </span>
+          </motion.h1>
 
+          {/* Text */}
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.16 }}
+            className="
+              mt-5 max-w-xl text-[15px] leading-7 text-white/76
+              sm:mt-6 sm:text-base sm:leading-8
+              md:max-w-2xl md:text-lg
+            "
+          >
+            Entdecke komfortable Ferienhäuser und Apartments an der Küste —
+            übersichtlich geplant, persönlich ausgewählt und ideal für Familie,
+            Hund oder ruhige Tage am Wasser.
+          </motion.p>
 
-            <motion.p
-              variants={item}
-              className="mt-6 text-[11px] uppercase tracking-[0.22em] text-sky-100/80"
+          {/* Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.24 }}
+            className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+          >
+            <a
+              href="#suche"
+              className="
+                group inline-flex w-full items-center justify-center gap-2
+                rounded-full bg-[#f5d89e] px-6 py-3.5
+                text-sm font-bold text-[#081522]
+                shadow-[0_18px_55px_rgba(0,0,0,0.28)]
+                transition hover:-translate-y-0.5 hover:bg-white
+                sm:w-auto sm:px-7 sm:py-4
+              "
             >
-              Welcome to
-            </motion.p>
+              Unterkunft finden
+              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+            </a>
 
-            <motion.h1
-              variants={item}
-              className="mt-2 text-4xl font-extrabold leading-[1.05] md:text-6xl"
+            <Link
+              href="/offers"
+              className="
+                inline-flex w-full items-center justify-center
+                rounded-full border border-white/18 bg-white/[0.08]
+                px-6 py-3.5 text-sm font-semibold text-white
+                backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/[0.14]
+                sm:w-auto sm:px-7 sm:py-4
+              "
             >
-              URLAUB
-              <span className="block text-sky-200">AN DER KÜSTE</span>
-            </motion.h1>
+              Angebote ansehen
+            </Link>
 
-            <motion.p variants={item} className="mt-4 text-sm text-sky-100/90 md:text-base">
-              Klare Suche, echte Verfügbarkeiten und Unterkünfte, die wirklich passen –
-              für Familien, Paare und Urlaub mit Hund.
-            </motion.p>
-
-            <motion.div variants={item} className="mt-5 flex flex-wrap gap-2 text-[11px] text-sky-100/85">
-              <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur">
-                • Strandnah &amp; küstennah
+            {hasActiveFilters && (
+              <span className="text-center text-sm text-white/65 sm:text-left">
+                {resultsCount} Treffer
               </span>
-              <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur">
-                • Hund erlaubt (viele Objekte)
-              </span>
-              <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur">
-                • Geprüfte Unterkünfte
-              </span>
-            </motion.div>
+            )}
+          </motion.div>
 
-            <motion.div variants={item} className="mt-6 flex flex-wrap items-center gap-3">
-              <a
-                href="#suche"
-                className="inline-flex items-center justify-center rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white
-                shadow-[0_18px_40px_rgba(13,136,211,0.25)] hover:bg-sky-400"
-              >
-                Unterkunft suchen
-              </a>
+          {/* Desktop trust cards only */}
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.32 }}
+            className="mt-10 hidden max-w-2xl grid-cols-3 gap-3 md:grid"
+          >
+            {[
+              {
+                icon: Star,
+                title: "Ausgewählt",
+                text: "geprüfte Ferienunterkünfte",
+              },
+              {
+                icon: MapPin,
+                title: "Küstenlagen",
+                text: "Nordsee und Ostsee",
+              },
+              {
+                icon: Waves,
+                title: "Meerzeit",
+                text: "ruhig und komfortabel",
+              },
+            ].map((item) => {
+              const Icon = item.icon;
 
-              <Link
-                href="/offers"
-                className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white
-                backdrop-blur hover:bg-white/10"
-              >
-                Specials
-              </Link>
-
-              {hasActiveFilters && (
-                <span className="text-xs text-sky-100/75">{resultsCount} Treffer für deine Filter</span>
-              )}
-            </motion.div>
-
-            {/* Slider dots */}
-            <motion.div variants={item} className="mt-6 flex items-center gap-2">
-              {slides.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setIndex(i)}
-                  className={[
-                    "h-1.5 w-7 rounded-full transition",
-                    i === index
-                      ? "bg-sky-300 shadow-[0_0_0_3px_rgba(51,188,242,0.12)]"
-                      : "bg-white/20 hover:bg-white/35",
-                  ].join(" ")}
-                  aria-label={`Slide ${i + 1}`}
-                />
-              ))}
-            </motion.div>
-
-            {/* Subtle scroll hint */}
-            <motion.div
-              variants={item}
-              className="mt-8 flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-sky-100/60"
-            >
-              <span className="inline-block h-[1px] w-10 bg-white/20" />
-              scroll
-            </motion.div>
+              return (
+                <div
+                  key={item.title}
+                  className="
+                    rounded-[1.4rem] border border-white/12
+                    bg-white/[0.075] p-4 backdrop-blur-xl
+                    shadow-[0_18px_60px_rgba(0,0,0,0.18)]
+                  "
+                >
+                  <Icon className="h-4 w-4 text-[#f5d89e]" />
+                  <p className="mt-4 text-sm font-semibold text-white">
+                    {item.title}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-white/55">
+                    {item.text}
+                  </p>
+                </div>
+              );
+            })}
           </motion.div>
         </div>
-      </div>
 
-      {/* bottom glow */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-[-6rem] h-[14rem] opacity-60">
-        <div className="absolute inset-x-[-40%] bottom-0 h-[12rem] rounded-[50%] bg-gradient-to-r from-sky-500/60 via-sky-300/40 to-sky-500/60 blur-3xl" />
+        {/* Dots */}
+        <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2 rounded-full border border-white/12 bg-white/[0.08] px-3 py-2 backdrop-blur-xl sm:bottom-7">
+          {slides.map((slide, i) => (
+            <button
+              key={slide.src}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Slide ${i + 1}`}
+              className={[
+                "h-2 rounded-full transition-all duration-300",
+                i === index ? "w-8 bg-[#f5d89e]" : "w-2 bg-white/35",
+              ].join(" ")}
+            />
+          ))}
+        </div>
       </div>
     </section>
-    
   );
 }
