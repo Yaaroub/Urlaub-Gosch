@@ -50,7 +50,7 @@ export default function FavoritesPage() {
   }, [ids]);
 
   return (
-    <main className="bg-[#050e1a]  text-white">
+    <main className="bg-[#050e1a] min-h-150 text-white">
       <section className="mx-auto max-w-6xl px-3 sm:px-4 pt-28 pb-14 md:pt-32">
         {/* Header area */}
         <div className="animate-fadeUp">

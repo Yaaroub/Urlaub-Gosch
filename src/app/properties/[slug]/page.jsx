@@ -243,8 +243,7 @@ export default async function PropertyPage({ params }) {
               </p>
             )}
 
-            <BookingCalendar propertyId={property.id} />
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+<BookingCalendar propertyId={property.id} compact />            <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
               <p>Belegung inkl. An- &amp; Abreisetage (Ende exkl.).</p>
               <a
                 href={`/api/ical/${encodeURIComponent(property.slug)}`}

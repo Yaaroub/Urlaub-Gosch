@@ -8,16 +8,21 @@ import FavButton from "@/components/FavButton";
 import LastMinuteBadge from "./LastMinuteBadge";
 import { getAmenityIcon, normalizeAmenityName } from "@/lib/amenity-icons";
 
-/** Favoriten nach oben sortieren (sekundär nach Titel) */
+/** Favoriten nach oben sortieren, sekundär nach Titel */
 function sortByFavoritesFirst(list, favSet) {
   if (!favSet || favSet.size === 0) return list;
+
   const arr = [...list];
+
   arr.sort((a, b) => {
     const af = favSet.has(String(a.id)) ? 1 : 0;
     const bf = favSet.has(String(b.id)) ? 1 : 0;
+
     if (af !== bf) return bf - af;
+
     return (a.title || "").localeCompare(b.title || "", "de");
   });
+
   return arr;
 }
 
@@ -26,22 +31,28 @@ function SwitchRow({ checked, onChange, label }) {
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+      className={[
+        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition",
+        checked
+          ? "border-sky-200 bg-sky-50 text-sky-800"
+          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+      ].join(" ")}
       aria-pressed={checked}
     >
       <span
         className={[
-          "relative inline-flex h-5 w-9 items-center rounded-full transition",
+          "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
           checked ? "bg-sky-600" : "bg-slate-300",
         ].join(" ")}
       >
         <span
           className={[
-            "inline-block h-4 w-4 rounded-full bg-white transition",
+            "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
             checked ? "translate-x-4" : "translate-x-1",
           ].join(" ")}
         />
       </span>
+
       <span className="font-medium">{label}</span>
     </button>
   );
@@ -49,7 +60,7 @@ function SwitchRow({ checked, onChange, label }) {
 
 /**
  * props:
- * - items: Array<{ id, slug, title, location, maxPersons, dogsAllowed, images:[{url,alt}] }>
+ * - items: Array<{ id, slug, title, location, maxPersons, dogsAllowed, images:[{url,alt}], amenities:[] }>
  * - showAvailabilityBadge?: boolean
  * - controls?: boolean
  */
@@ -59,79 +70,100 @@ export default function PropertyGridClient({
   controls = true,
 }) {
   const { ready, favorites } = useFavorites();
+
   const [onlyFavs, setOnlyFavs] = useState(false);
   const [favFirst, setFavFirst] = useState(true);
-  const [onlyLastMinute, setOnlyLastMinute] = useState(false); // ✅ NEU
+  const [onlyLastMinute, setOnlyLastMinute] = useState(false);
 
-  // aktive Last-Minute-Angebote laden
   const [offers, setOffers] = useState([]);
+
   useEffect(() => {
     let alive = true;
-    fetch("/api/lastminute", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data) => {
-        if (alive) setOffers(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {});
+
+    async function loadOffers() {
+      try {
+        const res = await fetch("/api/lastminute", {
+          cache: "no-store",
+        });
+
+        const data = res.ok ? await res.json() : [];
+
+        if (alive) {
+          setOffers(Array.isArray(data) ? data : []);
+        }
+      } catch {
+        if (alive) {
+          setOffers([]);
+        }
+      }
+    }
+
+    loadOffers();
+
     return () => {
       alive = false;
     };
   }, []);
 
-  // Map: propertyId -> max. discount
   const byProp = useMemo(() => {
-    const m = new Map();
-    for (const o of offers) {
-      const pid = String(o.propertyId);
-      const current = m.get(pid) ?? 0;
-      const d = Number(o.discount) || 0;
-      if (d > current) m.set(pid, d);
+    const map = new Map();
+
+    for (const offer of offers) {
+      const propertyId = String(offer.propertyId);
+      const currentDiscount = map.get(propertyId) ?? 0;
+      const discount = Number(offer.discount) || 0;
+
+      if (discount > currentDiscount) {
+        map.set(propertyId, discount);
+      }
     }
-    return m;
+
+    return map;
   }, [offers]);
 
-  // Filtern + Sortieren
   const filtered = useMemo(() => {
-    let base = items;
+    let base = Array.isArray(items) ? items : [];
 
-    // ✅ Last-Minute Filter (nur Objekte mit Discount)
     if (onlyLastMinute) {
-      base = base.filter((i) => byProp.has(String(i.id)));
+      base = base.filter((item) => byProp.has(String(item.id)));
     }
 
-    // Favoriten Filter
     if (onlyFavs && ready) {
-      base = base.filter((i) => favorites.has(String(i.id)));
+      base = base.filter((item) => favorites.has(String(item.id)));
     }
 
-    // Sortierung Favoriten zuerst
     return favFirst && ready ? sortByFavoritesFirst(base, favorites) : base;
   }, [items, onlyLastMinute, onlyFavs, favFirst, ready, favorites, byProp]);
 
   const lastMinuteCount = useMemo(() => {
-    if (!items?.length) return 0;
-    let c = 0;
-    for (const p of items) if (byProp.has(String(p.id))) c++;
-    return c;
+    if (!Array.isArray(items) || items.length === 0) return 0;
+
+    let count = 0;
+
+    for (const property of items) {
+      if (byProp.has(String(property.id))) count++;
+    }
+
+    return count;
   }, [items, byProp]);
 
   return (
     <>
       {controls && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             <SwitchRow
               checked={onlyFavs}
               onChange={setOnlyFavs}
               label="Nur Favoriten"
             />
+
             <SwitchRow
               checked={favFirst}
               onChange={setFavFirst}
               label="Favoriten zuerst"
             />
 
-            {/* ✅ NEU: Last-Minute Switch */}
             <SwitchRow
               checked={onlyLastMinute}
               onChange={setOnlyLastMinute}
@@ -140,8 +172,11 @@ export default function PropertyGridClient({
           </div>
 
           {ready && (
-            <span className="text-xs text-slate-500">
-              Favoriten: <span className="font-semibold">{favorites.size}</span>
+            <span className="rounded-full bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+              Favoriten:{" "}
+              <span className="font-semibold text-slate-700">
+                {favorites.size}
+              </span>
             </span>
           )}
         </div>
@@ -153,90 +188,114 @@ export default function PropertyGridClient({
         </p>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p) => {
-            const discount = byProp.get(String(p.id));
+          {filtered.map((property) => {
+            const discount = byProp.get(String(property.id));
+
+            const amenities = Array.isArray(property.amenities)
+              ? property.amenities
+              : [];
 
             return (
               <Link
-                key={p.id}
-                href={`/properties/${p.slug}`}
+                key={property.id}
+                href={`/properties/${property.slug}`}
                 className={[
                   "group relative overflow-hidden rounded-2xl bg-white",
                   "border border-slate-200 shadow-sm",
-                  "transition hover:shadow-md hover:-translate-y-0.5",
+                  "transition-[border-color,box-shadow] duration-200 ease-out",
+                  "hover:border-slate-300 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)]",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60",
                 ].join(" ")}
               >
-                {/* Badges */}
-                <FavButton id={p.id} className="absolute right-3 top-3 z-10" />
+                <FavButton
+                  id={property.id}
+                  className="absolute right-3 top-3 z-10"
+                />
+
                 {discount != null && <LastMinuteBadge discount={discount} />}
 
-                {/* Image */}
-                <div className="relative">
-                  {p.images?.[0]?.url ? (
+                <div className="relative overflow-hidden bg-slate-100">
+                  {property.images?.[0]?.url ? (
                     <Image
-                      src={p.images[0].url}
-                      alt={p.images[0].alt || p.title}
+                      src={property.images[0].url}
+                      alt={property.images[0].alt || property.title}
                       width={900}
                       height={675}
-                      className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      className={[
+                        "aspect-[4/3] w-full object-cover",
+                        "transition duration-300 ease-out",
+                        "group-hover:brightness-[0.97]",
+                      ].join(" ")}
                     />
                   ) : (
-                    <div className="w-full aspect-[4/3] bg-slate-100 grid place-items-center text-slate-400 text-sm">
+                    <div className="grid aspect-[4/3] w-full place-items-center bg-slate-100 text-sm text-slate-400">
                       Kein Bild
                     </div>
                   )}
 
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/[0.10] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
                   {showAvailabilityBadge && (
-                    <span className="absolute left-3 top-3 rounded-full bg-emerald-600 text-white text-xs px-2 py-1 shadow">
+                    <span className="absolute left-3 top-3 rounded-full bg-emerald-600 px-2 py-1 text-xs font-medium text-white shadow-sm">
                       Verfügbar
                     </span>
                   )}
                 </div>
 
-                {/* Content */}
                 <div className="p-4">
-                  <h3 className="text-base font-semibold text-slate-900 leading-snug">
-                    {p.title}
+                  <h3 className="line-clamp-2 text-base font-semibold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-slate-950">
+                    {property.title}
                   </h3>
-                  <p className="mt-1 text-sm text-slate-600">{p.location}</p>
-{/* Amenity Icons (klein) */}
-{Array.isArray(p.amenities) && p.amenities.length > 0 && (
-  <div className="mt-2 flex items-center gap-2 text-slate-500">
-    {(() => {
-      // duplikate raus (z.B. Eingezäunt / Eingezäuntes Grundstück)
-      const seen = new Set();
-      const list = [];
-      for (const a of p.amenities) {
-        const key = normalizeAmenityName(a?.name);
-        if (!key || seen.has(key)) continue;
-        seen.add(key);
-        list.push(a);
-        if (list.length >= 6) break;
-      }
-      return list.map((a) => {
-        const Icon = getAmenityIcon(a.name);
-        return (
-          <span
-            key={a.id ?? a.name}
-            className="inline-flex items-center"
-            title={a.name}
-            aria-label={a.name}
-          >
-            <Icon className="h-4 w-4" />
-          </span>
-        );
-      });
-    })()}
-  </div>
-)}
 
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                  <p className="mt-1 text-sm text-slate-600">
+                    {property.location}
+                  </p>
+
+                  {amenities.length > 0 && (
+                    <div className="mt-3 flex items-center gap-2 text-slate-500">
+                      {(() => {
+                        const seen = new Set();
+                        const list = [];
+
+                        for (const amenity of amenities) {
+                          const key = normalizeAmenityName(amenity?.name);
+
+                          if (!key || seen.has(key)) continue;
+
+                          seen.add(key);
+                          list.push(amenity);
+
+                          if (list.length >= 6) break;
+                        }
+
+                        return list.map((amenity) => {
+                          const Icon = getAmenityIcon(amenity.name);
+
+                          return (
+                            <span
+                              key={amenity.id ?? amenity.name}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-50 text-slate-500 ring-1 ring-slate-200/80"
+                              title={amenity.name}
+                              aria-label={amenity.name}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
+                          );
+                        });
+                      })()}
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
                     <span>
-                      {typeof p.maxPersons !== "undefined"
-                        ? `bis ${p.maxPersons} Pers.`
+                      {typeof property.maxPersons !== "undefined"
+                        ? `bis ${property.maxPersons} Pers.`
                         : ""}
                     </span>
-                    <span>{p.dogsAllowed ? "Hunde erlaubt" : "Keine Hunde"}</span>
+
+                    <span>
+                      {property.dogsAllowed ? "Hunde erlaubt" : "Keine Hunde"}
+                    </span>
                   </div>
                 </div>
               </Link>
