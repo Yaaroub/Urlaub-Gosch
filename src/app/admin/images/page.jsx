@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, Save, Trash2 } from "lucide-react";
+import { upload } from "@vercel/blob/client";
 
 /* ===========================
-   Helpers (Sort / Reorder)
+   Helpers
 =========================== */
+
 function normalizeSort(list) {
   return (list || [])
     .slice()
@@ -18,19 +20,37 @@ function moveItemById(list, fromId, toId) {
   const arr = normalizeSort(list);
   const from = arr.findIndex((x) => x.id === fromId);
   const to = arr.findIndex((x) => x.id === toId);
+
   if (from < 0 || to < 0 || from === to) return arr;
 
   const next = [...arr];
   const [moved] = next.splice(from, 1);
   next.splice(to, 0, moved);
+
   return next.map((it, idx) => ({ ...it, sort: idx }));
+}
+
+function safeClientFileName(name = "upload") {
+  const dot = name.lastIndexOf(".");
+  const rawBase = dot >= 0 ? name.slice(0, dot) : name;
+  const rawExt = dot >= 0 ? name.slice(dot).toLowerCase() : "";
+
+  const base = rawBase
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}-${
+    base || "upload"
+  }${rawExt || ".webp"}`;
 }
 
 /* ===========================
    Premium Existing Grid
-   - Desktop: drag sofort
-   - Mobile: long-press (180ms) + drag
 =========================== */
+
 function ExistingImagesPremium({
   items,
   setItems,
@@ -84,7 +104,6 @@ function ExistingImagesPremium({
     if (!propertyId) return;
     if (e.target.closest("[data-nosort]")) return;
 
-    // Desktop: sofort
     if (e.pointerType === "mouse") {
       try {
         e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -93,8 +112,8 @@ function ExistingImagesPremium({
       return;
     }
 
-    // Mobile: long-press
     clearTimer();
+
     pressTimer.current = setTimeout(() => {
       try {
         e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -118,12 +137,15 @@ function ExistingImagesPremium({
     setItems((prev) => {
       const arr = normalizeSort(prev);
       const idx = arr.findIndex((x) => x.id === id);
+
       if (idx <= 0) return arr;
 
       const next = [...arr];
       const [picked] = next.splice(idx, 1);
       next.unshift(picked);
+
       setDirtyOrder(true);
+
       return next.map((it, i) => ({ ...it, sort: i }));
     });
   };
@@ -135,6 +157,7 @@ function ExistingImagesPremium({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-slate-900">Bilderliste</h3>
+
           {dirtyOrder && (
             <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800">
               Ungespeicherte Reihenfolge
@@ -185,8 +208,8 @@ function ExistingImagesPremium({
       ) : (
         <>
           <p className="mb-4 text-xs text-slate-500">
-            Tipp: <span className="font-medium">Desktop</span> ziehen & ablegen ·{" "}
-            <span className="font-medium">Mobile</span> kurz drücken (≈0.2s) und
+            Tipp: <span className="font-medium">Desktop</span> ziehen & ablegen
+            · <span className="font-medium">Mobile</span> kurz drücken und
             ziehen.
           </p>
 
@@ -210,7 +233,6 @@ function ExistingImagesPremium({
                   cursor: "grab",
                 }}
               >
-                {/* Select */}
                 <label
                   data-nosort
                   className="absolute left-3 top-3 z-10 flex items-center gap-2 rounded-xl border border-slate-200 bg-white/85 px-2.5 py-1.5 text-[11px] text-slate-700 shadow-sm backdrop-blur"
@@ -224,16 +246,17 @@ function ExistingImagesPremium({
                   <span>Auswählen</span>
                 </label>
 
-                {/* Badges */}
                 <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
                   {it.sort === 0 && (
                     <span className="rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800 shadow-sm">
                       Titelbild
                     </span>
                   )}
+
                   <span className="rounded-xl border border-white/15 bg-black/35 px-2.5 py-1 text-[11px] text-white backdrop-blur">
                     #{it.sort + 1}
                   </span>
+
                   <span className="rounded-xl border border-white/15 bg-black/35 px-2.5 py-1 text-white/90 backdrop-blur">
                     ⠿
                   </span>
@@ -274,11 +297,13 @@ function ExistingImagesPremium({
                     <label className="block text-[11px] text-slate-600">
                       Alt-Text
                     </label>
+
                     <input
                       className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
                       value={it.alt || ""}
                       onChange={(e) => {
                         const val = e.target.value;
+
                         setItems((prev) =>
                           prev.map((x) =>
                             x.id === it.id ? { ...x, alt: val } : x
@@ -307,45 +332,30 @@ function ExistingImagesPremium({
 /* ===========================
    Page
 =========================== */
+
 export default function AdminImagesPage() {
-  // Alle Properties (Unterkünfte) und aktuell ausgewählte Property
   const [properties, setProperties] = useState([]);
   const [propertyId, setPropertyId] = useState("");
-
-  // Bilder aus der DB für die aktuell ausgewählte Property
   const [items, setItems] = useState([]);
-
-  // Lokale neue Bilder vorm Upload: { id, file, preview, alt, sort }
   const [selectedNew, setSelectedNew] = useState([]);
-
-  // Busy / Messages
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState(null);
-
-  // Auswahl vorhandener Bilder (für Bulk-Delete)
   const [selectedExisting, setSelectedExisting] = useState(new Set());
-
-  // Delete-Modals
   const [pendingDeleteOne, setPendingDeleteOne] = useState(null);
   const [pendingDeleteMany, setPendingDeleteMany] = useState(false);
-
-  // Dirty state, wenn Reihenfolge geändert wurde
   const [dirtyOrder, setDirtyOrder] = useState(false);
 
-  // -------------------------------------------------
-  // Daten laden
-  // -------------------------------------------------
-
-  // Properties laden (einmalig)
   useEffect(() => {
     (async () => {
       try {
         const r = await fetch("/api/admin/properties", { cache: "no-store" });
+
         if (r.status === 401) {
           window.location.href = "/admin";
           return;
         }
+
         const j = await r.json();
         setProperties(Array.isArray(j) ? j : []);
       } catch {
@@ -357,7 +367,6 @@ export default function AdminImagesPage() {
     })();
   }, []);
 
-  // Bilder für die aktuell gewählte Property laden
   useEffect(() => {
     setItems([]);
     setSelectedExisting(new Set());
@@ -372,11 +381,14 @@ export default function AdminImagesPage() {
         const r = await fetch(`/api/admin/images?propertyId=${propertyId}`, {
           cache: "no-store",
         });
+
         if (r.status === 401) {
           window.location.href = "/admin";
           return;
         }
+
         const data = await r.json();
+
         setItems(normalizeSort(Array.isArray(data) ? data : []));
         setDirtyOrder(false);
       } catch {
@@ -385,19 +397,17 @@ export default function AdminImagesPage() {
     })();
   }, [propertyId]);
 
-  // -------------------------------------------------
-  // Neue Bilder auswählen & vorbereiten
-  // -------------------------------------------------
-
   function onPick(e) {
     const files = Array.from(e.target.files || []);
     e.target.value = "";
 
     setSelectedNew((prev) => {
       const baseSortStart = prev.length;
+
       const mapped = files.map((file, i) => {
         const url = URL.createObjectURL(file);
         const base = (file.name || "").replace(/\.[^/.]+$/, "");
+
         return {
           id: crypto.randomUUID(),
           file,
@@ -406,6 +416,7 @@ export default function AdminImagesPage() {
           sort: baseSortStart + i,
         };
       });
+
       return [...prev, ...mapped];
     });
   }
@@ -416,12 +427,13 @@ export default function AdminImagesPage() {
     );
   }
 
-  // Lokale Neusortierung in der Preview (vor Upload)
   function moveNewImageUp(idx) {
     setSelectedNew((prev) => {
       if (idx <= 0) return prev;
+
       const arr = [...prev];
       [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+
       return arr.map((item, newIndex) => ({ ...item, sort: newIndex }));
     });
   }
@@ -429,102 +441,70 @@ export default function AdminImagesPage() {
   function moveNewImageDown(idx) {
     setSelectedNew((prev) => {
       if (idx >= prev.length - 1) return prev;
+
       const arr = [...prev];
       [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
+
       return arr.map((item, newIndex) => ({ ...item, sort: newIndex }));
     });
   }
 
-  // -------------------------------------------------
-  // Upload-Flow
-  // -------------------------------------------------
-
   async function uploadAll() {
     if (!propertyId || selectedNew.length === 0) return;
-  
+
     setBusy(true);
     setErr("");
     setMsg(null);
-  
+
     try {
-      // ---------- 1) UPLOAD EINZELN ----------
       const uploadedFiles = [];
-  
+
       for (const s of selectedNew) {
-        const fd = new FormData();
-  
-        // Deine API erwartet offenbar "files", nicht "file"
-        fd.append("files", s.file);
-        fd.append("propertyId", String(propertyId));
-  
-        const uploadRes = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: fd,
+        const filename = safeClientFileName(s.file.name);
+        const pathname = `objects/property-${propertyId}/${filename}`;
+
+        const blob = await upload(pathname, s.file, {
+          access: "public",
+          handleUploadUrl: "/api/admin/upload",
+          multipart: true,
+          clientPayload: JSON.stringify({
+            propertyId: Number(propertyId),
+          }),
         });
-  
-        const uploadText = await uploadRes.text();
-  
-        let uploadJson = null;
-        try {
-          uploadJson = JSON.parse(uploadText);
-        } catch {}
-  
-        if (!uploadRes.ok) {
-          console.error("UPLOAD FAIL", uploadRes.status, uploadText);
-          throw new Error(
-            uploadJson?.details ||
-              uploadJson?.error ||
-              uploadText ||
-              `Upload fehlgeschlagen (${uploadRes.status})`
-          );
-        }
-  
-        const uploaded =
-          uploadJson?.file ||
-          uploadJson?.files?.[0] ||
-          uploadJson?.uploaded?.[0] ||
-          uploadJson?.data?.files?.[0] ||
-          (Array.isArray(uploadJson) ? uploadJson[0] : null) ||
-          uploadJson;
-  
-        if (!uploaded?.url) {
-          console.error("UPLOAD SHAPE WRONG", uploadJson);
-          throw new Error(
-            `Upload-Antwort ungültig: URL fehlt. Antwort: ${JSON.stringify(
-              uploadJson
-            )}`
-          );
-        }
-  
-        uploadedFiles.push(uploaded);
+
+        uploadedFiles.push({
+          url: blob.url,
+          pathname: blob.pathname,
+          name: s.file.name || filename,
+        });
       }
-  
-      // ---------- 2) SAVE IN DB ----------
+
       const images = selectedNew.map((s, i) => ({
         url: uploadedFiles[i].url,
         alt: s.alt || null,
         sort: i,
       }));
-  
+
       const saveRes = await fetch("/api/admin/images", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           propertyId: Number(propertyId),
-          mode: "replace",
           images,
         }),
       });
-  
+
       const saveText = await saveRes.text();
-  
+
       let saveJson = null;
+
       try {
         saveJson = JSON.parse(saveText);
       } catch {}
-  
+
       if (!saveRes.ok) {
         console.error("SAVE FAIL", saveRes.status, saveText);
+
         throw new Error(
           saveJson?.details ||
             saveJson?.error ||
@@ -532,28 +512,26 @@ export default function AdminImagesPage() {
             `Speichern fehlgeschlagen (${saveRes.status})`
         );
       }
-  
+
       const freshImages = saveJson?.images ?? saveJson;
-  
+
       setItems(normalizeSort(Array.isArray(freshImages) ? freshImages : []));
       setSelectedExisting(new Set());
       setDirtyOrder(false);
-  
+
       selectedNew.forEach((s) => URL.revokeObjectURL(s.preview));
       setSelectedNew([]);
-  
+
       setMsg({ t: "ok", m: "Bilder wurden hochgeladen und gespeichert." });
     } catch (e) {
       console.error(e);
+
       setErr(e?.message || "Fehler beim Upload/Speichern.");
       setMsg({ t: "error", m: "Upload oder Speichern fehlgeschlagen." });
     } finally {
       setBusy(false);
     }
   }
-  // -------------------------------------------------
-  // Bestehende Bilder bearbeiten/speichern
-  // -------------------------------------------------
 
   async function save(item) {
     setMsg(null);
@@ -589,9 +567,11 @@ export default function AdminImagesPage() {
 
         setSelectedExisting((prev) => {
           const stillExisting = new Set();
+
           for (const img of data.images) {
             if (prev.has(img.id)) stillExisting.add(img.id);
           }
+
           return stillExisting;
         });
       } else {
@@ -609,10 +589,6 @@ export default function AdminImagesPage() {
   }
 
   const saveAlt = (it) => save(it);
-
-  // -------------------------------------------------
-  // Reihenfolge speichern
-  // -------------------------------------------------
 
   async function saveOrderAll() {
     if (!propertyId || items.length === 0) return;
@@ -643,6 +619,7 @@ export default function AdminImagesPage() {
       const text = await res.text();
 
       let json = null;
+
       try {
         json = JSON.parse(text);
       } catch {}
@@ -652,6 +629,7 @@ export default function AdminImagesPage() {
       }
 
       const fresh = json?.images ?? json;
+
       if (Array.isArray(fresh)) {
         setItems(normalizeSort(fresh));
       }
@@ -665,10 +643,6 @@ export default function AdminImagesPage() {
     }
   }
 
-  // -------------------------------------------------
-  // Einzelnes Bild löschen
-  // -------------------------------------------------
-
   function askRemoveOne(item) {
     setMsg(null);
     setPendingDeleteOne(item);
@@ -678,6 +652,7 @@ export default function AdminImagesPage() {
     if (!pendingDeleteOne || !propertyId) return;
 
     const id = pendingDeleteOne.id;
+
     setBusy(true);
 
     try {
@@ -724,10 +699,6 @@ export default function AdminImagesPage() {
     }
   }
 
-  // -------------------------------------------------
-  // Mehrfachauswahl vorhandener Bilder
-  // -------------------------------------------------
-
   function toggleExisting(id) {
     setSelectedExisting((prev) => {
       const next = new Set(prev);
@@ -751,6 +722,7 @@ export default function AdminImagesPage() {
 
   function askRemoveSelectedMany() {
     if (selectedExisting.size === 0) return;
+
     setMsg(null);
     setPendingDeleteMany(true);
   }
@@ -762,6 +734,7 @@ export default function AdminImagesPage() {
     }
 
     const ids = Array.from(selectedExisting);
+
     setBusy(true);
 
     try {
@@ -809,17 +782,13 @@ export default function AdminImagesPage() {
     }
   }
 
-  // -------------------------------------------------
-  // Render
-  // -------------------------------------------------
-
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 md:py-10 mt-24">
-      {/* Messages */}
+    <section className="mx-auto mt-24 max-w-6xl px-4 py-8 md:py-10">
       <div className="mb-4 space-y-2">
         {msg && msg.t === "error" && (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700">
             <span>{msg.m}</span>
+
             <button
               type="button"
               className="text-xs text-rose-500"
@@ -833,6 +802,7 @@ export default function AdminImagesPage() {
         {msg && msg.t === "ok" && (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
             <span>{msg.m}</span>
+
             <button
               type="button"
               className="text-xs text-emerald-600"
@@ -844,7 +814,6 @@ export default function AdminImagesPage() {
         )}
       </div>
 
-      {/* Header + Objektwahl */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
@@ -881,7 +850,6 @@ export default function AdminImagesPage() {
         </div>
       </div>
 
-      {/* Mehrfach-Upload */}
       <div className="mb-6 rounded-2xl bg-white p-6 ring-1 ring-black/5">
         <h3 className="mb-3 text-sm font-semibold text-slate-900">
           Mehrere Bilder auswählen & Reihenfolge festlegen
@@ -986,7 +954,6 @@ export default function AdminImagesPage() {
         )}
       </div>
 
-      {/* Vorhandene Bilder */}
       <ExistingImagesPremium
         items={items}
         setItems={setItems}
@@ -1003,7 +970,6 @@ export default function AdminImagesPage() {
         askRemoveSelectedMany={askRemoveSelectedMany}
       />
 
-      {/* Einzelbild-Löschdialog */}
       {pendingDeleteOne && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
@@ -1044,7 +1010,6 @@ export default function AdminImagesPage() {
         </div>
       )}
 
-      {/* Bulk-Löschdialog */}
       {pendingDeleteMany && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">

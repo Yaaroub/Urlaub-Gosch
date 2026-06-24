@@ -23,7 +23,11 @@ export default function PropertyGrid({
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {properties.map((property) => {
         const discount = lastMinuteDiscounts[String(property.id)];
-        const amenities = Array.isArray(property.amenities) ? property.amenities : [];
+        const amenities = Array.isArray(property.amenities)
+          ? property.amenities
+          : [];
+
+        const imageUrl = getSafeImageUrl(property);
 
         return (
           <Link
@@ -37,14 +41,18 @@ export default function PropertyGrid({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60",
             ].join(" ")}
           >
-            <FavButton id={property.id} className="absolute right-3 top-3 z-10" />
+            <FavButton
+              id={property.id}
+              className="absolute right-3 top-3 z-10"
+            />
+
             {discount != null && <LastMinuteBadge discount={discount} />}
 
             <div className="relative overflow-hidden bg-slate-100">
-              {property.images?.[0]?.url ? (
+              {imageUrl ? (
                 <Image
-                  src={property.images[0].url}
-                  alt={property.images[0].alt || property.title}
+                  src={imageUrl}
+                  alt={property.images?.[0]?.alt || property.title || ""}
                   width={640}
                   height={480}
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
@@ -75,7 +83,9 @@ export default function PropertyGrid({
                 {property.title}
               </h3>
 
-              <p className="mt-1 text-sm text-slate-600">{property.location}</p>
+              <p className="mt-1 text-sm text-slate-600">
+                {property.location}
+              </p>
 
               {amenities.length > 0 && (
                 <div className="mt-3 flex items-center gap-2 text-slate-500">
@@ -103,7 +113,9 @@ export default function PropertyGrid({
                     : ""}
                 </span>
 
-                <span>{property.dogsAllowed ? "Hunde erlaubt" : "Keine Hunde"}</span>
+                <span>
+                  {property.dogsAllowed ? "Hunde erlaubt" : "Keine Hunde"}
+                </span>
               </div>
             </div>
           </Link>
@@ -111,6 +123,25 @@ export default function PropertyGrid({
       })}
     </div>
   );
+}
+
+function getSafeImageUrl(property) {
+  const url = property.images?.[0]?.url;
+
+  if (!url || typeof url !== "string") {
+    return null;
+  }
+
+  /*
+    Alte Uploads wie /uploads/xyz.jpg funktionieren online auf Vercel nicht,
+    wenn sie nicht wirklich in public/uploads deployed wurden.
+    Lokal lassen wir sie trotzdem zu, damit npm run dev weiter funktioniert.
+  */
+  if (url.startsWith("/uploads/") && process.env.NODE_ENV === "production") {
+    return null;
+  }
+
+  return url;
 }
 
 function uniqueAmenities(amenities) {
@@ -123,6 +154,7 @@ function uniqueAmenities(amenities) {
 
     seen.add(key);
     list.push(amenity);
+
     if (list.length >= 6) break;
   }
 
