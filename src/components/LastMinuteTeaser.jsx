@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,78 +9,68 @@ export default function LastMinuteTeaser() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    fetch("/api/lastminute").then(r => r.json()).then(setItems);
+    let alive = true;
+
+    async function loadOffers() {
+      try {
+        const response = await fetch("/api/lastminute", { cache: "no-store" });
+        const data = response.ok ? await response.json() : [];
+        if (alive) setItems(Array.isArray(data) ? data : []);
+      } catch {
+        if (alive) setItems([]);
+      }
+    }
+
+    loadOffers();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   if (items.length === 0) return null;
 
   return (
-    <div className="rounded-3xl bg-white ring-1 ring-black/5 shadow-sm p-6">
+    <div id="lastminute" className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5">
       <h3 className="mb-4 text-lg font-semibold text-slate-900">
         Last-Minute Angebote
       </h3>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map(o => (
+        {items.map((offer) => (
           <Link
-            key={o.id}
-            href={`/properties/${o.property.slug}`}
-            className="
-              group relative overflow-hidden rounded-2xl
-              ring-1 ring-black/5
-              transition
-              hover:ring-rose-400/50
-              hover:shadow-xl
-            "
+            key={offer.id}
+            href={`/properties/${offer.property.slug}`}
+            className="group relative overflow-hidden rounded-2xl ring-1 ring-black/5 transition hover:ring-rose-400/50 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
           >
-            {/* Badge */}
-            <LastMinuteBadge discount={o.discount} />
+            <LastMinuteBadge discount={offer.discount} />
 
-            {/* Image */}
-            {o.property.images?.[0]?.url && (
+            {offer.property.images?.[0]?.url && (
               <Image
-                src={o.property.images[0].url}
-                alt={o.property.title}
-                width={400}
-                height={300}
-                className="
-                  w-full aspect-[4/3] object-cover
-                  transition-transform duration-500
-                  group-hover:scale-105
-                "
+                src={offer.property.images[0].url}
+                alt={offer.property.images[0].alt || offer.property.title}
+                width={420}
+                height={315}
+                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                quality={72}
+                className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             )}
 
-            {/* Content */}
             <div className="p-4">
               <h4 className="font-semibold text-slate-900">
-                {o.property.title}
+                {offer.property.title}
               </h4>
-              <p className="text-sm text-slate-600">
-                {o.property.location}
-              </p>
+              <p className="text-sm text-slate-600">{offer.property.location}</p>
 
               <p className="mt-1 text-sm font-semibold text-rose-600">
-                −{o.discount}% bis{" "}
-                {new Date(o.endDate).toLocaleDateString("de-DE")}
+                −{offer.discount}% bis {new Date(offer.endDate).toLocaleDateString("de-DE")}
               </p>
 
-              {o.note && (
-                <p className="mt-1 text-xs text-slate-500">
-                  {o.note}
-                </p>
-              )}
+              {offer.note && <p className="mt-1 text-xs text-slate-500">{offer.note}</p>}
             </div>
 
-            {/* Glow overlay */}
-            <div
-              className="
-                pointer-events-none absolute inset-0
-                opacity-0 group-hover:opacity-100
-                transition
-                bg-[radial-gradient(circle_at_30%_20%,rgba(244,63,94,0.25),transparent_60%)]
-              "
-            />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(244,63,94,0.25),transparent_60%)] opacity-0 transition group-hover:opacity-100" />
           </Link>
         ))}
       </div>

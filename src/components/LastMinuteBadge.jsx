@@ -8,13 +8,9 @@ export default function LastMinuteBadge({ discount }) {
         <span className="text-white/95">-{discount}%</span>
         <span className="text-white/75">LAST MINUTE</span>
 
-        {/* Sheen / Light sweep (spürbare, elegante Bewegung) */}
-        <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <span className="absolute -left-1/2 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/18 to-transparent animate-lmSheen" />
         </span>
-
-        {/* Always-on subtle sheen (langsam, premium) */}
-        <span className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-lmSheenSlow" />
       </span>
     </div>
   );

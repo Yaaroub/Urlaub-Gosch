@@ -223,6 +223,7 @@ function LastMinuteCard({ offer }) {
           alt={title}
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
+          quality={72}
           className="object-cover transition-[filter] duration-200 ease-out group-hover:brightness-[0.97]"
         />
 

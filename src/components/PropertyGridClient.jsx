@@ -32,7 +32,7 @@ function SwitchRow({ checked, onChange, label }) {
       type="button"
       onClick={() => onChange(!checked)}
       className={[
-        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition",
+        "inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 text-sm transition",
         checked
           ? "border-sky-200 bg-sky-50 text-sky-800"
           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
@@ -219,8 +219,10 @@ export default function PropertyGridClient({
                     <Image
                       src={property.images[0].url}
                       alt={property.images[0].alt || property.title}
-                      width={900}
-                      height={675}
+                      width={640}
+                      height={480}
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      quality={72}
                       className={[
                         "aspect-[4/3] w-full object-cover",
                         "transition duration-300 ease-out",

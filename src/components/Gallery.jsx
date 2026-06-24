@@ -29,7 +29,7 @@ export default function Gallery({ images = [] }) {
       <button
         type="button"
         onClick={() => openAt(0)}
-        className="group relative block w-full overflow-hidden rounded-2xl ring-1 ring-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+        className="group relative block min-h-11 w-full overflow-hidden rounded-2xl ring-1 ring-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
         aria-label="Hero Bild vergrößern"
       >
         <div className="relative aspect-[16/9] w-full">
@@ -38,6 +38,8 @@ export default function Gallery({ images = [] }) {
             alt={hero.alt || ""}
             fill
             priority
+            fetchPriority="high"
+            quality={76}
             className="object-cover transition duration-300 group-hover:scale-[1.02]"
             sizes="(max-width: 768px) 100vw, 900px"
           />
@@ -73,6 +75,7 @@ export default function Gallery({ images = [] }) {
                     alt={img.alt || ""}
                     fill
                     loading="lazy"
+                    quality={70}
                     className="object-cover transition duration-300 group-hover:scale-[1.03]"
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 300px"
                   />

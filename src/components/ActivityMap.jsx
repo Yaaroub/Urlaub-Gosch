@@ -1,6 +1,5 @@
 "use client";
 
-import "mapbox-gl/dist/mapbox-gl.css";
 import Map, { Marker, Popup } from "react-map-gl/mapbox";
 import { useMemo, useState } from "react";
 import mapboxgl from "mapbox-gl";
@@ -206,7 +205,7 @@ export default function ActivityMap({
                     setSelected(null);
                   }}
                   className={[
-                    "inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-bold  transition",
+                    "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-bold transition",
                     active
                       ? style.activeChip
                       : `${style.chip} ${style.text} hover:bg-white hover:shadow-sm`,
@@ -260,7 +259,7 @@ export default function ActivityMap({
                   setSelected(activity);
                 }}
                 className={[
-                  "relative grid h-8 w-8 place-items-center rounded-full",
+                  "relative grid h-10 w-10 place-items-center rounded-full",
                   "ring-[3px] ring-white shadow-lg shadow-slate-900/20",
                   style.bg,
                   "transition duration-200 hover:scale-110",

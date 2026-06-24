@@ -23,7 +23,8 @@ export default function Header() {
 
   useEffect(() => {
     const onScroll = () => {
-      setSolid(!isHome || window.scrollY > 28);
+      const nextSolid = !isHome || window.scrollY > 28;
+      setSolid((current) => (current === nextSolid ? current : nextSolid));
     };
 
     onScroll();
@@ -62,17 +63,16 @@ export default function Header() {
           ].join(" ")}
         >
           {/* Logo */}
-          <Link href="/" className="flex min-w-0 items-center">
-            <div className="relative h-10 w-[140px] sm:w-[150px]">
-              <Image
-                src="/urlaub-gosch-logo.png"
-                alt="Urlaub Gosch Logo"
-                fill
-                sizes="150px"
-                className="object-contain"
-                priority
-              />
-            </div>
+          <Link href="/" className="flex min-w-0 items-center" aria-label="Zur Startseite">
+            <Image
+              src="/urlaub-gosch-logo.png"
+              alt="Urlaub Gosch Logo"
+              width={128}
+              height={70}
+              sizes="128px"
+              quality={70}
+              className="h-10 w-auto object-contain"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -85,7 +85,7 @@ export default function Header() {
                   key={item.href}
                   href={item.href}
                   className={[
-                    "rounded-full px-4 py-2 text-sm font-semibold transition",
+                    "inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-semibold transition",
                     solid
                       ? active
                         ? "bg-slate-950 text-white"
@@ -107,7 +107,7 @@ export default function Header() {
               href="/favorites"
               aria-label="Favoriten"
               className={[
-                "grid h-10 w-10 place-items-center rounded-full border transition",
+                "grid h-11 w-11 place-items-center rounded-full border transition",
                 solid
                   ? "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
                   : "border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.14]",
@@ -119,7 +119,7 @@ export default function Header() {
             <Link
               href="/offers"
               className={[
-                "hidden items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition md:inline-flex",
+                "hidden min-h-11 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition md:inline-flex",
                 solid
                   ? "bg-slate-950 text-white hover:bg-slate-800"
                   : "bg-[#f4d59d] text-[#07131f] hover:bg-white",
@@ -134,7 +134,7 @@ export default function Header() {
               onClick={() => setOpen((value) => !value)}
               aria-label={open ? "Menü schließen" : "Menü öffnen"}
               className={[
-                "grid h-10 w-10 place-items-center rounded-full border transition lg:hidden",
+                "grid h-11 w-11 place-items-center rounded-full border transition lg:hidden",
                 solid
                   ? "border-slate-200 bg-white text-slate-950 hover:bg-slate-50"
                   : "border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.14]",
@@ -190,7 +190,7 @@ export default function Header() {
               <Link
                 href="/offers"
                 onClick={() => setOpen(false)}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#f4d59d] px-5 py-3.5 text-sm font-bold text-[#07131f] transition hover:bg-white"
+                className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#f4d59d] px-5 py-3.5 text-sm font-bold text-[#07131f] transition hover:bg-white"
               >
                 Unterkunft suchen
                 <Search className="h-4 w-4" />

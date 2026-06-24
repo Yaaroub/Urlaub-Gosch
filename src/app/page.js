@@ -1,8 +1,8 @@
 import prisma from "@/lib/db";
 import SearchForm from "@/components/SearchForm";
-import PropertyGridClient from "@/components/PropertyGridClient";
-import WeatherWidget from "@/components/WeatherWidget";
-import LastMinuteTeaser from "@/components/LastMinuteTeaser";
+import PropertyGrid from "@/components/PropertyGrid";
+import LazyWeatherWidget from "@/components/LazyWeatherWidget";
+import LazyLastMinuteTeaser from "@/components/LazyLastMinuteTeaser";
 import { regions } from "@/lib/regions";
 import { buildPropertyWhere } from "@/lib/search-utils";
 import Link from "next/link";
@@ -51,7 +51,9 @@ const amenitiesSelected = getSPArray("amenity")
     amenities: amenitiesSelected,
   });
 
-  const [properties, allAmenities] = await Promise.all([
+  const today = new Date();
+
+  const [properties, allAmenities, activeLastMinuteOffers] = await Promise.all([
     prisma.property.findMany({
       where,
       orderBy: { id: "asc" },
@@ -87,7 +89,22 @@ const amenitiesSelected = getSPArray("amenity")
         name: true,
       },
     }),
+
+    prisma.lastMinuteOffer.findMany({
+      where: { endDate: { gt: today } },
+      select: {
+        propertyId: true,
+        discount: true,
+      },
+    }),
   ]);
+
+  const lastMinuteDiscounts = Object.fromEntries(
+    activeLastMinuteOffers.map((offer) => [
+      String(offer.propertyId),
+      Number(offer.discount) || 0,
+    ])
+  );
 
   const hasActiveFilters =
     Boolean(
@@ -273,7 +290,7 @@ const amenitiesSelected = getSPArray("amenity")
 
         <div className="bg-gradient-to-br from-sky-50 to-white p-4">
           <div className="rounded-[1.5rem] border border-sky-100 bg-white p-3 shadow-inner">
-            <WeatherWidget />
+            <LazyWeatherWidget />
           </div>
         </div>
       </div>
@@ -352,14 +369,14 @@ const amenitiesSelected = getSPArray("amenity")
           {resultsCount === 0 ? (
             <p>Keine Treffer</p>
           ) : (
-            <PropertyGridClient items={properties} />
+            <PropertyGrid items={properties} lastMinuteDiscounts={lastMinuteDiscounts} />
           )}
         </div>
       </section>
 
       <section>
         <div className="mx-auto max-w-6xl px-4 py-10">
-          <LastMinuteTeaser />
+          <LazyLastMinuteTeaser />
         </div>
       </section>
     </>

@@ -18,10 +18,11 @@ export default function Footer() {
                 <Image
                   src="/urlaub-gosch-logo.png"
                   alt="Urlaub-GOSCH Logo"
-                  width={160}
-                  height={48}
+                  width={128}
+                  height={70}
+                  sizes="128px"
+                  quality={70}
                   className="h-10 w-auto"
-                  priority={false}
                 />
                 <div className="leading-tight">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-200">
@@ -44,7 +45,7 @@ export default function Footer() {
                   href="https://facebook.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-sky-400/10"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-sky-400/10"
                   aria-label="Facebook"
                   title="Facebook"
                 >
@@ -56,7 +57,7 @@ export default function Footer() {
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-sky-400/10"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-sky-400/10"
                   aria-label="Instagram"
                   title="Instagram"
                 >
@@ -66,7 +67,7 @@ export default function Footer() {
 
                 <a
                   href="mailto:info@urlaub-gosch.de"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-sky-400/10"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-sky-400/10"
                   aria-label="E-Mail"
                   title="E-Mail"
                 >

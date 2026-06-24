@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@import "mapbox-gl/dist/mapbox-gl.css";
+
+:root {
+  --radius: 1rem;
+  --coast-ink: #071827;
+  --coast-blue: #0f6f8f;
+  --coast-blue-dark: #0b4f65;
+  --coast-sand: #eecb83;
+  --coast-mist: #f4f8f9;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  background: var(--coast-mist);
+}
+
+body {
+  color: #172033;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(238, 203, 131, 0.55);
+  color: var(--coast-ink);
+}
+
+.rdp {
+  --rdp-accent-color: var(--coast-blue);
+  --rdp-accent-color-dark: var(--coast-blue-dark);
+}
+
+.rdp-day_selected:not([disabled]) {
+  background-color: var(--rdp-accent-color);
+  color: #fff;
+  border-radius: 0.375rem;
+}
+
+.rdp-day_selected:not([disabled]):hover {
+  background-color: var(--rdp-accent-color-dark);
+}
+
+.rdp-day {
+  border-radius: 0.375rem;
+}
+
+@keyframes heroFade {
+  0% {
+    opacity: 0;
+    transform: scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

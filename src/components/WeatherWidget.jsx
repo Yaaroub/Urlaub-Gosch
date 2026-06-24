@@ -163,10 +163,15 @@ export default function WeatherWidget({ initialPlaceId = "holm" }) {
             </h3>
           </div>
 
+          <label htmlFor="weather-place" className="sr-only">
+            Wetter-Ort auswählen
+          </label>
           <select
+            id="weather-place"
+            name="weather-place"
             value={placeId}
             onChange={(e) => setPlaceId(e.target.value)}
-            className="rounded-2xl border border-white/20 bg-white/15 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-xl outline-none transition hover:bg-white/20 focus:ring-2 focus:ring-white/40"
+            className="min-h-11 rounded-2xl border border-white/20 bg-white/15 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-xl outline-none transition hover:bg-white/20 focus:ring-2 focus:ring-white/40"
           >
             {PLACES.map((p) => (
               <option key={p.id} value={p.id} className="text-slate-900">
@@ -202,7 +207,7 @@ export default function WeatherWidget({ initialPlaceId = "holm" }) {
                 </div>
 
                 <div className="text-right">
-                  <p className="text-xs text-white/65">Aktualisiert</p>
+                  <p className="text-xs text-white/80">Aktualisiert</p>
                   <p className="text-sm font-bold">
                     {new Date(data.current.time).toLocaleTimeString("de-DE", {
                       hour: "2-digit",
@@ -216,14 +221,14 @@ export default function WeatherWidget({ initialPlaceId = "holm" }) {
               {/* Stats */}
               <div className="mt-5 grid grid-cols-2 gap-2">
                 <div className="rounded-2xl bg-white/12 px-3 py-2 ring-1 ring-white/10">
-                  <p className="text-[11px] text-white/60">Wind</p>
+                  <p className="text-[11px] text-white/75">Wind</p>
                   <p className="mt-0.5 text-sm font-bold">
                     {Math.round(wind)} km/h
                   </p>
                 </div>
 
                 <div className="rounded-2xl bg-white/12 px-3 py-2 ring-1 ring-white/10">
-                  <p className="text-[11px] text-white/60">Urlaubstipp</p>
+                  <p className="text-[11px] text-white/75">Urlaubstipp</p>
                   <p className="mt-0.5 line-clamp-1 text-sm font-bold">
                     {getTravelHint(Math.round(temp), Math.round(wind), currentCode)}
                   </p>
@@ -244,7 +249,7 @@ export default function WeatherWidget({ initialPlaceId = "holm" }) {
                     <p className="text-[11px] font-bold text-white/80">
                       {fmtDay(day)}
                     </p>
-                    <p className="text-[10px] text-white/55">{fmtDate(day)}</p>
+                    <p className="text-[10px] text-white/75">{fmtDate(day)}</p>
 
                     <div className="my-2 text-2xl transition group-hover:scale-110">
                       {dayInfo.icon}
@@ -253,7 +258,7 @@ export default function WeatherWidget({ initialPlaceId = "holm" }) {
                     <p className="text-xs font-black">
                       {Math.round(data.daily.temperature_2m_max[i])}°
                     </p>
-                    <p className="text-[11px] text-white/65">
+                    <p className="text-[11px] text-white/80">
                       {Math.round(data.daily.temperature_2m_min[i])}°
                     </p>
                   </div>

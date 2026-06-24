@@ -97,6 +97,9 @@ export default async function PropertyPage({ params }) {
               src={property.images[0].url}
               alt={property.images[0].alt || property.title}
               fill
+              sizes="100vw"
+              quality={76}
+              fetchPriority="high"
               className="object-cover"
               priority
             />

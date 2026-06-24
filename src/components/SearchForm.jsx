@@ -91,8 +91,10 @@ export default function SearchForm({ initialParams, amenities }) {
       <div className="grid gap-3">
         {/* Dates */}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="CHECK IN" icon={Calendar}>
+          <Field label="CHECK IN" htmlFor="arrival" icon={Calendar}>
             <input
+              id="arrival"
+              name="arrival"
               type="date"
               value={arrival}
               onChange={(e) => {
@@ -104,8 +106,10 @@ export default function SearchForm({ initialParams, amenities }) {
             />
           </Field>
 
-          <Field label="CHECK OUT" icon={Calendar}>
+          <Field label="CHECK OUT" htmlFor="departure" icon={Calendar}>
             <input
+              id="departure"
+              name="departure"
               type="date"
               value={departure}
               min={arrival || undefined}
@@ -117,8 +121,10 @@ export default function SearchForm({ initialParams, amenities }) {
 
         {/* Location + Guests */}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="LOCATION" icon={MapPin}>
+          <Field label="LOCATION" htmlFor="location" icon={MapPin}>
             <input
+              id="location"
+              name="location"
               type="text"
               placeholder="z.B. Nordsee, Ostsee, Insel…"
               value={location}
@@ -127,8 +133,10 @@ export default function SearchForm({ initialParams, amenities }) {
             />
           </Field>
 
-          <Field label="GUESTS" icon={Users}>
+          <Field label="GUESTS" htmlFor="persons" icon={Users}>
             <input
+              id="persons"
+              name="persons"
               type="number"
               min={1}
               inputMode="numeric"
@@ -176,7 +184,7 @@ export default function SearchForm({ initialParams, amenities }) {
                 <button
                   type="button"
                   onClick={() => setAmenityValues([])}
-                  className="text-xs font-medium text-slate-500 hover:text-slate-700"
+                  className="inline-flex min-h-10 items-center text-xs font-medium text-slate-500 hover:text-slate-700"
                 >
                   löschen
                 </button>
@@ -195,7 +203,7 @@ export default function SearchForm({ initialParams, amenities }) {
                     key={a.id}
                     onClick={() => toggleAmenity(val)}
                     className={[
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition",
+                      "inline-flex min-h-10 items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition",
                       active
                         ? "border-sky-500 bg-sky-50 text-sky-900"
                         : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
@@ -217,7 +225,7 @@ export default function SearchForm({ initialParams, amenities }) {
           type="button"
           onClick={resetForm}
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-xl px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <RotateCcw className="h-4 w-4" />
           Filter zurücksetzen
@@ -226,7 +234,7 @@ export default function SearchForm({ initialParams, amenities }) {
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-2xl bg-amber-400 px-4 py-2.5 text-sm font-extrabold tracking-[0.14em] uppercase text-slate-900 shadow-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/70 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-amber-400 px-5 py-2.5 text-sm font-extrabold tracking-[0.14em] uppercase text-slate-900 shadow-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/70 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Search className="h-4 w-4" />
           {isPending ? "Loading…" : "Show Results"}
@@ -238,13 +246,16 @@ export default function SearchForm({ initialParams, amenities }) {
 
 /* Helpers */
 
-function Field({ label, icon: Icon, children }) {
+function Field({ label, htmlFor, icon: Icon, children }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-slate-500">
+        <label
+          htmlFor={htmlFor}
+          className="text-[11px] font-semibold tracking-[0.22em] uppercase text-slate-500"
+        >
           {label}
-        </span>
+        </label>
         <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-50 ring-1 ring-slate-200">
           <Icon className="h-4 w-4 text-slate-700" />
         </span>
@@ -255,4 +266,4 @@ function Field({ label, icon: Icon, children }) {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50";
+  "min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50";
