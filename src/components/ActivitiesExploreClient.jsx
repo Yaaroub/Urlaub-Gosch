@@ -1,96 +1,50 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import ActivityMapClient from "@/components/ActivityMapClient";
-import { Home, MapPin, Navigation, SlidersHorizontal } from "lucide-react";
+import {
+  ACTIVITY_GROUPS,
+  getActivityGroup,
+  getGoogleMapsUrl,
+} from "@/lib/activity-groups";
+import {
+  ExternalLink,
+  Home,
+  MapPin,
+  Navigation,
+  PawPrint,
+  SlidersHorizontal,
+  Users,
+} from "lucide-react";
 
-function groupFromCategory(category = "") {
-  const c = category.toLowerCase();
-
-  if (
-    c.includes("familie") ||
-    c.includes("indoor") ||
-    c.includes("freizeitpark") ||
-    c.includes("tier") ||
-    c.includes("zoo") ||
-    c.includes("aquarium")
-  ) {
-    return "Familie";
-  }
-
-  if (
-    c.includes("natur") ||
-    c.includes("see") ||
-    c.includes("strand") ||
-    c.includes("schifffahrt") ||
-    c.includes("park")
-  ) {
-    return "Natur";
-  }
-
-  if (
-    c.includes("sport") ||
-    c.includes("outdoor") ||
-    c.includes("reitsport") ||
-    c.includes("klettern") ||
-    c.includes("wandern")
-  ) {
-    return "Sport";
-  }
-
-  if (
-    c.includes("kulinarik") ||
-    c.includes("restaurant") ||
-    c.includes("café") ||
-    c.includes("cafe") ||
-    c.includes("brauerei") ||
-    c.includes("genuss") ||
-    c.includes("manufaktur")
-  ) {
-    return "Restaurant";
-  }
-
-  if (
-    c.includes("museum") ||
-    c.includes("kultur") ||
-    c.includes("science") ||
-    c.includes("planetarium") ||
-    c.includes("stadt") ||
-    c.includes("tour")
-  ) {
-    return "Kultur";
-  }
-
-  return "Natur";
-}
-
-const FILTERS = ["Alle", "Familie", "Natur", "Sport", "Restaurant", "Kultur"];
+const FILTERS = ACTIVITY_GROUPS;
 
 const FILTER_STYLES = {
   Alle: {
-    active: "bg-slate-950 text-white ring-slate-950",
-    idle: "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50",
+    active: "bg-[#050b1f] text-white ring-[#050b1f]",
+    idle: "bg-white text-[#0f172a] ring-[#dbeafe] hover:bg-[#eaf7fb]",
   },
   Familie: {
-    active: "bg-amber-500 text-white ring-amber-500",
-    idle: "bg-amber-50 text-amber-700 ring-amber-200 hover:bg-white",
+    active: "bg-[#c49a3a] text-white ring-[#c49a3a]",
+    idle: "bg-[#f7f1e5] text-[#7a5b18] ring-[#ead9b6] hover:bg-white",
   },
   Natur: {
-    active: "bg-emerald-500 text-white ring-emerald-500",
-    idle: "bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-white",
+    active: "bg-[#0077b6] text-white ring-[#0077b6]",
+    idle: "bg-[#eaf7fb] text-[#075985] ring-[#bae6fd] hover:bg-white",
   },
   Sport: {
-    active: "bg-sky-500 text-white ring-sky-500",
-    idle: "bg-sky-50 text-sky-700 ring-sky-200 hover:bg-white",
+    active: "bg-[#050b1f] text-white ring-[#050b1f]",
+    idle: "bg-slate-50 text-slate-700 ring-slate-200 hover:bg-white",
   },
   Restaurant: {
-    active: "bg-orange-500 text-white ring-orange-500",
-    idle: "bg-orange-50 text-orange-700 ring-orange-200 hover:bg-white",
+    active: "bg-[#b8791c] text-white ring-[#b8791c]",
+    idle: "bg-orange-50 text-orange-800 ring-orange-200 hover:bg-white",
   },
   Kultur: {
-    active: "bg-indigo-500 text-white ring-indigo-500",
-    idle: "bg-indigo-50 text-indigo-700 ring-indigo-200 hover:bg-white",
+    active: "bg-[#475569] text-white ring-[#475569]",
+    idle: "bg-slate-100 text-slate-700 ring-slate-200 hover:bg-white",
   },
 };
 
@@ -105,10 +59,12 @@ export default function ActivitiesExploreClient({
   const [nearby, setNearby] = useState([]);
 
   const normalizedActivities = useMemo(() => {
-    return activities.map((activity) => ({
-      ...activity,
-      group: groupFromCategory(activity.category),
-    }));
+    return activities
+      .filter((activity) => isValidCoordinate(activity.lat, activity.lng))
+      .map((activity) => ({
+        ...activity,
+        group: getActivityGroup(activity),
+      }));
   }, [activities]);
 
   const counts = useMemo(() => {
@@ -138,58 +94,63 @@ export default function ActivitiesExploreClient({
     );
   }, [normalizedActivities, category]);
 
-  async function onSelectActivity(activity) {
-    setActive(activity);
-    setLoading(true);
-    setNearby([]);
-
-    try {
-      const res = await fetch(
-        `/api/properties/nearby?lat=${activity.lat}&lng=${activity.lng}&radius=${radiusKm}`,
-        { cache: "no-store" }
-      );
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json?.error || "Fehler beim Laden der Unterkünfte");
-      }
-
-      setNearby(Array.isArray(json.items) ? json.items : []);
-    } catch (error) {
-      console.error(error);
+  const onSelectActivity = useCallback(
+    async (activity) => {
+      setActive(activity);
+      setLoading(true);
       setNearby([]);
-    } finally {
-      setLoading(false);
-    }
-  }
 
-  const mapItems = filtered.map((activity) => ({
-    ...activity,
-    onClick: () => onSelectActivity(activity),
-  }));
+      try {
+        const res = await fetch(
+          `/api/properties/nearby?lat=${activity.lat}&lng=${activity.lng}&radius=${radiusKm}`,
+          { cache: "no-store" }
+        );
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json?.error || "Fehler beim Laden der Unterkünfte");
+        }
+
+        setNearby(Array.isArray(json.items) ? json.items : []);
+      } catch (error) {
+        console.error(error);
+        setNearby([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [radiusKm]
+  );
+
+  const mapItems = useMemo(() => {
+    return filtered.map((activity) => ({
+      ...activity,
+      onClick: () => onSelectActivity(activity),
+    }));
+  }, [filtered, onSelectActivity]);
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/10">
-        <div className="border-b border-slate-100 bg-white px-5 py-6 md:px-7 md:py-7">
+      <section className="overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white shadow-2xl shadow-[#050b1f]/10">
+        <div className="border-b border-[#eaf7fb] bg-white px-5 py-6 md:px-7 md:py-7">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#c49a3a]">
                 Ausflugsziele
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#050b1f] md:text-4xl">
                 Aktivitäten entdecken
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
                 Wähle ein Ziel auf der Karte. Danach zeigen wir dir passende
-                Unterkünfte in der Nähe.
+                Ferienunterkünfte in der Nähe.
               </p>
             </div>
 
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-600">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#dbeafe] bg-[#eaf7fb] px-4 py-2 text-sm font-bold text-[#075985]">
               <Navigation className="h-4 w-4" />
               Radius {radiusKm} km
             </div>
@@ -231,32 +192,35 @@ export default function ActivitiesExploreClient({
             })}
           </div>
 
-          <div className="mt-5 max-w-md rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="mt-5 max-w-md rounded-2xl border border-[#dbeafe] bg-[#eaf7fb]/45 p-4">
             <div className="mb-3 flex items-center justify-between gap-4">
-              <div className="inline-flex items-center gap-2 text-sm font-bold text-slate-800">
-                <SlidersHorizontal className="h-4 w-4 text-slate-500" />
+              <div className="inline-flex items-center gap-2 text-sm font-bold text-[#050b1f]">
+                <SlidersHorizontal className="h-4 w-4 text-[#0077b6]" />
                 Suchradius
               </div>
 
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 shadow-sm">
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#075985] shadow-sm">
                 {radiusKm} km
               </span>
             </div>
 
             <input
-              className="w-full accent-slate-950"
+              className="w-full accent-[#0077b6]"
               type="range"
               min={5}
               max={80}
               step={5}
               value={radiusKm}
-              onChange={(event) => setRadiusKm(Number(event.target.value))}
+              onChange={(event) => {
+                setRadiusKm(Number(event.target.value));
+                setNearby([]);
+              }}
             />
           </div>
         </div>
 
-        <div className="bg-slate-50/60 p-3 md:p-4">
-          <div className="relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-100 shadow-inner">
+        <div className="bg-[#eaf7fb]/45 p-3 md:p-4">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-[#dbeafe] bg-[#eaf7fb] shadow-inner">
             <div className="h-[430px] sm:h-[520px] lg:h-[640px]">
               <ActivityMapClient
                 items={mapItems}
@@ -266,8 +230,8 @@ export default function ActivitiesExploreClient({
               />
             </div>
 
-            <div className="pointer-events-none absolute left-4 top-4 hidden rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-xl shadow-slate-900/10 backdrop-blur-xl sm:block">
-              <p className="text-xs font-bold text-slate-950">
+            <div className="pointer-events-none absolute left-4 top-4 hidden rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-xl shadow-[#050b1f]/10 backdrop-blur-xl sm:block">
+              <p className="text-xs font-bold text-[#050b1f]">
                 {filtered.length} Ziele sichtbar
               </p>
               <p className="mt-0.5 text-[11px] text-slate-500">
@@ -275,26 +239,29 @@ export default function ActivitiesExploreClient({
               </p>
             </div>
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-900/10 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#050b1f]/10 to-transparent" />
           </div>
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5 md:p-7">
+      <section className="rounded-[2rem] border border-[#dbeafe] bg-white p-5 shadow-xl shadow-[#050b1f]/5 md:p-7">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#c49a3a]">
               Unterkünfte
             </p>
 
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#050b1f] md:text-3xl">
               Unterkünfte in der Nähe
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-600">
               {active ? (
                 <>
-                  Für <span className="font-bold text-slate-900">{active.title}</span>{" "}
+                  Für{" "}
+                  <span className="font-bold text-[#050b1f]">
+                    {active.title}
+                  </span>{" "}
                   im {radiusKm} km Umkreis.
                 </>
               ) : (
@@ -303,13 +270,27 @@ export default function ActivitiesExploreClient({
             </p>
           </div>
 
-          {active?.slug ? (
-            <Link
-              href={`/aktivitaete/${active.slug}`}
-              className="inline-flex w-fit items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl"
-            >
-              Mehr erfahren →
-            </Link>
+          {active ? (
+            <div className="flex flex-wrap gap-2">
+              {active.slug ? (
+                <Link
+                  href={`/aktivitaeten/${active.slug}`}
+                  className="inline-flex w-fit items-center rounded-full bg-[#050b1f] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#050b1f]/15 transition hover:-translate-y-0.5 hover:bg-[#0f172a] hover:shadow-xl"
+                >
+                  Mehr erfahren →
+                </Link>
+              ) : null}
+
+              <a
+                href={getGoogleMapsUrl(active)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-fit items-center gap-2 rounded-full border border-[#dbeafe] bg-white px-5 py-3 text-sm font-bold text-[#075985] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0077b6]/40 hover:bg-[#eaf7fb] hover:shadow-md"
+              >
+                Google Maps
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
           ) : null}
         </div>
 
@@ -331,55 +312,102 @@ export default function ActivitiesExploreClient({
   );
 }
 
+function NearbyProperty({ property }) {
+  const image =
+    property.coverImage ||
+    property.image ||
+    property.images?.[0]?.url ||
+    property.images?.[0]?.src ||
+    property.images?.[0]?.path ||
+    null;
+
+  const distance =
+    typeof property.distanceKm !== "undefined" && property.distanceKm !== null
+      ? `${Number(property.distanceKm).toFixed(1)} km`
+      : null;
+
+  return (
+    <Link
+      href={`/properties/${property.slug}`}
+      className={[
+        "group overflow-hidden rounded-[1.5rem] border border-[#dbeafe] bg-white shadow-sm",
+        "transition-[border-color,box-shadow,background-color] duration-200 ease-out",
+        "hover:border-[#0077b6]/35 hover:bg-white hover:shadow-[0_16px_42px_rgba(5,11,31,0.07)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077b6]/30",
+      ].join(" ")}
+    >
+      <div className="grid gap-0 sm:grid-cols-[190px_minmax(0,1fr)]">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[#eaf7fb] sm:h-full sm:min-h-[170px] sm:aspect-auto">
+          {image ? (
+            <Image
+              src={image}
+              alt={property.title || "Ferienunterkunft"}
+              fill
+              sizes="(max-width: 768px) 100vw, 190px"
+              className="object-cover transition-[filter] duration-200 ease-out group-hover:brightness-[0.97]"
+            />
+          ) : (
+            <div className="grid h-full w-full place-items-center text-[#0077b6]">
+              <Home className="h-7 w-7" />
+            </div>
+          )}
+
+          {distance ? (
+            <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-[#075985] shadow-sm backdrop-blur">
+              <MapPin className="h-3 w-3" />
+              {distance}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="flex min-w-0 flex-col p-4">
+          <div className="min-w-0">
+            <h3 className="line-clamp-2 text-base font-semibold leading-6 tracking-[-0.02em] text-[#050b1f]">
+              {property.title}
+            </h3>
+
+            {property.location ? (
+              <p className="mt-1 line-clamp-1 text-sm text-slate-500">
+                {property.location}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+            {typeof property.maxPersons !== "undefined" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#eaf7fb] px-2.5 py-1 text-[#075985] ring-1 ring-[#bae6fd]">
+                <Users className="h-3.5 w-3.5" />
+                bis {property.maxPersons} Pers.
+              </span>
+            ) : null}
+
+            {typeof property.dogsAllowed !== "undefined" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#f7f1e5] px-2.5 py-1 text-[#7a5b18] ring-1 ring-[#ead9b6]">
+                <PawPrint className="h-3.5 w-3.5" />
+                {property.dogsAllowed ? "Hunde erlaubt" : "Keine Hunde"}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-auto pt-4">
+            <span className="text-sm font-bold text-[#0077b6]">
+              Unterkunft ansehen →
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function Notice({ text }) {
   return (
-    <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-sm font-medium text-slate-600">
+    <div className="rounded-3xl border border-dashed border-[#bae6fd] bg-[#eaf7fb]/45 px-5 py-8 text-center text-sm font-medium text-slate-600">
       {text}
     </div>
   );
 }
 
-function NearbyProperty({ property }) {
-  return (
-    <Link
-      href={`/properties/${property.slug}`}
-      className={[
-        "group block rounded-3xl border border-slate-200 bg-white p-5 shadow-sm",
-        "transition duration-200",
-        "hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50/20 hover:shadow-xl hover:shadow-slate-900/8",
-      ].join(" ")}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-base font-bold leading-6 text-slate-950">
-            {property.title}
-          </h3>
-
-          {property.location ? (
-            <p className="mt-1 truncate text-sm text-slate-500">
-              {property.location}
-            </p>
-          ) : null}
-        </div>
-
-        {typeof property.distanceKm === "number" ? (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
-            <MapPin className="h-3 w-3" />
-            {property.distanceKm.toFixed(1)} km
-          </span>
-        ) : null}
-      </div>
-
-      <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-          <Home className="h-3.5 w-3.5" />
-          Unterkunft
-        </span>
-
-        <span className="text-sm font-bold text-slate-900 transition-colors group-hover:text-sky-700">
-          Details →
-        </span>
-      </div>
-    </Link>
-  );
+function isValidCoordinate(lat, lng) {
+  return Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
 }

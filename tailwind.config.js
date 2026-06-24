@@ -9,46 +9,49 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          DEFAULT: "#0ea5e9",
-          dark: "#0369a1",
+          DEFAULT: "#0077B6",
+          navy: "#050B1F",
+          blue: "#0077B6",
+          sky: "#EAF7FB",
+          gold: "#C49A3A",
+          sand: "#F7F1E5",
+          text: "#0F172A",
+          dark: "#0369A1",
         },
       },
+
       borderRadius: {
         "2xl": "1.25rem",
       },
 
       keyframes: {
-        /* iPhone-like menu open */
         fadeUp: {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+
         scaleIn: {
           "0%": { opacity: "0", transform: "scale(0.98)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
 
-        /* Optional: smooth gradient drift */
         lmGradient: {
           "0%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
           "100%": { backgroundPosition: "0% 50%" },
         },
 
-        /* Optional: soft glow pulse */
         lmPulse: {
           "0%": { opacity: ".35" },
           "50%": { opacity: ".65" },
           "100%": { opacity: ".35" },
         },
 
-        /* Premium sheen sweep (spürbar aber elegant) */
         lmSheen: {
           "0%": { transform: "translateX(-120%)" },
           "100%": { transform: "translateX(260%)" },
         },
 
-        /* slow always-on sheen */
         lmSheenSlow: {
           "0%": { transform: "translateX(-140%)" },
           "100%": { transform: "translateX(260%)" },
