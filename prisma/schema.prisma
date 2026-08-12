@@ -5,8 +5,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL") // für normale Queries (Pooler ok)
-  directUrl = env("DIRECT_DATABASE_URL") // für Migrate/Introspect (ohne Pooler!)
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // ===== Modelle ===============================================================
@@ -15,18 +15,19 @@ datasource db {
  * Unterkunft
  */
 model Property {
-  id           Int              @id @default(autoincrement())
-  slug         String           @unique
-  title        String
-  description  String?
-  location     String
-  address      String? 
-    // Geo (für Map, Nearby-Suche)
-  lat         Float?
-  lng         Float?
+  id          Int     @id @default(autoincrement())
+  slug        String  @unique
+  title       String
+  description String?
+  location    String
+  address     String?
+
+  // Geo (für Map, Nearby-Suche)
+  lat Float?
+  lng Float?
 
   // Optional (für Filter/SEO, kann später genutzt werden)
-  region      String?
+  region String?
 
   maxPersons   Int
   dogsAllowed  Boolean          @default(false)
@@ -42,7 +43,6 @@ model Property {
   icalUpdatedAt DateTime?
   icalLastRunAt DateTime?
 
-  // 🔁 Backrelations korrekt:
   favorites        Favorite[]
   lastMinuteOffers LastMinuteOffer[]
 
@@ -56,7 +56,7 @@ model Property {
 model Amenity {
   id         Int        @id @default(autoincrement())
   name       String     @unique
-  properties Property[] // implicit many-to-many
+  properties Property[]
 }
 
 /**
@@ -66,7 +66,7 @@ model PricePeriod {
   id            Int      @id @default(autoincrement())
   startDate     DateTime
   endDate       DateTime
-  pricePerNight Decimal  @db.Decimal(10, 2) // Geldwerte als Decimal
+  pricePerNight Decimal  @db.Decimal(10, 2)
 
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId Int
@@ -92,13 +92,13 @@ model Booking {
 }
 
 /**
- * Nebenkosten (z. B. Endreinigung, Kurtaxe)
+ * Nebenkosten
  * amount in Cent; isDaily = true => pro Nacht, sonst einmalig pro Aufenthalt
  */
 model ExtraCost {
   id      Int     @id @default(autoincrement())
   title   String
-  amount  Int // Cent
+  amount  Int
   isDaily Boolean @default(false)
 
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -118,8 +118,7 @@ model PropertyImage {
 }
 
 /**
- * Unverbindliche Anfrage (weiche Blockierung, z. B. gelb im Kalender)
- * status: PENDING → APPROVED/DECLINED
+ * Unverbindliche Anfrage
  */
 model BookingRequest {
   id         Int           @id @default(autoincrement())
@@ -148,7 +147,7 @@ model User {
   id        Int        @id @default(autoincrement())
   email     String     @unique
   name      String?
-  password  String // bcrypt-hash
+  password  String
   favorites Favorite[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -164,21 +163,40 @@ model Favorite {
   @@unique([userId, propertyId])
 }
 
+enum LastMinuteDiscountType {
+  PERCENT
+  FIXED
+}
+
 model LastMinuteOffer {
   id         Int      @id @default(autoincrement())
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId Int
-  startDate  DateTime
-  endDate    DateTime
-  discount   Int // Prozent-Rabatt z.B. 20 = -20%
-  note       String? // Optional Hinweis „Nur noch wenige Tage!“
-  createdAt  DateTime @default(now())
+
+  startDate DateTime
+  endDate   DateTime
+
+  // Bestehende Angebote bleiben durch den Default automatisch Prozent-Angebote.
+  discountType LastMinuteDiscountType @default(PERCENT)
+
+  // Nur bei PERCENT verwendet, z. B. 20 = 20 % Rabatt.
+  discount Int @default(0)
+
+  // Nur bei FIXED verwendet, z. B. 25.00 = 25 € Abzug PRO NACHT.
+  discountAmount Decimal? @db.Decimal(10, 2)
+
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([propertyId, startDate, endDate])
 }
+
 enum BookingStatus {
-  PENDING      // Anfrage/Reservierung, noch nicht bezahlt
-  CONFIRMED    // bezahlt/fix
-  CANCELLED    // storniert
+  PENDING
+  CONFIRMED
+  CANCELLED
 }
+
 enum PaymentMethod {
   NONE
   PAYPAL

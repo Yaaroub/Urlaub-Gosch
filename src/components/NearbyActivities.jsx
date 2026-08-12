@@ -1,79 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   Compass,
   ExternalLink,
-  Filter,
   MapPin,
   Navigation,
   SearchX,
   SlidersHorizontal,
 } from "lucide-react";
+import ActivityMapClient from "@/components/ActivityMapClient";
+import { ACTIVITY_GROUPS, getActivityGroup } from "@/lib/activity-groups";
 import { haversineKm, withinBoundingBox } from "@/lib/geo";
-
-const ActivityMapClient = dynamic(() => import("@/components/ActivityMapClient"), {
-  ssr: false,
-  loading: () => (
-    <div className="grid h-[420px] place-items-center rounded-3xl bg-slate-100 text-sm text-slate-500 ring-1 ring-black/5">
-      Karte wird geladen …
-    </div>
-  ),
-});
-
-function groupFromCategory(category = "") {
-  const c = String(category).toLowerCase();
-
-  if (
-    c.includes("familie") ||
-    c.includes("indoor") ||
-    c.includes("freizeitpark") ||
-    c.includes("tier") ||
-    c.includes("zoo") ||
-    c.includes("aquarium")
-  ) {
-    return "Familie";
-  }
-
-  if (
-    c.includes("sport") ||
-    c.includes("outdoor") ||
-    c.includes("reitsport") ||
-    c.includes("klettern") ||
-    c.includes("wandern")
-  ) {
-    return "Sport";
-  }
-
-  if (
-    c.includes("kulinarik") ||
-    c.includes("restaurant") ||
-    c.includes("café") ||
-    c.includes("cafe") ||
-    c.includes("brauerei") ||
-    c.includes("genuss") ||
-    c.includes("manufaktur")
-  ) {
-    return "Restaurant";
-  }
-
-  if (
-    c.includes("museum") ||
-    c.includes("kultur") ||
-    c.includes("science") ||
-    c.includes("planetarium") ||
-    c.includes("stadt") ||
-    c.includes("tour")
-  ) {
-    return "Kultur";
-  }
-
-  return "Natur";
-}
-
-const FILTERS = ["Alle", "Familie", "Natur", "Sport", "Restaurant", "Kultur"];
 
 export default function NearbyActivities({
   property,
@@ -87,68 +26,85 @@ export default function NearbyActivities({
   const centerLat = Number(property?.lat);
   const centerLng = Number(property?.lng);
   const hasValidCenter = Number.isFinite(centerLat) && Number.isFinite(centerLng);
-
   const propertyTitle = property?.title || "deiner Unterkunft";
 
-  const normalizedActivities = useMemo(() => {
-    return activities
-      .filter((activity) => {
-        return Number.isFinite(Number(activity.lat)) && Number.isFinite(Number(activity.lng));
-      })
-      .map((activity) => ({
-        ...activity,
-        lat: Number(activity.lat),
-        lng: Number(activity.lng),
-        group: groupFromCategory(activity.category),
-      }));
-  }, [activities]);
+  const normalizedActivities = useMemo(
+    () =>
+      activities
+        .filter(
+          (activity) =>
+            Number.isFinite(Number(activity.lat)) &&
+            Number.isFinite(Number(activity.lng))
+        )
+        .map((activity) => ({
+          ...activity,
+          lat: Number(activity.lat),
+          lng: Number(activity.lng),
+          group: getActivityGroup(activity),
+        })),
+    [activities]
+  );
 
-  const nearby = useMemo(() => {
+  const nearbyWithinRadius = useMemo(() => {
     if (!hasValidCenter) return [];
 
     return normalizedActivities
       .filter((activity) =>
-        withinBoundingBox(activity.lat, activity.lng, centerLat, centerLng, radiusKm)
+        withinBoundingBox(
+          activity.lat,
+          activity.lng,
+          centerLat,
+          centerLng,
+          radiusKm
+        )
       )
       .map((activity) => ({
         ...activity,
-        distanceKm: haversineKm(centerLat, centerLng, activity.lat, activity.lng),
+        distanceKm: haversineKm(
+          centerLat,
+          centerLng,
+          activity.lat,
+          activity.lng
+        ),
       }))
       .filter((activity) => activity.distanceKm <= radiusKm)
-      .filter((activity) => category === "Alle" || activity.group === category)
       .sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [normalizedActivities, hasValidCenter, centerLat, centerLng, radiusKm, category]);
+  }, [normalizedActivities, hasValidCenter, centerLat, centerLng, radiusKm]);
+
+  const nearby = useMemo(
+    () =>
+      category === "Alle"
+        ? nearbyWithinRadius
+        : nearbyWithinRadius.filter((activity) => activity.group === category),
+    [nearbyWithinRadius, category]
+  );
 
   const counts = useMemo(() => {
-    const result = Object.fromEntries(FILTERS.map((filter) => [filter, 0]));
-    result.Alle = 0;
+    const result = Object.fromEntries(
+      ACTIVITY_GROUPS.map((filter) => [filter, 0])
+    );
 
-    if (!hasValidCenter) return result;
+    result.Alle = nearbyWithinRadius.length;
 
-    for (const activity of normalizedActivities) {
-      if (!withinBoundingBox(activity.lat, activity.lng, centerLat, centerLng, radiusKm)) {
-        continue;
-      }
-
-      const distanceKm = haversineKm(centerLat, centerLng, activity.lat, activity.lng);
-      if (distanceKm > radiusKm) continue;
-
-      result.Alle += 1;
+    for (const activity of nearbyWithinRadius) {
       result[activity.group] = (result[activity.group] || 0) + 1;
     }
 
     return result;
-  }, [normalizedActivities, hasValidCenter, centerLat, centerLng, radiusKm]);
+  }, [nearbyWithinRadius]);
 
   const visibleList = nearby.slice(0, maxListItems);
 
   if (!hasValidCenter) {
     return (
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-xl font-semibold tracking-[-0.02em] text-slate-950">
+      <section className="rounded-[2rem] border border-[#dbeafe] bg-white p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#c49a3a]">
+          Umgebung
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f]">
           Aktivitäten in der Nähe
         </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
+        <p className="mt-3 text-sm leading-6 text-slate-600">
           Für diese Unterkunft sind aktuell keine gültigen Koordinaten hinterlegt.
         </p>
       </section>
@@ -158,51 +114,42 @@ export default function NearbyActivities({
   return (
     <section
       aria-labelledby="nearby-activities-title"
-      className="space-y-5"
+      className="space-y-6"
       itemScope
       itemType="https://schema.org/ItemList"
     >
-      <header className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-700 ring-1 ring-sky-100">
-              <Compass className="h-3.5 w-3.5" />
-              Umgebung entdecken
-            </p>
+      <header className="overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white shadow-sm">
+        <div className="relative px-5 py-6 sm:px-7 sm:py-7">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(196,154,58,0.12),transparent_32%),radial-gradient(circle_at_100%_20%,rgba(0,119,182,0.09),transparent_34%)]" />
 
-            <h2
-              id="nearby-activities-title"
-              className="mt-3 text-2xl font-semibold tracking-[-0.035em] text-slate-950 md:text-3xl"
-            >
-              Aktivitäten nahe {propertyTitle}
-            </h2>
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#c49a3a]">
+                <Compass className="h-3.5 w-3.5" />
+                Umgebung entdecken
+              </p>
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
-              Entdecke Ausflugsziele, Naturerlebnisse, Familienaktivitäten,
-              Restaurants und Kulturangebote im Umkreis von{" "}
-              <strong className="font-semibold text-slate-900">{radiusKm} km</strong>.
-            </p>
-          </div>
+              <h2
+                id="nearby-activities-title"
+                className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f] md:text-3xl"
+              >
+                Aktivitäten nahe {propertyTitle}
+              </h2>
 
-          <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700 ring-1 ring-slate-200">
-            <div className="flex items-center gap-2 font-semibold text-slate-900">
-              <Navigation className="h-4 w-4" />
-              {nearby.length} Ziele gefunden
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
+                Ausflugsziele, Natur, Familienaktivitäten, Restaurants und Kultur
+                im Umkreis von <strong className="text-[#050b1f]">{radiusKm} km</strong>.
+              </p>
             </div>
-            <p className="mt-1 text-xs text-slate-500">
-              Sortiert nach Entfernung zur Unterkunft
-            </p>
-          </div>
-        </div>
 
-        <div className="mt-6 flex flex-col gap-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-            <Filter className="h-4 w-4" />
-            Kategorie wählen
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#dbeafe] bg-[#eaf7fb]/70 px-4 py-2 text-sm font-bold text-[#075985]">
+              <Navigation className="h-4 w-4" />
+              {nearby.length} Ziele
+            </div>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {FILTERS.map((filter) => {
+          <div className="relative mt-6 flex gap-2 overflow-x-auto pb-1">
+            {ACTIVITY_GROUPS.map((filter) => {
               const active = category === filter;
 
               return (
@@ -210,19 +157,21 @@ export default function NearbyActivities({
                   key={filter}
                   type="button"
                   onClick={() => setCategory(filter)}
-                  className={[
-                    "inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold ring-1 transition-colors",
-                    active
-                      ? "bg-slate-950 text-white ring-slate-950"
-                      : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50",
-                  ].join(" ")}
                   aria-pressed={active}
+                  className={[
+                    "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold ring-1 transition",
+                    active
+                      ? "bg-[#050b1f] text-white ring-[#050b1f]"
+                      : "bg-white text-slate-600 ring-[#dbeafe] hover:bg-[#eaf7fb]/60 hover:text-[#050b1f]",
+                  ].join(" ")}
                 >
                   <span>{filter}</span>
                   <span
                     className={[
                       "rounded-full px-1.5 py-0.5 text-[10px]",
-                      active ? "bg-white/15 text-white" : "bg-slate-100 text-slate-500",
+                      active
+                        ? "bg-white/15 text-white"
+                        : "bg-[#f7f1e5] text-slate-500",
                     ].join(" ")}
                   >
                     {counts[filter] ?? 0}
@@ -232,64 +181,58 @@ export default function NearbyActivities({
             })}
           </div>
 
-          <div className="max-w-xl rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
-            <label className="flex items-center gap-3 text-sm text-slate-700">
-              <SlidersHorizontal className="h-4 w-4 shrink-0 text-slate-500" />
-              <span className="whitespace-nowrap font-semibold text-slate-900">
-                {radiusKm} km
-              </span>
-              <input
-                className="w-full accent-slate-950"
-                type="range"
-                min={5}
-                max={80}
-                step={5}
-                value={radiusKm}
-                onChange={(event) => setRadiusKm(Number(event.target.value))}
-                aria-label="Radius für Aktivitäten ändern"
-              />
-            </label>
-          </div>
+          <label className="relative mt-5 flex max-w-lg items-center gap-3 rounded-2xl border border-[#dbeafe] bg-[#eaf7fb]/45 px-4 py-3 text-sm text-slate-600">
+            <SlidersHorizontal className="h-4 w-4 shrink-0 text-[#0077b6]" />
+            <span className="whitespace-nowrap font-bold text-[#050b1f]">
+              {radiusKm} km
+            </span>
+            <input
+              className="w-full accent-[#0077b6]"
+              type="range"
+              min={5}
+              max={80}
+              step={5}
+              value={radiusKm}
+              onChange={(event) => setRadiusKm(Number(event.target.value))}
+              aria-label="Radius für Aktivitäten ändern"
+            />
+          </label>
         </div>
       </header>
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-3 shadow-sm md:p-4">
+      <div className="overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white p-2.5 shadow-sm sm:p-3">
         <ActivityMapClient
           items={nearby}
           center={[centerLat, centerLng]}
           zoom={11}
-          showFilters={false}
+          className="h-[380px] sm:h-[460px] lg:h-[520px]"
         />
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+      <div className="rounded-[2rem] border border-[#dbeafe] bg-white p-5 shadow-sm md:p-7">
         <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
-            <h3 className="text-xl font-semibold tracking-[-0.025em] text-slate-950">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#c49a3a]">
+              Entdecken
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f]">
               Die nächsten Ausflugsziele
             </h3>
-            <p className="mt-1 text-sm text-slate-600">
-              Praktisch für Gäste, die schnell sehen möchten, was in der Umgebung möglich ist.
-            </p>
           </div>
 
           {nearby.length > maxListItems ? (
             <p className="text-sm font-medium text-slate-500">
-              Zeigt {maxListItems} von {nearby.length}
+              {maxListItems} von {nearby.length} angezeigt
             </p>
           ) : null}
         </div>
 
         {nearby.length === 0 ? (
-          <div className="flex items-start gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-            <SearchX className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="flex items-start gap-3 rounded-2xl border border-dashed border-[#dbeafe] bg-[#eaf7fb]/35 p-5 text-sm text-slate-600">
+            <SearchX className="mt-0.5 h-4 w-4 shrink-0 text-[#0077b6]" />
             <div>
-              <p className="font-semibold text-slate-800">
-                Keine Aktivitäten im aktuellen Filter gefunden.
-              </p>
-              <p className="mt-1">
-                Erhöhe den Radius oder wähle eine andere Kategorie.
-              </p>
+              <p className="font-bold text-[#050b1f]">Keine Ziele gefunden.</p>
+              <p className="mt-1">Erhöhe den Radius oder wähle eine andere Kategorie.</p>
             </div>
           </div>
         ) : (
@@ -297,7 +240,7 @@ export default function NearbyActivities({
             {visibleList.map((activity, index) => (
               <article
                 key={activity.id || activity.slug || activity.title}
-                className="group rounded-2xl border border-slate-200 bg-white p-4 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]"
+                className="group rounded-2xl border border-[#dbeafe] bg-white p-4 transition hover:border-[#0077b6]/30 hover:shadow-[0_14px_34px_rgba(5,11,31,0.06)]"
                 itemProp="itemListElement"
                 itemScope
                 itemType="https://schema.org/ListItem"
@@ -308,46 +251,40 @@ export default function NearbyActivities({
                   <div className="min-w-0">
                     {activity.slug ? (
                       <Link
-                        href={`/aktivitaete/${activity.slug}`}
-                        className="line-clamp-2 text-base font-semibold leading-6 text-slate-950 hover:text-sky-700"
+                        href={`/aktivitaeten/${activity.slug}`}
+                        className="line-clamp-2 text-base font-bold leading-6 text-[#050b1f] transition hover:text-[#0077b6]"
                         itemProp="url"
                       >
                         <span itemProp="name">{activity.title}</span>
                       </Link>
                     ) : (
-                      <h4
-                        className="line-clamp-2 text-base font-semibold leading-6 text-slate-950"
-                        itemProp="name"
-                      >
+                      <h4 className="line-clamp-2 text-base font-bold leading-6 text-[#050b1f]" itemProp="name">
                         {activity.title}
                       </h4>
                     )}
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-xs font-semibold text-slate-500">
                       {activity.group}
-                      {activity.category && activity.category !== activity.group
-                        ? ` · ${activity.category}`
-                        : ""}
                     </p>
                   </div>
 
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#eaf7fb] px-2.5 py-1 text-xs font-bold text-[#075985]">
                     <MapPin className="h-3 w-3" />
                     {activity.distanceKm.toFixed(1)} km
                   </span>
                 </div>
 
-                {activity.description ? (
-                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">
-                    {activity.description}
+                {activity.shortDescription || activity.description ? (
+                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
+                    {activity.shortDescription || activity.description}
                   </p>
                 ) : null}
 
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   {activity.slug ? (
                     <Link
-                      href={`/aktivitaete/${activity.slug}`}
-                      className="text-sm font-semibold text-slate-950 hover:text-sky-700"
+                      href={`/aktivitaeten/${activity.slug}`}
+                      className="text-sm font-bold text-[#050b1f] transition hover:text-[#0077b6]"
                     >
                       Details ansehen →
                     </Link>
@@ -355,10 +292,10 @@ export default function NearbyActivities({
 
                   {activity.website ? (
                     <a
-                      className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900"
                       href={activity.website}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 transition hover:text-[#050b1f]"
                     >
                       Website
                       <ExternalLink className="h-3.5 w-3.5" />

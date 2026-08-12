@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
+import { de } from "react-day-picker/locale";
 import "react-day-picker/style.css";
 
 function toDateOnly(date) {
@@ -60,6 +61,17 @@ export default function AvailabilityPage() {
     setErrorMsg("");
   }
 
+  // Beim Aufruf über /admin/availability?propertyId=123
+  // das entsprechende Objekt automatisch auswählen.
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const propertyIdFromUrl = searchParams.get("propertyId");
+
+    if (propertyIdFromUrl) {
+      setPropertyId(propertyIdFromUrl);
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -71,10 +83,31 @@ export default function AvailabilityPage() {
           cache: "no-store",
         });
 
-        const data = res.ok ? await res.json() : [];
+        if (res.status === 401) {
+          window.location.href = "/admin";
+          return;
+        }
+
+        const data = await res.json().catch(() => []);
+
+        if (!res.ok) {
+          throw new Error(
+            data?.error || "Objekte konnten nicht geladen werden."
+          );
+        }
 
         if (!cancelled) {
-          setProperties(Array.isArray(data) ? data : []);
+          const sortedProperties = Array.isArray(data)
+            ? [...data].sort((a, b) =>
+                String(a.title || "").localeCompare(
+                  String(b.title || ""),
+                  "de",
+                  { sensitivity: "base" }
+                )
+              )
+            : [];
+
+          setProperties(sortedProperties);
         }
       } catch {
         if (!cancelled) {
@@ -108,11 +141,23 @@ export default function AvailabilityPage() {
       try {
         setIsLoadingBookings(true);
 
-        const res = await fetch(`/api/bookings?propertyId=${propertyId}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/bookings?propertyId=${encodeURIComponent(propertyId)}`,
+          { cache: "no-store" }
+        );
 
-        const data = res.ok ? await res.json() : [];
+        if (res.status === 401) {
+          window.location.href = "/admin";
+          return;
+        }
+
+        const data = await res.json().catch(() => []);
+
+        if (!res.ok) {
+          throw new Error(
+            data?.error || "Buchungen konnten nicht geladen werden."
+          );
+        }
 
         if (!cancelled) {
           setBookings(Array.isArray(data) ? data : []);
@@ -135,6 +180,32 @@ export default function AvailabilityPage() {
       cancelled = true;
     };
   }, [propertyId]);
+
+  function handlePropertyChange(event) {
+    const nextPropertyId = event.target.value;
+
+    setPropertyId(nextPropertyId);
+    setRange(emptyRange());
+    setGuestName("");
+    setEditingBooking(null);
+    setPendingDelete(null);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    const url = new URL(window.location.href);
+
+    if (nextPropertyId) {
+      url.searchParams.set("propertyId", nextPropertyId);
+    } else {
+      url.searchParams.delete("propertyId");
+    }
+
+    window.history.replaceState(
+      {},
+      "",
+      `${url.pathname}${url.search}${url.hash}`
+    );
+  }
 
   const selectedProperty = useMemo(() => {
     return properties.find((property) => property.id === Number(propertyId));
@@ -174,11 +245,24 @@ export default function AvailabilityPage() {
   async function reloadBookings() {
     if (!propertyId) return;
 
-    const res = await fetch(`/api/bookings?propertyId=${propertyId}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `/api/bookings?propertyId=${encodeURIComponent(propertyId)}`,
+      { cache: "no-store" }
+    );
 
-    const data = res.ok ? await res.json() : [];
+    if (res.status === 401) {
+      window.location.href = "/admin";
+      return;
+    }
+
+    const data = await res.json().catch(() => []);
+
+    if (!res.ok) {
+      throw new Error(
+        data?.error || "Buchungen konnten nicht neu geladen werden."
+      );
+    }
+
     setBookings(Array.isArray(data) ? data : []);
   }
 
@@ -207,6 +291,11 @@ export default function AvailabilityPage() {
       });
 
       const data = await res.json().catch(() => null);
+
+      if (res.status === 401) {
+        window.location.href = "/admin";
+        return;
+      }
 
       if (!res.ok) {
         showError(data?.error || "Fehler beim Speichern des Zeitraums.");
@@ -260,6 +349,11 @@ export default function AvailabilityPage() {
 
       const data = await res.json().catch(() => null);
 
+      if (res.status === 401) {
+        window.location.href = "/admin";
+        return;
+      }
+
       if (!res.ok) {
         showError(
           data?.error || "Der Zeitraum konnte nicht aktualisiert werden."
@@ -287,6 +381,11 @@ export default function AvailabilityPage() {
       const res = await fetch(`/api/admin/booking/${id}`, {
         method: "DELETE",
       });
+
+      if (res.status === 401) {
+        window.location.href = "/admin";
+        return;
+      }
 
       if (!res.ok) {
         showError("Der Eintrag konnte nicht gelöscht werden.");
@@ -357,7 +456,7 @@ export default function AvailabilityPage() {
           <select
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50 disabled:opacity-60"
             value={propertyId}
-            onChange={(event) => setPropertyId(event.target.value)}
+            onChange={handlePropertyChange}
             disabled={isLoadingProperties}
           >
             <option value="">
@@ -414,51 +513,63 @@ export default function AvailabilityPage() {
 
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/70 p-3">
               <DayPicker
-                mode="range"
-                selected={range}
-                onSelect={(selectedRange) => {
-                  setRange(selectedRange ?? emptyRange());
-                }}
-                numberOfMonths={2}
-                showOutsideDays
-                modifiers={modifiers}
-                modifiersClassNames={modifiersClassNames}
-                disabled={bookedRanges}
-                classNames={{
-                  root: "relative m-0 w-full",
-                  months:
-                    "flex w-max min-w-full flex-col gap-8 md:flex-row md:justify-center md:gap-8",
-                  month: "w-[300px]",
-                  month_caption: "mb-4 flex justify-center pr-16",
-                  caption_label: "text-sm font-bold text-slate-900",
+  locale={de}
+  weekStartsOn={1}
+  formatters={{
+    formatWeekdayName: (date) =>
+      ["So.", "Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa."][
+        date.getDay()
+      ],
+  }}
+  mode="range"
+  selected={range}
+  onSelect={(selectedRange) => {
+    setRange(selectedRange ?? emptyRange());
+  }}
+  numberOfMonths={2}
+  showOutsideDays
+  modifiers={modifiers}
+  modifiersClassNames={modifiersClassNames}
+  disabled={bookedRanges}
+  classNames={{
+    root: "relative m-0 w-full",
+    months:
+      "flex w-max min-w-full flex-col gap-8 md:flex-row md:justify-center md:gap-8",
+    month: "w-[300px]",
+    month_caption: "mb-4 flex justify-center pr-16",
+    caption_label: "text-sm font-bold text-slate-900",
 
-                  nav: "absolute right-0 top-0 flex items-center gap-1",
-                  button_previous:
-                    "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
-                  button_next:
-                    "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
+    nav: "absolute right-0 top-0 flex items-center gap-1",
+    button_previous:
+      "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
+    button_next:
+      "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
 
-                  weekdays: "grid grid-cols-7 gap-1",
-                  weekday:
-                    "flex h-7 items-center justify-center text-[11px] font-semibold text-slate-500",
+    weekdays: "grid grid-cols-7 gap-1",
+    weekday:
+      "flex h-7 items-center justify-center text-[11px] font-semibold text-slate-500",
 
-                  week: "mt-1 grid grid-cols-7 gap-1",
-                  day: "flex h-9 items-center justify-center p-0",
-                  day_button:
-                    "flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950",
+    week: "mt-1 grid grid-cols-7 gap-1",
+    day: "flex h-9 items-center justify-center p-0",
+    day_button:
+      "flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950",
 
-                  outside: "[&>button]:text-slate-300",
-                  today: "[&>button]:font-bold",
+    outside: "[&>button]:text-slate-300",
+    today: "[&>button]:font-bold",
 
-                  selected: "[&>button]:bg-slate-900 [&>button]:text-white",
-                  range_start: "[&>button]:bg-slate-900 [&>button]:text-white",
-                  range_middle:
-                    "[&>button]:bg-slate-200 [&>button]:text-slate-900",
-                  range_end: "[&>button]:bg-slate-900 [&>button]:text-white",
+    selected:
+      "[&>button]:bg-slate-900 [&>button]:text-white",
+    range_start:
+      "[&>button]:bg-slate-900 [&>button]:text-white",
+    range_middle:
+      "[&>button]:bg-slate-200 [&>button]:text-slate-900",
+    range_end:
+      "[&>button]:bg-slate-900 [&>button]:text-white",
 
-                  disabled: "cursor-not-allowed [&>button]:cursor-not-allowed",
-                }}
-              />
+    disabled:
+      "cursor-not-allowed [&>button]:cursor-not-allowed",
+  }}
+/>
             </div>
 
             <div className="mt-4 grid gap-3">

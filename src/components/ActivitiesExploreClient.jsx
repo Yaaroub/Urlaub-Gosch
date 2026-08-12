@@ -21,32 +21,16 @@ import {
 
 const FILTERS = ACTIVITY_GROUPS;
 
-const FILTER_STYLES = {
-  Alle: {
-    active: "bg-[#050b1f] text-white ring-[#050b1f]",
-    idle: "bg-white text-[#0f172a] ring-[#dbeafe] hover:bg-[#eaf7fb]",
-  },
-  Familie: {
-    active: "bg-[#c49a3a] text-white ring-[#c49a3a]",
-    idle: "bg-[#f7f1e5] text-[#7a5b18] ring-[#ead9b6] hover:bg-white",
-  },
-  Natur: {
-    active: "bg-[#0077b6] text-white ring-[#0077b6]",
-    idle: "bg-[#eaf7fb] text-[#075985] ring-[#bae6fd] hover:bg-white",
-  },
-  Sport: {
-    active: "bg-[#050b1f] text-white ring-[#050b1f]",
-    idle: "bg-slate-50 text-slate-700 ring-slate-200 hover:bg-white",
-  },
-  Restaurant: {
-    active: "bg-[#b8791c] text-white ring-[#b8791c]",
-    idle: "bg-orange-50 text-orange-800 ring-orange-200 hover:bg-white",
-  },
-  Kultur: {
-    active: "bg-[#475569] text-white ring-[#475569]",
-    idle: "bg-slate-100 text-slate-700 ring-slate-200 hover:bg-white",
-  },
-};
+const FILTER_STYLES = Object.fromEntries(
+  ACTIVITY_GROUPS.map((group) => [
+    group,
+    {
+      active: "bg-[#050b1f] text-white ring-[#050b1f]",
+      idle:
+        "bg-white text-slate-600 ring-[#dbeafe] hover:bg-[#eaf7fb]/60 hover:text-[#050b1f]",
+    },
+  ])
+);
 
 export default function ActivitiesExploreClient({
   activities = [],
@@ -221,14 +205,12 @@ export default function ActivitiesExploreClient({
 
         <div className="bg-[#eaf7fb]/45 p-3 md:p-4">
           <div className="relative overflow-hidden rounded-[1.5rem] border border-[#dbeafe] bg-[#eaf7fb] shadow-inner">
-            <div className="h-[430px] sm:h-[520px] lg:h-[640px]">
-              <ActivityMapClient
-                items={mapItems}
-                center={[54.35, 10.13]}
-                zoom={8}
-                showFilters={false}
-              />
-            </div>
+            <ActivityMapClient
+              items={mapItems}
+              center={[54.35, 10.13]}
+              zoom={8}
+              className="h-[430px] sm:h-[520px] lg:h-[620px]"
+            />
 
             <div className="pointer-events-none absolute left-4 top-4 hidden rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-xl shadow-[#050b1f]/10 backdrop-blur-xl sm:block">
               <p className="text-xs font-bold text-[#050b1f]">
@@ -242,6 +224,47 @@ export default function ActivitiesExploreClient({
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#050b1f]/10 to-transparent" />
           </div>
         </div>
+      </section>
+
+      <section
+        aria-labelledby="activity-directory-title"
+        className="rounded-[2rem] border border-[#dbeafe] bg-white p-5 shadow-sm md:p-7"
+      >
+        <div className="mb-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#c49a3a]">
+            Schleswig-Holstein entdecken
+          </p>
+          <h2
+            id="activity-directory-title"
+            className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f] md:text-3xl"
+          >
+            Ausflugsziele im Überblick
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+            Alle sichtbaren Ziele sind direkt verlinkt. So bleiben die Inhalte auch ohne
+            Karteninteraktion schnell erreichbar und sauber intern vernetzt.
+          </p>
+        </div>
+
+        <ul className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((activity) => (
+            <li key={activity.id || activity.slug || activity.title}>
+              {activity.slug ? (
+                <Link
+                  href={`/aktivitaeten/${activity.slug}`}
+                  className="group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-[#eaf7fb]/50 hover:text-[#050b1f]"
+                >
+                  <span className="line-clamp-1">{activity.title}</span>
+                  <span className="shrink-0 text-[#0077b6] transition group-hover:translate-x-0.5">→</span>
+                </Link>
+              ) : (
+                <span className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500">
+                  {activity.title}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="rounded-[2rem] border border-[#dbeafe] bg-white p-5 shadow-xl shadow-[#050b1f]/5 md:p-7">

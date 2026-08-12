@@ -1,85 +1,149 @@
 // src/components/BookingBox.jsx
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
 import {
+  AlertTriangle,
+  CheckCircle2,
+  Info,
   Loader2,
   ReceiptText,
-  Info,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  AlertTriangle,
 } from "lucide-react";
 
 async function fetchPrice(propertyId, arrival, departure) {
   if (!arrival || !departure) return null;
+
   const res = await fetch("/api/price", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ propertyId, arrival, departure }),
   });
-  return await res.json(); // kann {error} enthalten
+
+  return await res.json();
 }
 
+const inputClass =
+  "min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-100";
+
 export default function BookingBox({ propertyId }) {
+  const [requestType, setRequestType] = useState("");
+
   const [arrival, setArrival] = useState("");
   const [departure, setDeparture] = useState("");
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [street, setStreet] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+  const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+
+  const [adults, setAdults] = useState("1");
+  const [children, setChildren] = useState("0");
+  const [pets, setPets] = useState("");
+  const [dogCount, setDogCount] = useState("0");
+
   const [messageText, setMessageText] = useState("");
 
   const [price, setPrice] = useState(null);
   const [loadingPrice, setLoadingPrice] = useState(false);
-
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
 
-  const [showDetails, setShowDetails] = useState(false);
-
-  const canQuote = useMemo(
+  const hasTravelDates = useMemo(
     () => Boolean(arrival && departure),
     [arrival, departure]
   );
 
   const isFormValid = useMemo(() => {
-    return (
-      arrival &&
-      departure &&
-      firstName.trim() &&
-      lastName.trim() &&
-      email.trim()
-    );
-  }, [arrival, departure, firstName, lastName, email]);
+    const dogsValid = Number(dogCount) >= 0;
 
-  // Live-Preis nach Eingabe beider Daten
+    return Boolean(
+      requestType &&
+        arrival &&
+        departure &&
+        firstName.trim() &&
+        lastName.trim() &&
+        street.trim() &&
+        postalCode.trim() &&
+        city.trim() &&
+        mobile.trim() &&
+        email.trim() &&
+        Number(adults) > 0 &&
+        Number(children) >= 0 &&
+        pets &&
+        dogsValid
+    );
+  }, [
+    requestType,
+    arrival,
+    departure,
+    firstName,
+    lastName,
+    street,
+    postalCode,
+    city,
+    mobile,
+    email,
+    adults,
+    children,
+    pets,
+    dogCount,
+  ]);
+
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
       if (!arrival || !departure) {
         setPrice(null);
         return;
       }
+
       setLoadingPrice(true);
+
       try {
-        const p = await fetchPrice(propertyId, arrival, departure);
-        if (!cancelled) setPrice(p);
+        const result = await fetchPrice(propertyId, arrival, departure);
+        if (!cancelled) setPrice(result);
       } catch {
-        if (!cancelled)
+        if (!cancelled) {
           setPrice({ error: "Preis konnte nicht berechnet werden." });
+        }
       } finally {
         if (!cancelled) setLoadingPrice(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
   }, [propertyId, arrival, departure]);
 
+  function resetForm() {
+    setRequestType("");
+    setArrival("");
+    setDeparture("");
+    setFirstName("");
+    setLastName("");
+    setStreet("");
+    setPostalCode("");
+    setCity("");
+    setMobile("");
+    setEmail("");
+    setAdults("1");
+    setChildren("0");
+    setPets("");
+    setDogCount("0");
+    setMessageText("");
+    setPrice(null);
+  }
+
   async function submit(e) {
     e.preventDefault();
+
+    if (!isFormValid || submitting) return;
+
     setSubmitting(true);
     setMessage(null);
 
@@ -89,40 +153,44 @@ export default function BookingBox({ propertyId }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           propertyId,
+          requestType,
           arrival,
           departure,
-          firstName,
-          lastName,
-          email,
-          phone,
-          message: messageText,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          street: street.trim(),
+          postalCode: postalCode.trim(),
+          city: city.trim(),
+          phone: mobile.trim(),
+          mobile: mobile.trim(),
+          email: email.trim(),
+          adults: Number(adults),
+          children: Number(children),
+          pets: pets === "yes",
+          dogCount: pets === "yes" ? Number(dogCount) : 0,
+          message: messageText.trim(),
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok || data.error) {
         setMessage({
           type: "error",
           text: data.error || "Anfrage konnte nicht gespeichert werden.",
         });
-      } else {
-        setMessage({
-          type: "ok",
-          text:
-            "Ihre Anfrage wurde erfolgreich übermittelt. Die ausgewählten Tage sind noch nicht blockiert – wir prüfen Ihre Anfrage und melden uns.",
-        });
-
-        // Felder zurücksetzen
-        setArrival("");
-        setDeparture("");
-        setFirstName("");
-        setLastName("");
-        setEmail("");
-        setPhone("");
-        setMessageText("");
-        setPrice(null);
+        return;
       }
+
+      setMessage({
+        type: "ok",
+        text:
+          requestType === "booking"
+            ? "Ihre Buchungsanfrage wurde erfolgreich übermittelt. Die ausgewählten Tage sind noch nicht fest gebucht – wir prüfen Ihre Anfrage und melden uns."
+            : "Ihre Informationsanfrage wurde erfolgreich übermittelt. Wir melden uns schnellstmöglich bei Ihnen.",
+      });
+
+      resetForm();
     } catch {
       setMessage({ type: "error", text: "Netzwerkfehler." });
     } finally {
@@ -131,226 +199,352 @@ export default function BookingBox({ propertyId }) {
   }
 
   return (
-    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">Anfrage / Buchung</h3>
-        <ReceiptText className="h-5 w-5 text-slate-400" />
+    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="font-semibold text-slate-950">Info oder Buchung</h3>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Wählen Sie zuerst, welche Art von Anfrage Sie senden möchten.
+          </p>
+        </div>
+        <ReceiptText className="h-5 w-5 shrink-0 text-slate-400" />
       </div>
 
-      <form onSubmit={submit} className="grid gap-3">
-        {/* Zeitraum */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-1">
-            <span className="text-xs text-slate-500">Anreise *</span>
-            <input
-              type="date"
-              className="border rounded-xl px-3 py-2"
-              value={arrival}
-              onChange={(e) => setArrival(e.target.value)}
-              required
-            />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs text-slate-500">Abreise *</span>
-            <input
-              type="date"
-              className="border rounded-xl px-3 py-2"
-              value={departure}
-              onChange={(e) => setDeparture(e.target.value)}
-              required
-            />
-          </label>
+      <form onSubmit={submit} className="grid gap-5">
+        <fieldset>
+          <legend className="mb-2 text-xs font-semibold text-slate-700">
+            Art der Anfrage *
+          </legend>
+
+          <div className="grid grid-cols-2 gap-2">
+            <label
+              className={`cursor-pointer rounded-xl border px-3 py-3 text-center text-sm font-semibold transition ${
+                requestType === "info"
+                  ? "border-sky-500 bg-sky-50 text-sky-800 ring-2 ring-sky-100"
+                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <input
+                type="radio"
+                name="requestType"
+                value="info"
+                checked={requestType === "info"}
+                onChange={(e) => setRequestType(e.target.value)}
+                className="sr-only"
+                required
+              />
+              Information
+            </label>
+
+            <label
+              className={`cursor-pointer rounded-xl border px-3 py-3 text-center text-sm font-semibold transition ${
+                requestType === "booking"
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-100"
+                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <input
+                type="radio"
+                name="requestType"
+                value="booking"
+                checked={requestType === "booking"}
+                onChange={(e) => setRequestType(e.target.value)}
+                className="sr-only"
+                required
+              />
+              Buchungsanfrage
+            </label>
+          </div>
+        </fieldset>
+
+        <div>
+          <h4 className="mb-3 text-sm font-semibold text-slate-900">
+            Reisezeitraum
+          </h4>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Anreise *</span>
+              <input
+                type="date"
+                className={inputClass}
+                value={arrival}
+                onChange={(e) => setArrival(e.target.value)}
+                required
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Abreise *</span>
+              <input
+                type="date"
+                className={inputClass}
+                value={departure}
+                onChange={(e) => setDeparture(e.target.value)}
+                required
+              />
+            </label>
+          </div>
         </div>
 
-        {/* Kontaktdaten */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-1">
-            <span className="text-xs text-slate-500">Vorname *</span>
+        <div>
+          <h4 className="mb-3 text-sm font-semibold text-slate-900">
+            Persönliche Daten
+          </h4>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Vorname *</span>
+              <input
+                type="text"
+                autoComplete="given-name"
+                className={inputClass}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Nachname *</span>
+              <input
+                type="text"
+                autoComplete="family-name"
+                className={inputClass}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+            </label>
+          </div>
+
+          <label className="mt-3 grid gap-1">
+            <span className="text-xs text-slate-500">Straße + Hausnummer *</span>
             <input
               type="text"
-              className="border rounded-xl px-3 py-2"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Max"
+              autoComplete="street-address"
+              className={inputClass}
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              placeholder="Musterstraße 12"
               required
             />
           </label>
-          <label className="grid gap-1">
-            <span className="text-xs text-slate-500">Nachname *</span>
-            <input
-              type="text"
-              className="border rounded-xl px-3 py-2"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Mustermann"
-              required
-            />
-          </label>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-[140px_minmax(0,1fr)]">
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">PLZ *</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="postal-code"
+                className={inputClass}
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                placeholder="24217"
+                required
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Ort *</span>
+              <input
+                type="text"
+                autoComplete="address-level2"
+                className={inputClass}
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Mobil-Nr. *</span>
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                className={inputClass}
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                placeholder="+49 ..."
+                required
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Mailadresse *</span>
+              <input
+                type="email"
+                autoComplete="email"
+                className={inputClass}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.de"
+                required
+              />
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="mb-3 text-sm font-semibold text-slate-900">
+            Reisende & Haustiere
+          </h4>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Erwachsene *</span>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                inputMode="numeric"
+                className={inputClass}
+                value={adults}
+                onChange={(e) => setAdults(e.target.value)}
+                required
+              />
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Kinder *</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="numeric"
+                className={inputClass}
+                value={children}
+                onChange={(e) => setChildren(e.target.value)}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Haustiere *</span>
+              <select
+                className={inputClass}
+                value={pets}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setPets(value);
+                  if (value !== "yes") setDogCount("0");
+                }}
+                required
+              >
+                <option value="">Bitte wählen</option>
+                <option value="no">Nein</option>
+                <option value="yes">Ja</option>
+              </select>
+            </label>
+
+            <label className="grid gap-1">
+              <span className="text-xs text-slate-500">Anzahl Hunde *</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="numeric"
+                className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400`}
+                value={dogCount}
+                onChange={(e) => setDogCount(e.target.value)}
+                disabled={pets !== "yes"}
+                required={pets === "yes"}
+              />
+            </label>
+          </div>
         </div>
 
         <label className="grid gap-1">
-          <span className="text-xs text-slate-500">E-Mail-Adresse *</span>
-          <input
-            type="email"
-            className="border rounded-xl px-3 py-2"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="max@example.de"
-            required
-          />
-        </label>
-
-        <label className="grid gap-1">
-          <span className="text-xs text-slate-500">Rufnummer (optional)</span>
-          <input
-            type="tel"
-            className="border rounded-xl px-3 py-2"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+49 ..."
-          />
-        </label>
-
-        <label className="grid gap-1">
-          <span className="text-xs text-slate-500">
-            Nachricht (optional, z.&nbsp;B. Anzahl Kinder, Fragen)
-          </span>
+          <span className="text-xs text-slate-500">Nachricht (optional)</span>
           <textarea
-            className="border rounded-xl px-3 py-2 min-h-[80px] resize-y"
+            className={`${inputClass} min-h-[96px] resize-y`}
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Ihre Nachricht an den Vermieter..."
+            placeholder="Fragen oder besondere Wünsche..."
           />
         </label>
 
-        {/* Live-Preis */}
-        <div className="text-sm mt-1">
+        {/* Preisrechner: nur Gesamtsumme, keine aufklappbaren Detailpositionen */}
+        <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-100">
           {loadingPrice ? (
             <div className="inline-flex items-center gap-2 text-slate-500">
-              <Loader2 className="h-4 w-4 animate-spin" /> Preis wird
-              berechnet…
+              <Loader2 className="h-4 w-4 animate-spin" /> Preis wird berechnet…
             </div>
           ) : price && !price.error ? (
             <>
-              <div className="font-medium">
-                Gesamtpreis: {price.total.toFixed(2)} €{" "}
-                <span className="text-xs text-slate-500">
-                  für {price.nights} Nacht
-                  {price.nights === 1 ? "" : "e"} (inkl. Nebenkosten)
-                </span>
+              <div className="font-semibold text-slate-950">
+                Gesamtpreis: {Number(price.total).toFixed(2)} €
+              </div>
+              <div className="mt-0.5 text-xs text-slate-500">
+                {price.nights} Nacht{price.nights === 1 ? "" : "e"}, inklusive
+                hinterlegter Nebenkosten.
               </div>
 
-              {/* Rabatt-Hinweis */}
-              {price.discountAmount > 0 && (
-                <div className="mt-2 rounded-lg bg-rose-50 text-rose-800 ring-1 ring-rose-200 p-2 text-xs leading-5">
-                  <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4" />
-                    <span>{price.invoiceNote}</span>
-                  </div>
+              {price.discountAmount > 0 && price.invoiceNote && (
+                <div className="mt-2 flex items-start gap-2 rounded-lg bg-rose-50 p-2 text-xs leading-5 text-rose-800 ring-1 ring-rose-100">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{price.invoiceNote}</span>
                 </div>
               )}
-
-              {/* Rechnungspositionen */}
-              {Array.isArray(price.invoiceLines) &&
-                price.invoiceLines.length > 0 && (
-                  <div className="mt-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowDetails((v) => !v)}
-                      className="text-xs text-sky-700 hover:underline inline-flex items-center gap-1"
-                    >
-                      {showDetails ? (
-                        <>
-                          <ChevronUp className="h-4 w-4" /> Details ausblenden
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="h-4 w-4" /> Details anzeigen
-                        </>
-                      )}
-                    </button>
-
-                    {showDetails && (
-                      <ul className="mt-2 text-sm text-slate-700 space-y-1">
-                        {price.invoiceLines.map((l, i) => (
-                          <li key={i} className="flex justify-between">
-                            <span>
-                              {l.type === "lodging" &&
-                                `${l.title} (${l.quantity} × ${Number(
-                                  l.unitPrice
-                                ).toFixed(2)} €)`}
-                              {l.type === "discount" && l.title}
-                              {l.type === "extra" &&
-                                `${l.title}${
-                                  l.quantity
-                                    ? ` (${l.quantity} ${l.unit || ""})`
-                                    : ""
-                                }`}
-                            </span>
-                            <span
-                              className={
-                                l.type === "discount" ? "text-rose-700" : ""
-                              }
-                            >
-                              {l.type === "discount"
-                                ? `−${(-Number(l.amount)).toFixed(2)} €`
-                                : `${Number(
-                                    l.lineTotal ?? l.baseTotal
-                                  ).toFixed(2)} €`}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
             </>
           ) : (
             <div className="text-xs text-slate-500">
               {price?.error ||
-                "Bitte An- und Abreise wählen, um den Preis zu sehen."}
+                "Bitte An- und Abreise wählen, um den Gesamtpreis zu sehen."}
             </div>
           )}
         </div>
 
-        <div className="pt-2">
-          <button
-            className="rounded-xl px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm disabled:opacity-60 inline-flex items-center gap-2"
-            disabled={submitting || !canQuote || !!price?.error || !isFormValid}
-            title={
-              !isFormValid
-                ? "Bitte alle Pflichtfelder ausfüllen."
-                : undefined
-            }
-          >
-            {submitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Sende…
-              </>
-            ) : (
-              "Anfrage senden"
-            )}
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={
+            submitting ||
+            !hasTravelDates ||
+            !!price?.error ||
+            !isFormValid
+          }
+          title={!isFormValid ? "Bitte alle Pflichtfelder ausfüllen." : undefined}
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Sende…
+            </>
+          ) : requestType === "info" ? (
+            "Informationsanfrage senden"
+          ) : requestType === "booking" ? (
+            "Buchungsanfrage senden"
+          ) : (
+            "Anfrage senden"
+          )}
+        </button>
 
         {message && (
           <div
-            className={`mt-2 text-sm inline-flex items-center gap-2 ${
-              message.type === "ok" ? "text-emerald-700" : "text-rose-700"
+            className={`inline-flex items-start gap-2 rounded-xl px-3 py-2 text-sm ${
+              message.type === "ok"
+                ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100"
+                : "bg-rose-50 text-rose-800 ring-1 ring-rose-100"
             }`}
           >
             {message.type === "ok" ? (
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             ) : (
-              <AlertTriangle className="h-4 w-4" />
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             )}
             <span>{message.text}</span>
           </div>
         )}
 
-        <p className="mt-1 text-[11px] text-slate-400">
-          * Pflichtfelder. Ihre Anfrage ist unverbindlich – es erfolgt noch
-          keine feste Buchung.
+        <p className="text-[11px] leading-5 text-slate-400">
+          * Pflichtfelder. Auch eine Buchungsanfrage ist zunächst unverbindlich
+          und stellt noch keine bestätigte Buchung dar.
         </p>
       </form>
     </div>

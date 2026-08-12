@@ -1,154 +1,396 @@
 "use client";
-import { useEffect, useState } from "react";
 
-/** ---- Helpers ---- */
-const jsonOrEmpty = async (res) => {
-  if (res.status === 401) {
-    window.location.href = "/admin";
-    return [];
-  }
-  const ct = res.headers.get("content-type") || "";
-  return ct.includes("application/json") ? res.json() : [];
+import { useEffect, useMemo, useState } from "react";
+
+const EMPTY_FORM = {
+  id: null,
+  name: "",
+  kind: "FIXED",
+  amount: "",
 };
 
-const toCents = (eurString) => {
-  const n = Number(String(eurString).replace(",", "."));
-  return Number.isFinite(n) ? Math.round(n * 100) : NaN;
-};
+function toCents(eurString) {
+  const normalized = String(eurString ?? "").replace(",", ".").trim();
+  const value = Number(normalized);
 
-const fromCents = (cents) => Number(cents) / 100;
+  return Number.isFinite(value) ? Math.round(value * 100) : NaN;
+}
 
-/** ---- Page ---- */
+function fromCents(cents) {
+  const value = Number(cents);
+  return Number.isFinite(value) ? value / 100 : 0;
+}
+
+function formatEuroFromCents(cents) {
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+  }).format(fromCents(cents));
+}
+
 export default function FeesPage() {
   const [properties, setProperties] = useState([]);
   const [propertyId, setPropertyId] = useState("");
   const [items, setItems] = useState([]);
-  const [form, setForm] = useState({
-    id: null,
-    name: "",
-    kind: "FIXED",
-    amount: "",
-  });
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState(null); // { t: "ok" | "error", m: string }
-  const [pendingDelete, setPendingDelete] = useState(null); // Eintrag zum Löschen
+  const [form, setForm] = useState(EMPTY_FORM);
 
-  /** Properties laden */
+  const [loadingProperties, setLoadingProperties] = useState(true);
+  const [loadingFees, setLoadingFees] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
+
+  const selectedProperty = useMemo(
+    () =>
+      properties.find(
+        (property) => String(property.id) === String(propertyId)
+      ) ?? null,
+    [properties, propertyId]
+  );
+
+  // propertyId aus der URL übernehmen.
+  // Beispiel: /admin/fees?propertyId=21
   useEffect(() => {
-    (async () => {
-      const r = await fetch("/api/admin/properties", { cache: "no-store" });
-      setProperties(await jsonOrEmpty(r));
-    })();
+    const searchParams = new URLSearchParams(window.location.search);
+    const propertyIdFromUrl = searchParams.get("propertyId");
+
+    if (propertyIdFromUrl) {
+      setPropertyId(propertyIdFromUrl);
+    }
   }, []);
 
-  /** Fees laden */
-  async function loadFees(pid) {
+  // Objekte für die Auswahl laden.
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProperties() {
+      setLoadingProperties(true);
+
+      try {
+        const response = await fetch("/api/admin/properties", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (response.status === 401) {
+          window.location.href = "/admin";
+          return;
+        }
+
+        const data = await response.json().catch(() => []);
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || "Objekte konnten nicht geladen werden."
+          );
+        }
+
+        const sortedProperties = Array.isArray(data)
+          ? [...data].sort((a, b) =>
+              String(a.title || "").localeCompare(
+                String(b.title || ""),
+                "de",
+                { sensitivity: "base" }
+              )
+            )
+          : [];
+
+        setProperties(sortedProperties);
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+
+        setProperties([]);
+        setMsg({
+          t: "error",
+          m: error?.message || "Objekte konnten nicht geladen werden.",
+        });
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingProperties(false);
+        }
+      }
+    }
+
+    loadProperties();
+
+    return () => controller.abort();
+  }, []);
+
+  // Nebenkosten des gewählten Objekts laden.
+  useEffect(() => {
+    if (!propertyId) {
+      setItems([]);
+      setForm(EMPTY_FORM);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadSelectedFees() {
+      setLoadingFees(true);
+      setMsg(null);
+
+      try {
+        const response = await fetch(
+          `/api/admin/fees?propertyId=${encodeURIComponent(propertyId)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
+
+        if (response.status === 401) {
+          window.location.href = "/admin";
+          return;
+        }
+
+        const data = await response.json().catch(() => []);
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || "Nebenkosten konnten nicht geladen werden."
+          );
+        }
+
+        setItems(Array.isArray(data) ? data : []);
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+
+        setItems([]);
+        setMsg({
+          t: "error",
+          m: error?.message || "Nebenkosten konnten nicht geladen werden.",
+        });
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingFees(false);
+        }
+      }
+    }
+
+    loadSelectedFees();
+
+    return () => controller.abort();
+  }, [propertyId]);
+
+  async function loadFees(pid = propertyId) {
     if (!pid) {
       setItems([]);
       return;
     }
-    const r = await fetch(`/api/admin/fees?propertyId=${pid}`, {
-      cache: "no-store",
-    });
-    const raw = await jsonOrEmpty(r); // API liefert Cent
-    const data = Array.isArray(raw) ? raw : [];
-    setItems(data);
+
+    const response = await fetch(
+      `/api/admin/fees?propertyId=${encodeURIComponent(pid)}`,
+      { cache: "no-store" }
+    );
+
+    if (response.status === 401) {
+      window.location.href = "/admin";
+      return;
+    }
+
+    const data = await response.json().catch(() => []);
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error || "Nebenkosten konnten nicht geladen werden."
+      );
+    }
+
+    setItems(Array.isArray(data) ? data : []);
   }
 
-  useEffect(() => {
-    loadFees(propertyId);
-  }, [propertyId]);
+  function handlePropertyChange(event) {
+    const nextPropertyId = event.target.value;
 
-  /** Speichern (neu/ändern) */
-  async function save(e) {
-    e.preventDefault();
+    setPropertyId(nextPropertyId);
+    setForm(EMPTY_FORM);
+    setPendingDelete(null);
     setMsg(null);
+
+    const url = new URL(window.location.href);
+
+    if (nextPropertyId) {
+      url.searchParams.set("propertyId", nextPropertyId);
+    } else {
+      url.searchParams.delete("propertyId");
+    }
+
+    window.history.replaceState(
+      {},
+      "",
+      `${url.pathname}${url.search}${url.hash}`
+    );
+  }
+
+  function resetForm() {
+    setForm(EMPTY_FORM);
+  }
+
+  async function save(event) {
+    event.preventDefault();
+    setMsg(null);
+
     if (!propertyId) {
-      setMsg({ t: "error", m: "Bitte zuerst eine Unterkunft wählen." });
+      setMsg({
+        t: "error",
+        m: "Bitte zuerst eine Unterkunft wählen.",
+      });
+      return;
+    }
+
+    const name = form.name.trim();
+
+    if (!name) {
+      setMsg({
+        t: "error",
+        m: "Bitte eine Bezeichnung für die Nebenkosten eingeben.",
+      });
       return;
     }
 
     const cents = toCents(form.amount);
-    if (!Number.isFinite(cents)) {
-      setMsg({ t: "error", m: "Bitte gültigen Betrag eingeben." });
+
+    if (!Number.isFinite(cents) || cents < 0) {
+      setMsg({
+        t: "error",
+        m: "Bitte einen gültigen, nicht negativen Betrag eingeben.",
+      });
       return;
     }
 
     const payload = {
       propertyId: Number(propertyId),
-      name: form.name.trim(),
-      kind: form.kind, // "FIXED" | "PER_NIGHT"
-      amount: cents, // Cent an API senden
+      name,
+      kind: form.kind,
+      amount: cents,
     };
 
-    const url = form.id ? `/api/admin/fees/${form.id}` : `/api/admin/fees`;
-    const method = form.id ? "PUT" : "POST";
+    const url = form.id
+      ? `/api/admin/fees/${encodeURIComponent(form.id)}`
+      : "/api/admin/fees";
 
     setBusy(true);
+
     try {
-      const res = await fetch(url, {
-        method,
+      const response = await fetch(url, {
+        method: form.id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (res.status === 401) {
+
+      if (response.status === 401) {
         window.location.href = "/admin";
         return;
       }
-      if (!res.ok) {
-        const t = await res.text();
-        setMsg({ t: "error", m: `Speichern fehlgeschlagen: ${t}` });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setMsg({
+          t: "error",
+          m:
+            data?.error ||
+            (form.id
+              ? "Nebenkosten konnten nicht aktualisiert werden."
+              : "Nebenkosten konnten nicht angelegt werden."),
+        });
         return;
       }
-      setForm({ id: null, name: "", kind: "FIXED", amount: "" });
+
+      const wasEditing = Boolean(form.id);
+
+      resetForm();
       await loadFees(propertyId);
-      setMsg({ t: "ok", m: "Nebenkosten wurden gespeichert." });
-    } catch {
-      setMsg({ t: "error", m: "Netzwerkfehler beim Speichern." });
+
+      setMsg({
+        t: "ok",
+        m: wasEditing
+          ? "Nebenkosten wurden aktualisiert."
+          : "Nebenkosten wurden hinzugefügt.",
+      });
+    } catch (error) {
+      setMsg({
+        t: "error",
+        m: error?.message || "Netzwerkfehler beim Speichern.",
+      });
     } finally {
       setBusy(false);
     }
   }
 
-  /** Delete starten (Dialog öffnen) */
+  function editItem(item) {
+    setMsg(null);
+    setForm({
+      id: item.id,
+      name: item.name || "",
+      kind: item.kind || "FIXED",
+      amount: fromCents(item.amount).toFixed(2),
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function askDelete(item) {
     setMsg(null);
     setPendingDelete(item);
   }
 
-  /** Delete bestätigen */
   async function confirmDelete() {
     if (!pendingDelete) return;
-    const id = pendingDelete.id;
 
+    const itemToDelete = pendingDelete;
     setBusy(true);
+
     try {
-      const res = await fetch(`/api/admin/fees/${id}`, { method: "DELETE" });
-      if (res.status === 401) {
+      const response = await fetch(
+        `/api/admin/fees/${encodeURIComponent(itemToDelete.id)}`,
+        { method: "DELETE" }
+      );
+
+      if (response.status === 401) {
         window.location.href = "/admin";
         return;
       }
-      if (!res.ok) {
-        const t = await res.text();
-        setMsg({ t: "error", m: `Löschen fehlgeschlagen: ${t}` });
-        setPendingDelete(null);
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setMsg({
+          t: "error",
+          m: data?.error || "Löschen fehlgeschlagen.",
+        });
         return;
       }
-      setItems((prev) => prev.filter((i) => i.id !== id));
-      setMsg({ t: "ok", m: "Nebenkosten-Eintrag wurde gelöscht." });
-      setPendingDelete(null);
+
+      setItems((currentItems) =>
+        currentItems.filter((item) => item.id !== itemToDelete.id)
+      );
+
+      if (form.id === itemToDelete.id) {
+        resetForm();
+      }
+
+      setMsg({
+        t: "ok",
+        m: "Nebenkosten-Eintrag wurde gelöscht.",
+      });
     } catch {
-      setMsg({ t: "error", m: "Netzwerkfehler beim Löschen." });
+      setMsg({
+        t: "error",
+        m: "Netzwerkfehler beim Löschen.",
+      });
     } finally {
+      setPendingDelete(null);
       setBusy(false);
     }
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-8 mt-24 md:py-10 relative">
-      {/* Messages oben als Banner */}
+    <section className="relative mx-auto mt-24 max-w-5xl px-4 py-8 md:py-10">
+      {/* Meldungen */}
       <div className="mb-4 space-y-2">
-        {msg && msg.t === "error" && (
+        {msg?.t === "error" && (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700">
             <span>{msg.m}</span>
             <button
@@ -160,7 +402,8 @@ export default function FeesPage() {
             </button>
           </div>
         )}
-        {msg && msg.t === "ok" && (
+
+        {msg?.t === "ok" && (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
             <span>{msg.m}</span>
             <button
@@ -175,7 +418,7 @@ export default function FeesPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
             Admin · Nebenkosten
@@ -184,126 +427,156 @@ export default function FeesPage() {
             Nebenkosten verwalten
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            Endreinigung, Kurtaxe oder weitere Zusatzkosten für das ausgewählte
+            Endreinigung, Kurtaxe und weitere Zusatzkosten für das ausgewählte
             Objekt pflegen.
           </p>
         </div>
 
-        <div className="sm:ml-auto flex items-center gap-3">
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-700 mb-1">
-              Objekt
-            </label>
-            <select
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
-              value={propertyId}
-              onChange={(e) => setPropertyId(e.target.value)}
-            >
-              <option value="">— Objekt wählen —</option>
-              {properties?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="w-full sm:w-80">
+          <label className="mb-1 block text-xs font-semibold text-slate-700">
+            Objekt wählen
+          </label>
+          <select
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60 disabled:opacity-60"
+            value={propertyId}
+            onChange={handlePropertyChange}
+            disabled={loadingProperties}
+          >
+            <option value="">
+              {loadingProperties
+                ? "Objekte werden geladen …"
+                : "— Objekt wählen —"}
+            </option>
+            {properties.map((property) => (
+              <option key={property.id} value={property.id}>
+                {property.title}
+              </option>
+            ))}
+          </select>
+
+          {selectedProperty && (
+            <p className="mt-1 text-right text-[11px] text-slate-500">
+              {selectedProperty.title}
+            </p>
+          )}
         </div>
       </div>
 
       {/* Formular */}
       <form
         onSubmit={save}
-        className="mb-6 grid gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 md:grid-cols-4"
+        className="mb-6 grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 md:grid-cols-4"
       >
         <input
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60 md:col-span-2"
-          placeholder="Name (z. B. Endreinigung)"
+          required
+          disabled={!propertyId || busy}
+          className="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60 disabled:bg-slate-50 disabled:opacity-60 md:col-span-2"
+          placeholder="Name, z. B. Endreinigung"
           value={form.name}
-          onChange={(e) =>
-            setForm((f) => ({
-              ...f,
-              name: e.target.value,
-            }))
+          onChange={(event) =>
+            setForm((current) => ({ ...current, name: event.target.value }))
           }
         />
+
         <select
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
+          disabled={!propertyId || busy}
+          className="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60 disabled:bg-slate-50 disabled:opacity-60"
           value={form.kind}
-          onChange={(e) =>
-            setForm((f) => ({
-              ...f,
-              kind: e.target.value,
-            }))
+          onChange={(event) =>
+            setForm((current) => ({ ...current, kind: event.target.value }))
           }
         >
           <option value="FIXED">Einmalig</option>
           <option value="PER_NIGHT">Pro Nacht</option>
         </select>
-        <div className="flex gap-2">
-          <input
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
-            placeholder="Betrag in € (z. B. 49,00)"
-            value={form.amount}
-            onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                amount: e.target.value,
-              }))
-            }
-          />
+
+        <input
+          required
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          min="0"
+          disabled={!propertyId || busy}
+          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60 disabled:bg-slate-50 disabled:opacity-60"
+          placeholder="Betrag in €"
+          value={form.amount}
+          onChange={(event) =>
+            setForm((current) => ({ ...current, amount: event.target.value }))
+          }
+        />
+
+        <div className="flex flex-wrap gap-2 md:col-span-4 md:justify-end">
+          {form.id && (
+            <button
+              type="button"
+              onClick={resetForm}
+              disabled={busy}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60"
+            >
+              Abbrechen
+            </button>
+          )}
+
+          <button
+            type="submit"
+            disabled={busy || !propertyId}
+            className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/70 disabled:opacity-60"
+          >
+            {busy
+              ? "Wird gespeichert …"
+              : form.id
+                ? "Aktualisieren"
+                : "Hinzufügen"}
+          </button>
         </div>
-        <button
-          disabled={busy || !propertyId}
-          className="mt-1 rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/70 disabled:opacity-60 md:col-span-1"
-        >
-          {form.id ? "Aktualisieren" : "Hinzufügen"}
-        </button>
       </form>
 
       {/* Liste */}
-      <div className="overflow-x-auto rounded-2xl bg-white p-4 ring-1 ring-black/5">
-        {items.length === 0 ? (
+      <div className="overflow-x-auto rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+        {!propertyId ? (
           <p className="text-sm text-slate-500">
-            Keine Nebenkosten hinterlegt. Lege oben einen neuen Eintrag an.
+            Bitte zuerst oben ein Objekt auswählen.
+          </p>
+        ) : loadingFees ? (
+          <p className="text-sm text-slate-500">
+            Nebenkosten werden geladen …
+          </p>
+        ) : items.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            Für dieses Objekt sind noch keine Nebenkosten hinterlegt.
           </p>
         ) : (
-          <table className="w-full min-w-[480px] text-sm">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="text-slate-500">
               <tr>
                 <th className="py-2 text-left">Name</th>
                 <th className="text-left">Art</th>
                 <th className="text-left">Betrag</th>
-                <th className="w-32 text-right"></th>
+                <th className="w-40 text-right">Aktionen</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((i) => (
-                <tr key={i.id} className="border-t border-slate-100">
-                  <td className="py-2">{i.name}</td>
-                  <td>{i.kind === "FIXED" ? "Einmalig" : "pro Nacht"}</td>
-                  <td>{fromCents(i.amount).toFixed(2)} €</td>
-                  <td className="py-2 text-right">
+              {items.map((item) => (
+                <tr key={item.id} className="border-t border-slate-100">
+                  <td className="py-3 font-medium text-slate-900">
+                    {item.name}
+                  </td>
+                  <td>
+                    {item.kind === "FIXED" ? "Einmalig" : "Pro Nacht"}
+                  </td>
+                  <td>{formatEuroFromCents(item.amount)}</td>
+                  <td className="py-3 text-right">
                     <button
                       type="button"
                       className="mr-3 text-xs font-semibold text-sky-700 hover:text-sky-800"
-                      onClick={() =>
-                        setForm({
-                          id: i.id,
-                          name: i.name,
-                          kind: i.kind,
-                          amount: fromCents(i.amount).toFixed(2),
-                        })
-                      }
+                      onClick={() => editItem(item)}
                     >
                       Bearbeiten
                     </button>
                     <button
                       type="button"
                       className="text-xs font-semibold text-rose-600 hover:text-rose-700"
-                      onClick={() => askDelete(i)}
+                      onClick={() => askDelete(item)}
                     >
                       Löschen
                     </button>
@@ -315,37 +588,37 @@ export default function FeesPage() {
         )}
       </div>
 
-      {/* Lösch-Dialog (statt confirm) */}
+      {/* Löschdialog */}
       {pendingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
-            <h4 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-semibold text-slate-900">
               Nebenkosten-Eintrag löschen?
-            </h4>
+            </h2>
             <p className="mt-2 text-sm text-slate-600">
-              Eintrag:{" "}
-              <span className="font-medium">{pendingDelete.name}</span>
+              Eintrag: <span className="font-medium">{pendingDelete.name}</span>
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Betrag: {fromCents(pendingDelete.amount).toFixed(2)} € (
-              {pendingDelete.kind === "FIXED" ? "einmalig" : "pro Nacht"}).
+              Betrag: {formatEuroFromCents(pendingDelete.amount)} · {" "}
+              {pendingDelete.kind === "FIXED" ? "einmalig" : "pro Nacht"}
             </p>
 
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setPendingDelete(null)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                disabled={busy}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
               >
                 Abbrechen
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-500 disabled:opacity-60"
                 disabled={busy}
+                className="rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-500 disabled:opacity-60"
               >
-                Ja, löschen
+                {busy ? "Wird gelöscht …" : "Ja, löschen"}
               </button>
             </div>
           </div>

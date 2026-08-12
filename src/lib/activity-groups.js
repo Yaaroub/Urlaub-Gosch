@@ -11,26 +11,32 @@ export const ACTIVITY_GROUP_META = {
   Alle: {
     label: "Alle",
     mapKey: "all",
+    mapColor: "#050b1f",
   },
   Familie: {
     label: "Familie",
     mapKey: "familie",
+    mapColor: "#c49a3a",
   },
   Natur: {
     label: "Natur",
     mapKey: "natur",
+    mapColor: "#0077b6",
   },
   Sport: {
     label: "Sport",
     mapKey: "sport",
+    mapColor: "#050b1f",
   },
   Restaurant: {
     label: "Restaurant",
     mapKey: "restaurant",
+    mapColor: "#9a6b2f",
   },
   Kultur: {
     label: "Kultur",
     mapKey: "kultur",
+    mapColor: "#475569",
   },
 };
 
@@ -61,15 +67,32 @@ export function getActivityGroup(activity = {}) {
     tips,
   ].join(" ");
 
-  if (hasAny(category, ["restaurants", "restaurant", "selbsterzeuger"])) {
+  if (
+    hasAny(category, [
+      "restaurants",
+      "restaurant",
+      "selbsterzeuger",
+    ])
+  ) {
     return "Restaurant";
   }
 
-  if (hasAny(category, ["museum", "historischer platz", "information"])) {
+  if (
+    hasAny(category, [
+      "museum",
+      "historischer platz",
+      "information",
+    ])
+  ) {
     return "Kultur";
   }
 
-  if (hasAny(category, ["golf", "wassersport"])) {
+  if (
+    hasAny(category, [
+      "golf",
+      "wassersport",
+    ])
+  ) {
     return "Sport";
   }
 
@@ -203,67 +226,127 @@ export function getActivityGroup(activity = {}) {
     return "Kultur";
   }
 
-  if (
-    hasAny(text, [
-      "natur",
-      "see",
-      "seen",
-      "strand",
-      "meer",
-      "ostsee",
-      "nordsee",
-      "wald",
-      "park",
-      "garten",
-      "botanisch",
-      "schifffahrt",
-      "rundfahrt",
-      "wasser",
-      "ufer",
-      "spaziergang",
-      "landschaft",
-      "picknick",
-      "holsteinische schweiz",
-      "düne",
-      "duene",
-    ])
-  ) {
-    return "Natur";
-  }
-
   return "Natur";
 }
 
-export function getGoogleMapsUrl(activity = {}) {
-  const lat = Number(activity.lat);
-  const lng = Number(activity.lng);
-
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-  }
-
-  const query = encodeURIComponent(
-    [activity.title, activity.address].filter(Boolean).join(", ")
+export function getActivityMapGroup(activity = {}) {
+  return (
+    ACTIVITY_GROUP_META[getActivityGroup(activity)]?.mapKey ||
+    "natur"
   );
-
-  return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
-export function getAppleMapsUrl(activity = {}) {
-  const lat = Number(activity.lat);
-  const lng = Number(activity.lng);
+export function isValidCoordinate(lat, lng) {
+  return (
+    Number.isFinite(Number(lat)) &&
+    Number.isFinite(Number(lng))
+  );
+}
 
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    return `https://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(
-      activity.title || "Ausflugsziel"
-    )}`;
+/*
+ * Nur intern für Datenqualität / SEO.
+ * Diese Information wird NICHT im Frontend angezeigt.
+ */
+export function isActivityLocationVerified(activity = {}) {
+  if (activity.locationVerified === true) {
+    return true;
   }
 
-  const query = encodeURIComponent(
-    [activity.title, activity.address].filter(Boolean).join(", ")
-  );
+  if (activity.locationVerified === false) {
+    return false;
+  }
 
-  return `https://maps.apple.com/?q=${query}`;
+  return activity.coordinateQuality === "marker";
+}
+
+/*
+ * Nur intern für strukturierte Daten.
+ * Diese Information wird NICHT im Frontend angezeigt.
+ */
+export function isActivityAddressVerified(activity = {}) {
+  if (activity.addressVerified === true) {
+    return true;
+  }
+
+  if (activity.addressVerified === false) {
+    return false;
+  }
+
+  return (
+    isActivityLocationVerified(activity) &&
+    Boolean(activity.address)
+  );
+}
+
+export function getActivityLocationLabel(activity = {}) {
+  const title = String(activity.title || "").trim();
+  const address = String(activity.address || "").trim();
+
+  if (title && address) {
+    return `${title}, ${address}`;
+  }
+
+  return title || address || "Ausflugsziel";
+}
+
+/*
+ * Wichtig:
+ * Google Maps wird IMMER über Name + Adresse geöffnet.
+ *
+ * lat/lng werden hier bewusst NICHT verwendet.
+ */
+export function getGoogleMapsUrl(activity = {}) {
+  const title = String(activity.title || "").trim();
+  const address = String(activity.address || "").trim();
+
+  const searchText =
+    [title, address]
+      .filter(Boolean)
+      .join(", ") || "Ausflugsziel";
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    searchText
+  )}`;
+}
+
+/*
+ * Auch Apple Maps sucht immer nach Name + Adresse.
+ */
+export function getAppleMapsUrl(activity = {}) {
+  const title = String(activity.title || "").trim();
+  const address = String(activity.address || "").trim();
+
+  const searchText =
+    [title, address]
+      .filter(Boolean)
+      .join(", ") || "Ausflugsziel";
+
+  return `https://maps.apple.com/?q=${encodeURIComponent(
+    searchText
+  )}`;
+}
+
+export function getActivitySchemaType(activity = {}) {
+  const group = getActivityGroup(activity);
+  const category = normalize(activity.category);
+
+  if (group === "Restaurant") {
+    return "Restaurant";
+  }
+
+  if (category.includes("museum")) {
+    return "Museum";
+  }
+
+  if (category.includes("golf")) {
+    return "GolfCourse";
+  }
+
+  if (category.includes("gesundheit")) {
+    return "LocalBusiness";
+  }
+
+  return "TouristAttraction";
 }
 
 function normalize(value = "") {
@@ -274,5 +357,7 @@ function normalize(value = "") {
 }
 
 function hasAny(text, keywords) {
-  return keywords.some((keyword) => text.includes(normalize(keyword)));
+  return keywords.some((keyword) =>
+    text.includes(normalize(keyword))
+  );
 }

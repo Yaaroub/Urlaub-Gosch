@@ -5,15 +5,16 @@ import {
   MapPin,
   Phone,
   Clock,
-  Home,
-  CalendarDays,
-  Users,
+  MessageCircle,
+  Building2,
+  Check,
+  ShieldCheck,
 } from "lucide-react";
 
 export const metadata = {
   title: "Kontakt | Urlaub Gosch",
   description:
-    "Kontaktieren Sie Urlaub Gosch für Fragen zu Ferienunterkünften, Buchungen und Verfügbarkeiten.",
+    "Kontaktieren Sie Urlaub Gosch bei allgemeinen Fragen oder wenn Sie Ihre Ferienunterkunft über uns vermieten möchten.",
 };
 
 export default function ContactPage() {
@@ -37,15 +38,15 @@ export default function ContactPage() {
 
             <h1 className="text-[clamp(2.6rem,7vw,5.8rem)] font-semibold leading-[0.95] tracking-[-0.07em] text-slate-950">
               Wir sind gerne
-              <span className="block font-serif italic font-normal text-[#c99a43]">
+              <span className="block font-serif font-normal italic text-[#c99a43]">
                 für Sie da.
               </span>
             </h1>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
-              Sie haben Fragen zu einer Unterkunft, einem Reisezeitraum oder
-              einer Buchung? Schreiben Sie uns eine Nachricht — wir melden uns
-              schnellstmöglich zurück.
+              Sie haben eine allgemeine Frage oder möchten Ihre eigene
+              Ferienunterkunft über Urlaub Gosch vermieten? Schreiben Sie uns
+              eine Nachricht – wir melden uns schnellstmöglich zurück.
             </p>
           </div>
         </section>
@@ -59,9 +60,10 @@ export default function ContactPage() {
                 <h2 className="text-2xl font-semibold tracking-[-0.04em] text-slate-950">
                   Nachricht senden
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Je genauer Ihre Angaben sind, desto schneller können wir Ihre
-                  Anfrage bearbeiten.
+
+                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                  Beschreiben Sie uns kurz Ihr Anliegen. Für Vermieter haben
+                  wir eine separate Auswahl vorbereitet.
                 </p>
               </div>
 
@@ -71,13 +73,77 @@ export default function ContactPage() {
             </div>
 
             <form className="grid gap-5">
+              {/*
+                Standardmäßig handelt es sich um eine allgemeine Anfrage.
+
+                Im API-Handler:
+                const isLandlordProspect =
+                  formData.get("isLandlordProspect") === "true";
+
+                const subject = isLandlordProspect
+                  ? "Interessent"
+                  : "Allgemeine Anfrage";
+              */}
+
+              <input
+                type="hidden"
+                name="defaultSubject"
+                value="Allgemeine Anfrage"
+              />
+
+              {/* Vermieter-Interessent */}
+              <label className="group block cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isLandlordProspect"
+                  value="true"
+                  className="peer sr-only"
+                />
+
+                <div className="relative overflow-hidden rounded-[1.6rem] border border-[#ead7b4] bg-[#fffaf1] p-5 transition duration-200 hover:border-[#c99a43] peer-checked:border-[#c99a43] peer-checked:bg-[#fff7e7] peer-checked:shadow-[0_16px_45px_rgba(185,137,63,0.13)]">
+                  <div className="flex items-start gap-4">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#f4d59d] text-[#07131f]">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-base font-semibold text-slate-950">
+                        Ich möchte meine Unterkunft vermieten
+                      </p>
+
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        Setzen Sie hier den Haken, wenn Sie Interesse daran
+                        haben, Ihre Ferienwohnung oder Ihr Ferienhaus über
+                        Urlaub Gosch anzubieten.
+                      </p>
+                    </div>
+
+                    <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 border-[#d6bd91] bg-white text-transparent transition peer-checked:border-[#c99a43] peer-checked:bg-[#c99a43] peer-checked:text-white group-has-[:checked]:border-[#c99a43] group-has-[:checked]:bg-[#c99a43] group-has-[:checked]:text-white">
+                      <Check className="h-4 w-4" strokeWidth={3} />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 hidden items-center gap-2 border-t border-[#ead7b4] pt-4 text-sm font-semibold text-[#9a6b25] group-has-[:checked]:flex">
+                    <Check className="h-4 w-4" />
+                    Anfrage wird als „Interessent“ gekennzeichnet
+                  </div>
+                </div>
+              </label>
+
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="Name" name="name" placeholder="Ihr Name" />
+                <Field
+                  label="Name"
+                  name="name"
+                  placeholder="Ihr vollständiger Name"
+                  required
+                />
+
                 <Field
                   label="E-Mail"
                   name="email"
                   type="email"
                   placeholder="name@example.de"
+                  required
                 />
               </div>
 
@@ -88,21 +154,11 @@ export default function ContactPage() {
                   type="tel"
                   placeholder="Optional"
                 />
-                <Field
-                  label="Unterkunft"
-                  name="property"
-                  placeholder="Optional"
-                />
-              </div>
 
-              <div className="grid gap-5 sm:grid-cols-3">
-                <Field label="Anreise" name="arrival" type="date" />
-                <Field label="Abreise" name="departure" type="date" />
                 <Field
-                  label="Personen"
-                  name="persons"
-                  type="number"
-                  placeholder="z. B. 4"
+                  label="Betreff"
+                  name="customSubject"
+                  placeholder="Worum geht es?"
                 />
               </div>
 
@@ -117,17 +173,19 @@ export default function ContactPage() {
                 <textarea
                   id="message"
                   name="message"
-                  rows={7}
+                  rows={8}
+                  required
                   placeholder="Wie können wir Ihnen helfen?"
-                  className="w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                  className="w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#c99a43] focus:bg-white focus:ring-4 focus:ring-[#c99a43]/10"
                 />
               </div>
 
               <label className="flex gap-3 rounded-3xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
                 <input
                   type="checkbox"
+                  name="privacyAccepted"
                   required
-                  className="mt-1 h-4 w-4 rounded border-slate-300"
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 accent-[#07131f]"
                 />
 
                 <span>
@@ -184,25 +242,51 @@ export default function ContactPage() {
                 <ContactRow
                   icon={Clock}
                   label="Antwortzeit"
-                  value="meist innerhalb von 24 Stunden"
+                  value="Meist innerhalb von 24 Stunden"
                 />
               </div>
             </div>
 
             <div className="rounded-[2rem] bg-[#07131f] p-6 text-white shadow-[0_22px_70px_rgba(15,23,42,0.12)]">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/40">
-                Tipp
+                Ihre Anfrage
               </p>
 
               <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
-                Für eine schnelle Antwort
+                Schnell und unkompliziert
               </h3>
 
-              <div className="mt-5 space-y-4 text-sm text-white/68">
-                <InfoLine icon={Home} text="Name der Unterkunft angeben" />
-                <InfoLine icon={CalendarDays} text="Reisezeitraum nennen" />
-                <InfoLine icon={Users} text="Personenzahl und Hund angeben" />
+              <div className="mt-5 space-y-4 text-sm text-white/70">
+                <InfoLine
+                  icon={MessageCircle}
+                  text="Beschreiben Sie kurz Ihr Anliegen"
+                />
+
+                <InfoLine
+                  icon={Building2}
+                  text="Vermieter wählen den Interessenten-Haken"
+                />
+
+                <InfoLine
+                  icon={ShieldCheck}
+                  text="Ihre Angaben werden vertraulich behandelt"
+                />
               </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-[#ead7b4] bg-[#fffaf1] p-6">
+              <div className="grid h-11 w-11 place-items-center rounded-full bg-[#f4d59d] text-[#07131f]">
+                <Building2 className="h-5 w-5" />
+              </div>
+
+              <h3 className="mt-5 text-xl font-semibold tracking-[-0.03em] text-slate-950">
+                Eigentümer einer Unterkunft?
+              </h3>
+
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Wir beraten Sie gerne unverbindlich zu einer möglichen
+                Zusammenarbeit und der Vermietung über Urlaub Gosch.
+              </p>
             </div>
           </aside>
         </section>
@@ -211,7 +295,13 @@ export default function ContactPage() {
   );
 }
 
-function Field({ label, name, type = "text", placeholder }) {
+function Field({
+  label,
+  name,
+  type = "text",
+  placeholder,
+  required = false,
+}) {
   return (
     <div>
       <label
@@ -219,6 +309,10 @@ function Field({ label, name, type = "text", placeholder }) {
         className="mb-2 block text-sm font-semibold text-slate-700"
       >
         {label}
+
+        {!required && (
+          <span className="ml-1 font-normal text-slate-400">optional</span>
+        )}
       </label>
 
       <input
@@ -226,7 +320,8 @@ function Field({ label, name, type = "text", placeholder }) {
         name={name}
         type={type}
         placeholder={placeholder}
-        className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+        required={required}
+        className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#c99a43] focus:bg-white focus:ring-4 focus:ring-[#c99a43]/10"
       />
     </div>
   );
@@ -263,6 +358,7 @@ function InfoLine({ icon: Icon, text }) {
       <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/10 text-[#f4d59d]">
         <Icon className="h-4 w-4" />
       </div>
+
       <span>{text}</span>
     </div>
   );

@@ -1,8 +1,8 @@
 // src/lib/activities.js
-// Urlaub-GOSCH Aktivitäten
-// Professionelle Version im Frontend-Format der Beispiel-Datei.
-// Ohne Bilder. Mit lat/lng für die Map + Adresse/Kontakt.
-// coordinateQuality: "template" = aus deiner Vorlage, "marker" = gezielter Marker, "town" = Orts-/Adressmarker.
+// Urlaub-GOSCH Aktivitäten – Standortbereinigung 2026-08-11
+// Adressen sind statisch gepflegt; KEIN Runtime-Geocoding.
+// addressVerified=true bedeutet: Adresse/POI wurde aktuell verifiziert.
+// coordinateQuality='marker' bedeutet zusätzlich: lat/lng dürfen als exakter POI behandelt werden.
 
 export const activityCategories = [
   "Ausflug",
@@ -45,7 +45,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 54.172,
     "lng": 10.556,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 2,
@@ -74,7 +75,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.822,
     "lng": 9.548,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 3,
@@ -103,7 +105,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 54.494,
     "lng": 9.913,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 4,
@@ -132,7 +135,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.474,
     "lng": 9.839,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 5,
@@ -161,7 +165,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.345,
     "lng": 10.122,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 6,
@@ -190,15 +195,16 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.397,
     "lng": 10.224,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 7,
     "slug": "die-luebecker-marzipan-speicher",
-    "title": "Die Lübecker Marzipan-Speicher",
+    "title": "Lübecker Marzipan-Speicher",
     "category": "Ausflug",
-    "description": "Die Lübecker Marzipan-Speicher sind ein wahres Paradies für Liebhaber der berühmten Lübecker Marzipanspezialitäten. Mitten in der historischen Altstadt von Lübeck erwartet Besucher eine große Auswahl an hochwertigen Marzipanprodukten, süßen Geschenkideen und traditionellen Spezialitäten aus der Hansestadt.\n\nIn den liebevoll gestalteten Verkaufsräumen können Gäste die Vielfalt des echten Lübecker Marzipans entdecken – von klassischen Marzipanbroten über Pralinen bis hin zu kreativen Spezialitäten für jeden Geschmack. Die hochwertigen Produkte werden nach traditionellen Rezepturen hergestellt und stehen für erstklassige Qualität und Genuss.\n\nDie Marzipan-Speicher sind ein beliebtes Ausflugsziel für Touristen, Familien und Genießer. Neben dem Einkaufserlebnis erfahren Besucher Wissenswertes über die Geschichte des Lübecker Marzipans und seine Bedeutung für die Stadt.",
-    "content": "Die Lübecker Marzipan-Speicher sind ein wahres Paradies für Liebhaber der berühmten Lübecker Marzipanspezialitäten. Mitten in der historischen Altstadt von Lübeck erwartet Besucher eine große Auswahl an hochwertigen Marzipanprodukten, süßen Geschenkideen und traditionellen Spezialitäten aus der Hansestadt.\n\nIn den liebevoll gestalteten Verkaufsräumen können Gäste die Vielfalt des echten Lübecker Marzipans entdecken – von klassischen Marzipanbroten über Pralinen bis hin zu kreativen Spezialitäten für jeden Geschmack. Die hochwertigen Produkte werden nach traditionellen Rezepturen hergestellt und stehen für erstklassige Qualität und Genuss.\n\nDie Marzipan-Speicher sind ein beliebtes Ausflugsziel für Touristen, Familien und Genießer. Neben dem Einkaufserlebnis erfahren Besucher Wissenswertes über die Geschichte des Lübecker Marzipans und seine Bedeutung für die Stadt.",
+    "description": "Lübecker Marzipan-Speicher sind ein wahres Paradies für Liebhaber der berühmten Lübecker Marzipanspezialitäten. Mitten in der historischen Altstadt von Lübeck erwartet Besucher eine große Auswahl an hochwertigen Marzipanprodukten, süßen Geschenkideen und traditionellen Spezialitäten aus der Hansestadt.\n\nIn den liebevoll gestalteten Verkaufsräumen können Gäste die Vielfalt des echten Lübecker Marzipans entdecken – von klassischen Marzipanbroten über Pralinen bis hin zu kreativen Spezialitäten für jeden Geschmack. Die hochwertigen Produkte werden nach traditionellen Rezepturen hergestellt und stehen für erstklassige Qualität und Genuss.\n\nDie Marzipan-Speicher sind ein beliebtes Ausflugsziel für Touristen, Familien und Genießer. Neben dem Einkaufserlebnis erfahren Besucher Wissenswertes über die Geschichte des Lübecker Marzipans und seine Bedeutung für die Stadt.",
+    "content": "Lübecker Marzipan-Speicher sind ein wahres Paradies für Liebhaber der berühmten Lübecker Marzipanspezialitäten. Mitten in der historischen Altstadt von Lübeck erwartet Besucher eine große Auswahl an hochwertigen Marzipanprodukten, süßen Geschenkideen und traditionellen Spezialitäten aus der Hansestadt.\n\nIn den liebevoll gestalteten Verkaufsräumen können Gäste die Vielfalt des echten Lübecker Marzipans entdecken – von klassischen Marzipanbroten über Pralinen bis hin zu kreativen Spezialitäten für jeden Geschmack. Die hochwertigen Produkte werden nach traditionellen Rezepturen hergestellt und stehen für erstklassige Qualität und Genuss.\n\nDie Marzipan-Speicher sind ein beliebtes Ausflugsziel für Touristen, Familien und Genießer. Neben dem Einkaufserlebnis erfahren Besucher Wissenswertes über die Geschichte des Lübecker Marzipans und seine Bedeutung für die Stadt.",
     "shortDescription": "Marzipan-Erlebnis in Lübeck: Geschichte, Genuss und Shop – ideal als Ergänzung zur Altstadt.",
     "highlights": [
       "Original Lübecker Marzipan",
@@ -213,13 +219,14 @@ export const activities = [
       "Souvenir/Präsent einplanen"
     ],
     "website": "",
-    "address": "Breite Straße 79, 23552 Lübeck",
+    "address": "An der Untertrave 97–98, 23552 Lübeck",
     "phone": "0451 8973939",
     "email": "",
     "weather": "indoor",
     "lat": 53.8667,
     "lng": 10.6866,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 8,
@@ -248,7 +255,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 9,
@@ -278,7 +286,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 54.065,
     "lng": 10.204,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 10,
@@ -308,36 +317,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.244,
     "lng": 10.77,
-    "coordinateQuality": "template"
-  },
-  {
-    "id": 11,
-    "slug": "field-und-fun-kluetz",
-    "title": "Field & Fun Klütz",
-    "category": "Ausflug",
-    "description": "Field & Fun Klütz ist ein beliebtes Freizeit- und Erlebnisangebot für Familien, Gruppen und aktive Urlauber. Inmitten der Natur erwartet Besucher ein abwechslungsreiches Angebot aus Spiel, Bewegung und spannenden Outdoor-Aktivitäten. Ob gemeinsam mit Freunden, der Familie oder als Team-Event – hier stehen Spaß, Abenteuer und gemeinsames Erleben im Mittelpunkt.\n\nDie weitläufigen Freiflächen bieten ideale Voraussetzungen für verschiedene Freizeitaktivitäten unter freiem Himmel. Besucher können ihre Geschicklichkeit, Teamfähigkeit und Ausdauer unter Beweis stellen und gleichzeitig die Natur der Region genießen. Die Kombination aus Bewegung, Unterhaltung und Naturerlebnis macht Field & Fun zu einem attraktiven Ausflugsziel für Groß und Klein.\n\nDurch die familienfreundliche Atmosphäre und die vielfältigen Angebote eignet sich die Anlage hervorragend für Tagesausflüge, Geburtstagsfeiern, Vereinsausflüge oder Firmenveranstaltungen.",
-    "content": "Field & Fun Klütz ist ein beliebtes Freizeit- und Erlebnisangebot für Familien, Gruppen und aktive Urlauber. Inmitten der Natur erwartet Besucher ein abwechslungsreiches Angebot aus Spiel, Bewegung und spannenden Outdoor-Aktivitäten. Ob gemeinsam mit Freunden, der Familie oder als Team-Event – hier stehen Spaß, Abenteuer und gemeinsames Erleben im Mittelpunkt.\n\nDie weitläufigen Freiflächen bieten ideale Voraussetzungen für verschiedene Freizeitaktivitäten unter freiem Himmel. Besucher können ihre Geschicklichkeit, Teamfähigkeit und Ausdauer unter Beweis stellen und gleichzeitig die Natur der Region genießen. Die Kombination aus Bewegung, Unterhaltung und Naturerlebnis macht Field & Fun zu einem attraktiven Ausflugsziel für Groß und Klein.\n\nDurch die familienfreundliche Atmosphäre und die vielfältigen Angebote eignet sich die Anlage hervorragend für Tagesausflüge, Geburtstagsfeiern, Vereinsausflüge oder Firmenveranstaltungen.",
-    "shortDescription": "Aktiver Freizeitspaß: Outdoor-Angebote und Spielmöglichkeiten – gut für Familien und Gruppen.",
-    "highlights": [
-      "Freizeitspaß für die ganze Familie",
-      "Outdoor- und Teamaktivitäten",
-      "Großzügige Freiflächen",
-      "Ideal für Gruppen und Firmenausflüge",
-      "Aktive Erholung an der frischen Luft"
-    ],
-    "tips": [
-      "Wetter checken",
-      "Bequeme Kleidung",
-      "Als Gruppen-Ausflug top"
-    ],
-    "website": "",
-    "address": "Oberhof 13, 23948 Klütz",
-    "phone": "038825 267240",
-    "email": "",
-    "weather": "outdoor",
-    "lat": 53.963,
-    "lng": 11.161,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 12,
@@ -366,7 +347,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.783,
     "lng": 9.435,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 13,
@@ -395,7 +377,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.438,
     "lng": 11.192,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 14,
@@ -412,13 +395,14 @@ export const activities = [
       "Wetterfeste Schuhe"
     ],
     "website": "",
-    "address": "Schwentinental",
+    "address": "An der Schwentine 13, 24223 Schwentinental",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.285,
     "lng": 10.223,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 15,
@@ -441,30 +425,8 @@ export const activities = [
     "weather": "",
     "lat": 54.323,
     "lng": 10.122,
-    "coordinateQuality": "template"
-  },
-  {
-    "id": 16,
-    "slug": "grosse-ploener-see-rundfahrt",
-    "title": "Große Plöner See-Rundfahrt",
-    "category": "Ausflug",
-    "description": "Perfekt für einen entspannten Tag in der Holsteinischen Schweiz. Auf dem Wasser wirkt die Landschaft besonders beeindruckend.",
-    "content": "Perfekt für einen entspannten Tag in der Holsteinischen Schweiz. Auf dem Wasser wirkt die Landschaft besonders beeindruckend.",
-    "shortDescription": "Ruhige Bootsrundfahrt auf dem Großen Plöner See – Naturpanorama, entspannt und fotogen.",
-    "highlights": [],
-    "tips": [
-      "Windjacke",
-      "Kamera/Handy",
-      "Mit Plön/Schloss kombinieren"
-    ],
-    "website": "",
-    "address": "Plön",
-    "phone": "",
-    "email": "",
-    "weather": "",
-    "lat": 54.16,
-    "lng": 10.42,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": false
   },
   {
     "id": 17,
@@ -487,12 +449,13 @@ export const activities = [
     "weather": "",
     "lat": 54.332,
     "lng": 10.576,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 18,
     "slug": "hansapark-sierksdorf",
-    "title": "Hansapark Sierksdorf",
+    "title": "Hansa-Park Sierksdorf",
     "category": "Ausflug",
     "description": "Der Hansa-Park ist eines der bekanntesten Ausflugsziele an der Ostsee. Neben Achterbahnen gibt es Familienattraktionen, Shows und Themenbereiche – ideal für einen ganzen Tag.",
     "content": "Der Hansa-Park ist eines der bekanntesten Ausflugsziele an der Ostsee. Neben Achterbahnen gibt es Familienattraktionen, Shows und Themenbereiche – ideal für einen ganzen Tag.",
@@ -504,13 +467,14 @@ export const activities = [
       "Für Regen: Shows/Indoor-Angebote"
     ],
     "website": "https://www.hansapark.de",
-    "address": "Sierksdorf",
+    "address": "Am Fahrenkrog 1, 23730 Sierksdorf",
     "phone": "",
     "email": "",
     "weather": "",
-    "lat": 54.074,
-    "lng": 10.78,
-    "coordinateQuality": "template"
+    "lat": 54.07478,
+    "lng": 10.78093,
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 19,
@@ -527,36 +491,14 @@ export const activities = [
       "Für alle Altersgruppen"
     ],
     "website": "",
-    "address": "Probsteierhagen",
+    "address": "Alte Dorfstraße 100, 24253 Probsteierhagen",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.363,
     "lng": 10.288,
-    "coordinateQuality": "template"
-  },
-  {
-    "id": 20,
-    "slug": "jumpy-doo-fehmarn",
-    "title": "Jumpy-Doo – Die Spielfabrik (Fehmarn)",
-    "category": "Ausflug",
-    "description": "Wenn das Wetter nicht mitspielt, ist Jumpy-Doo ein echter Rettungsanker. Hüpf- und Spielbereiche sorgen für Action – Eltern können entspannter mitlaufen.",
-    "content": "Wenn das Wetter nicht mitspielt, ist Jumpy-Doo ein echter Rettungsanker. Hüpf- und Spielbereiche sorgen für Action – Eltern können entspannter mitlaufen.",
-    "shortDescription": "Indoor-Spielpark mit viel Bewegung und Spaß – perfekt bei Regen und für kleinere Kinder.",
-    "highlights": [],
-    "tips": [
-      "Perfekt bei Regen",
-      "Socken/Wechselkleidung",
-      "Unter der Woche entspannter"
-    ],
-    "website": "",
-    "address": "Fehmarn",
-    "phone": "",
-    "email": "",
-    "weather": "",
-    "lat": 54.435,
-    "lng": 11.193,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 21,
@@ -579,7 +521,8 @@ export const activities = [
     "weather": "",
     "lat": 53.944,
     "lng": 10.309,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 22,
@@ -596,13 +539,14 @@ export const activities = [
       "Mit Café verbinden"
     ],
     "website": "",
-    "address": "Krummbek",
+    "address": "Parkstraße 4, 24217 Krummbek",
     "phone": "",
     "email": "",
     "weather": "",
-    "lat": 54.361,
-    "lng": 10.378,
-    "coordinateQuality": "template"
+    "lat": 54.37918,
+    "lng": 10.40134,
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 23,
@@ -619,13 +563,14 @@ export const activities = [
       "Ideal bei Regen"
     ],
     "website": "",
-    "address": "Schönkirchen",
+    "address": "Söhren 47, 24232 Schönkirchen",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.333,
     "lng": 10.217,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 24,
@@ -642,13 +587,14 @@ export const activities = [
       "Mit Kiel-Ausflug kombinieren"
     ],
     "website": "",
-    "address": "Kiel",
+    "address": "Sokratesplatz 6, 24149 Kiel",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.323,
     "lng": 10.137,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 25,
@@ -665,13 +611,14 @@ export const activities = [
       "Perfekt bei Regen"
     ],
     "website": "",
-    "address": "Laboe",
+    "address": "Strand 1, 24235 Laboe",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.405,
     "lng": 10.224,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 26,
@@ -688,13 +635,14 @@ export const activities = [
       "Mit Fehmarn-Trip kombinieren"
     ],
     "website": "",
-    "address": "Fehmarn",
+    "address": "Gertrudenthaler Straße 12, 23769 Fehmarn",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.438,
     "lng": 11.193,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 27,
@@ -711,41 +659,19 @@ export const activities = [
       "Windschutz einpacken"
     ],
     "website": "",
-    "address": "Fehmarn",
+    "address": "Wallnau 4, 23769 Fehmarn",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.48,
     "lng": 11.04,
-    "coordinateQuality": "template"
-  },
-  {
-    "id": 28,
-    "slug": "naturerleben-achterwehr",
-    "title": "Naturerleben Achterwehr",
-    "category": "Ausflug",
-    "description": "Ein ruhiger Ausflug in die Natur. Je nach Angebot gibt es Stationen und Themen rund um Umwelt und regionale Natur.",
-    "content": "Ein ruhiger Ausflug in die Natur. Je nach Angebot gibt es Stationen und Themen rund um Umwelt und regionale Natur.",
-    "shortDescription": "Natur- und Umweltangebote – gut für Familien, Kinder und alle, die draußen etwas entdecken möchten.",
-    "highlights": [],
-    "tips": [
-      "Wetterfeste Schuhe",
-      "Mit Kanal-/Radtour kombinieren",
-      "Ruhiger als große Attraktionen"
-    ],
-    "website": "",
-    "address": "Achterwehr",
-    "phone": "",
-    "email": "",
-    "weather": "",
-    "lat": 54.308,
-    "lng": 9.948,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 29,
     "slug": "natuerlich-reiten-stakendorf",
-    "title": "Natürlich Reiten (Stakendorf)",
+    "title": "Natürlich Reiten / Lillegaard Stakendorf",
     "category": "Ausflug",
     "description": "Reiten ist eine wunderschöne Möglichkeit, die Region zu erleben. Ideal für Reitfans – bitte vorher Angebot und Voraussetzungen klären.",
     "content": "Reiten ist eine wunderschöne Möglichkeit, die Region zu erleben. Ideal für Reitfans – bitte vorher Angebot und Voraussetzungen klären.",
@@ -757,18 +683,19 @@ export const activities = [
       "Für Kinder: Angebote prüfen"
     ],
     "website": "",
-    "address": "Stakendorf",
+    "address": "Soltwischredder, 24217 Stakendorf",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.393,
     "lng": 10.386,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 30,
     "slug": "obst-erlebnis-garten-blekendorf",
-    "title": "Obst-Erlebnis-Garten (Blekendorf)",
+    "title": "Filippos Erlebnisgarten Blekendorf",
     "category": "Ausflug",
     "description": "Ein schöner, regionaler Ausflug: Natur, Hofladen und je nach Saison unterschiedliche Angebote. Perfekt für einen ruhigen Nachmittag.",
     "content": "Ein schöner, regionaler Ausflug: Natur, Hofladen und je nach Saison unterschiedliche Angebote. Perfekt für einen ruhigen Nachmittag.",
@@ -780,36 +707,14 @@ export const activities = [
       "Hofladen nicht vergessen"
     ],
     "website": "",
-    "address": "Blekendorf",
+    "address": "Blekendorfer Berg 1A, 24327 Blekendorf",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.288,
     "lng": 10.645,
-    "coordinateQuality": "template"
-  },
-  {
-    "id": 31,
-    "slug": "ostsee-erlebniswelt-heiligenhafen",
-    "title": "Ostsee Erlebniswelt Heiligenhafen",
-    "category": "Ausflug",
-    "description": "Die Ostsee Erlebniswelt ist ein Indoor-Ziel mit viel Wissen und Erlebnis. Ideal als Programmpunkt bei Regen oder Wind.",
-    "content": "Die Ostsee Erlebniswelt ist ein Indoor-Ziel mit viel Wissen und Erlebnis. Ideal als Programmpunkt bei Regen oder Wind.",
-    "shortDescription": "Interaktive Ausstellung rund um Meer, Küste und Fischerei – ideal für Familien und Schlechtwettertage.",
-    "highlights": [],
-    "tips": [
-      "Perfekt bei Regen",
-      "Mit Heiligenhafen kombinieren",
-      "Zeit fürs Entdecken"
-    ],
-    "website": "",
-    "address": "Heiligenhafen",
-    "phone": "",
-    "email": "",
-    "weather": "",
-    "lat": 54.374,
-    "lng": 10.987,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 32,
@@ -832,7 +737,8 @@ export const activities = [
     "weather": "",
     "lat": 54.023,
     "lng": 10.754,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 33,
@@ -849,13 +755,14 @@ export const activities = [
       "Für Kinder Angebote prüfen"
     ],
     "website": "",
-    "address": "Region Probstei (nahe Ostsee)",
+    "address": "Gruberhagen, 23747 Dahme",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.349,
     "lng": 10.471,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 34,
@@ -878,7 +785,8 @@ export const activities = [
     "weather": "",
     "lat": 54.79,
     "lng": 9.434,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 35,
@@ -895,13 +803,14 @@ export const activities = [
       "Mit Strandtag kombinieren"
     ],
     "website": "",
-    "address": "Hohwacht",
+    "address": "Seestraße 14, 24321 Hohwacht",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.324,
     "lng": 10.668,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 36,
@@ -930,12 +839,13 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.291,
     "lng": 10.586,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 37,
     "slug": "schmetterlingspark-burg-fehmarn",
-    "title": "Schmetterlingspark Burg (Fehmarn)",
+    "title": "Schmetterlingspark Fehmarn",
     "category": "Ausflug",
     "description": "Warm, tropisch und voller Farben: Ein tolles Indoor-Ziel auf Fehmarn – besonders schön für Kinder und Fotofans.",
     "content": "Warm, tropisch und voller Farben: Ein tolles Indoor-Ziel auf Fehmarn – besonders schön für Kinder und Fotofans.",
@@ -947,18 +857,19 @@ export const activities = [
       "Mit Fehmarn-Ausflug kombinieren"
     ],
     "website": "",
-    "address": "Burg auf Fehmarn",
+    "address": "Mummendorfer Weg 11a, 23769 Fehmarn",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.435,
     "lng": 11.193,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 38,
     "slug": "schokoladen-manufaktur-marx-schwartbuck",
-    "title": "Schokoladen-Manufaktur Marx (Schwartbuck)",
+    "title": "Schokoladen-Manufaktur Marx Schwartbuck",
     "category": "Ausflug",
     "description": "Ein kleiner, feiner Ausflug für Genießer: regionale Manufaktur, besondere Sorten und perfekte Souvenirs.",
     "content": "Ein kleiner, feiner Ausflug für Genießer: regionale Manufaktur, besondere Sorten und perfekte Souvenirs.",
@@ -970,13 +881,14 @@ export const activities = [
       "Für Schoko-Fans Pflicht"
     ],
     "website": "",
-    "address": "Schwartbuck",
+    "address": "An der Schule 2, 24257 Schwartbuck",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.35,
     "lng": 10.42,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 39,
@@ -993,41 +905,19 @@ export const activities = [
       "Kamera/Handy"
     ],
     "website": "",
-    "address": "Region Kiel/Schwentine",
+    "address": "An der Holsatiamühle, 24149 Kiel",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.32,
     "lng": 10.15,
-    "coordinateQuality": "template"
-  },
-  {
-    "id": 40,
-    "slug": "segway-tour-kiel",
-    "title": "Segway Tour Kiel",
-    "category": "Ausflug",
-    "description": "Ideal, wenn du Kiel in kurzer Zeit erkunden möchtest. Mit Guide bekommst du Highlights, Geschichte und schöne Spots.",
-    "content": "Ideal, wenn du Kiel in kurzer Zeit erkunden möchtest. Mit Guide bekommst du Highlights, Geschichte und schöne Spots.",
-    "shortDescription": "Geführte Segway-Touren durch Kiel – entspannt, informativ und mal was anderes.",
-    "highlights": [],
-    "tips": [
-      "Vorab buchen",
-      "Wetter checken",
-      "Bequeme Kleidung"
-    ],
-    "website": "",
-    "address": "Kiel",
-    "phone": "",
-    "email": "",
-    "weather": "",
-    "lat": 54.323,
-    "lng": 10.122,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 41,
     "slug": "straussenfarm-ostseeblick-hohenfelde",
-    "title": "Straußenfarm Ostseeblick (Hohenfelde)",
+    "title": "Straußenfarm Ostseeblick Hohenfelde",
     "category": "Ausflug",
     "description": "Ein ungewöhnliches Ziel in der Region: Strauße sieht man nicht jeden Tag. Ideal für Familien und alle, die was Besonderes suchen.",
     "content": "Ein ungewöhnliches Ziel in der Region: Strauße sieht man nicht jeden Tag. Ideal für Familien und alle, die was Besonderes suchen.",
@@ -1039,13 +929,14 @@ export const activities = [
       "Für Kinder super"
     ],
     "website": "",
-    "address": "Hohenfelde",
+    "address": "Ostseering 11, 24257 Hohenfelde",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.369,
     "lng": 10.504,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 42,
@@ -1062,13 +953,14 @@ export const activities = [
       "Für Kinderwagen geeignet"
     ],
     "website": "",
-    "address": "Gettorf",
+    "address": "Süderstraße 33, 24214 Gettorf",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.406,
     "lng": 9.973,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 43,
@@ -1085,13 +977,14 @@ export const activities = [
       "Bequeme Schuhe"
     ],
     "website": "",
-    "address": "Tolk",
+    "address": "Tolkschau 1, 24894 Tolk",
     "phone": "",
     "email": "",
     "weather": "",
     "lat": 54.601,
     "lng": 9.606,
-    "coordinateQuality": "template"
+    "coordinateQuality": "template",
+    "addressVerified": true
   },
   {
     "id": 44,
@@ -1120,7 +1013,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.4185,
     "lng": 10.4115,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 45,
@@ -1149,7 +1043,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.4247,
     "lng": 10.3723,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 46,
@@ -1178,7 +1073,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.4043,
     "lng": 10.2229,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 47,
@@ -1207,7 +1103,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3219,
     "lng": 10.1349,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 48,
@@ -1236,7 +1133,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3209,
     "lng": 10.6681,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 49,
@@ -1265,7 +1163,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 53.9406,
     "lng": 9.1854,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": false
   },
   {
     "id": 50,
@@ -1294,7 +1193,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 53.9582,
     "lng": 9.2862,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": false
   },
   {
     "id": 51,
@@ -1317,13 +1217,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Eichkamp 7, 24217 Schönberg (Holstein)",
+    "address": "Kuhlenkamp 2A, 24217 Schönberg (Holstein)",
     "phone": "0221 20199959",
     "email": "",
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 52,
@@ -1346,13 +1247,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Eichkamp 5, 24217 Schönberg (Holstein)",
+    "address": "Große Mühlenstraße 51, 24217 Schönberg (Holstein)",
     "phone": "030 22005500",
     "email": "",
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 53,
@@ -1381,12 +1283,13 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.2917,
     "lng": 10.589,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 54,
     "slug": "edeka-frischemarkt-alpen-schoenberger-strand",
-    "title": "EDEKA Frischemarkt Alpen Schönberger Strand",
+    "title": "EDEKA Alpen Schönberger Strand",
     "category": "Einkaufen",
     "description": "Der EDEKA Frischemarkt Alpen am Schönberger Strand bietet eine große Auswahl an frischen Lebensmitteln, regionalen Spezialitäten und Produkten für den täglichen Bedarf. Durch seine unmittelbare Nähe zur Ostseeküste ist der Markt eine beliebte Einkaufsadresse für Einheimische, Urlaubsgäste und Tagesbesucher.\n\nDas umfangreiche Sortiment umfasst frisches Obst und Gemüse, Fleisch- und Wurstwaren, Backwaren, Molkereiprodukte sowie zahlreiche Getränke und Haushaltsartikel. Besonderen Wert legt der Markt auf Frische, Qualität und regionale Produkte aus Schleswig-Holstein.\n\nDank der modernen Marktgestaltung, freundlichem Service und einer angenehmen Einkaufsatmosphäre wird der Einkauf zu einem komfortablen Erlebnis. Ob für den täglichen Bedarf, den Urlaub oder den spontanen Einkauf vor dem Strandbesuch – hier finden Kunden alles an einem Ort.",
     "content": "Der EDEKA Frischemarkt Alpen am Schönberger Strand bietet eine große Auswahl an frischen Lebensmitteln, regionalen Spezialitäten und Produkten für den täglichen Bedarf. Durch seine unmittelbare Nähe zur Ostseeküste ist der Markt eine beliebte Einkaufsadresse für Einheimische, Urlaubsgäste und Tagesbesucher.\n\nDas umfangreiche Sortiment umfasst frisches Obst und Gemüse, Fleisch- und Wurstwaren, Backwaren, Molkereiprodukte sowie zahlreiche Getränke und Haushaltsartikel. Besonderen Wert legt der Markt auf Frische, Qualität und regionale Produkte aus Schleswig-Holstein.\n\nDank der modernen Marktgestaltung, freundlichem Service und einer angenehmen Einkaufsatmosphäre wird der Einkauf zu einem komfortablen Erlebnis. Ob für den täglichen Bedarf, den Urlaub oder den spontanen Einkauf vor dem Strandbesuch – hier finden Kunden alles an einem Ort.",
@@ -1404,42 +1307,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Promenade 1, 24217 Schönberger Strand",
-    "phone": "04344 81910",
+    "address": "Käptn's Gang 3, 24217 Schönberg",
+    "phone": "04344 3838765",
     "email": "",
     "weather": "indoor",
     "lat": 54.4185,
     "lng": 10.4115,
-    "coordinateQuality": "town"
-  },
-  {
-    "id": 55,
-    "slug": "edeka-alpen-schoenberg-kalifornien",
-    "title": "EDEKA Alpen Schönberg-Kalifornien",
-    "category": "Einkaufen",
-    "description": "Der EDEKA Alpen in Schönberg-Kalifornien bietet eine große Auswahl an frischen Lebensmitteln, regionalen Produkten und Artikeln des täglichen Bedarfs. Dank seiner Nähe zur Ostseeküste ist der Markt sowohl für Einheimische als auch für Urlaubsgäste eine beliebte Einkaufsadresse.\n\nDas umfangreiche Sortiment umfasst frisches Obst und Gemüse, Fleisch- und Wurstwaren, Backwaren, Molkereiprodukte sowie zahlreiche Getränke und Haushaltsartikel. Besonderen Wert legt der Markt auf Frische, Qualität und eine kundenfreundliche Einkaufsatmosphäre.\n\nDurch die gute Erreichbarkeit und die großzügigen Parkmöglichkeiten eignet sich der Markt ideal für den täglichen Einkauf während des Urlaubs oder für die Versorgung zu Hause. Freundlicher Service und ein vielfältiges Angebot machen den EDEKA Alpen zu einer wichtigen Anlaufstelle in der Region.",
-    "content": "Der EDEKA Alpen in Schönberg-Kalifornien bietet eine große Auswahl an frischen Lebensmitteln, regionalen Produkten und Artikeln des täglichen Bedarfs. Dank seiner Nähe zur Ostseeküste ist der Markt sowohl für Einheimische als auch für Urlaubsgäste eine beliebte Einkaufsadresse.\n\nDas umfangreiche Sortiment umfasst frisches Obst und Gemüse, Fleisch- und Wurstwaren, Backwaren, Molkereiprodukte sowie zahlreiche Getränke und Haushaltsartikel. Besonderen Wert legt der Markt auf Frische, Qualität und eine kundenfreundliche Einkaufsatmosphäre.\n\nDurch die gute Erreichbarkeit und die großzügigen Parkmöglichkeiten eignet sich der Markt ideal für den täglichen Einkauf während des Urlaubs oder für die Versorgung zu Hause. Freundlicher Service und ein vielfältiges Angebot machen den EDEKA Alpen zu einer wichtigen Anlaufstelle in der Region.",
-    "shortDescription": "Der EDEKA Alpen in Schönberg-Kalifornien bietet eine große Auswahl an frischen Lebensmitteln, regionalen Produkten und Artikeln des täglichen Bedarfs.",
-    "highlights": [
-      "Frische Lebensmittel",
-      "Regionale Produkte",
-      "Backwaren",
-      "Parkmöglichkeiten",
-      "Nahe der Ostseeküste"
-    ],
-    "tips": [
-      "Öffnungszeiten prüfen",
-      "Für den Urlaubseinkauf gut einplanen",
-      "Parkmöglichkeiten vorab beachten"
-    ],
-    "website": "",
-    "address": "Deichweg 28, 24217 Schönberg-Kalifornien",
-    "phone": "04344 81910",
-    "email": "",
-    "weather": "indoor",
-    "lat": 54.4247,
-    "lng": 10.3723,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 56,
@@ -1462,13 +1337,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Berliner Platz 1, 24321 Hohwacht",
-    "phone": "04381 9055",
+    "address": "Seestraße 12a, 24321 Hohwacht",
+    "phone": "04381 415241",
     "email": "",
     "weather": "indoor",
     "lat": 54.3209,
     "lng": 10.6681,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 57,
@@ -1491,13 +1367,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Strandstraße 2, 24257 Hohenfelde",
-    "phone": "04385 593990",
+    "address": "Dorfstraße 28, 24257 Hohenfelde",
+    "phone": "04385 5930075",
     "email": "",
     "weather": "indoor",
     "lat": 54.3699,
     "lng": 10.5065,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 58,
@@ -1520,13 +1397,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Kieler Straße 36, 24238 Selent",
+    "address": "Kieler Straße 2, 24238 Selent",
     "phone": "04384 592950",
     "email": "",
     "weather": "indoor",
     "lat": 54.2886,
     "lng": 10.4229,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 59,
@@ -1555,7 +1433,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.4038,
     "lng": 10.2229,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 60,
@@ -1584,7 +1463,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 61,
@@ -1613,7 +1493,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3037,
     "lng": 10.105,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 62,
@@ -1636,13 +1517,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Kieler Straße 35, 24238 Selent",
+    "address": "Kieler Straße 5, 24238 Selent",
     "phone": "0800 7234870",
     "email": "",
     "weather": "indoor",
     "lat": 54.2886,
     "lng": 10.4229,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 63,
@@ -1665,13 +1547,14 @@ export const activities = [
       "Parkmöglichkeiten vorab beachten"
     ],
     "website": "",
-    "address": "Eichkamp 1, 24217 Schönberg (Holstein)",
+    "address": "Kuhlenkamp 1a, 24217 Schönberg (Holstein)",
     "phone": "0800 7234870",
     "email": "",
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 64,
@@ -1694,18 +1577,19 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Hessenstein 2, 24321 Panker",
+    "address": "Hessenstein, 24321 Panker",
     "phone": "04381 41850",
     "email": "",
     "weather": "all-weather",
     "lat": 54.322,
     "lng": 10.57,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 65,
     "slug": "fischrestaurant-gosch-kiel",
-    "title": "Fischrestaurant Gosch Kiel",
+    "title": "GOSCH Kiel – an der Hörn",
     "category": "Restaurants",
     "description": "Das Fischrestaurant Gosch in Kiel steht für frische Fischspezialitäten, maritime Atmosphäre und norddeutschen Genuss direkt an der Kieler Förde. Hier erwarten Gäste hochwertige Fischgerichte, regionale Spezialitäten und ein einzigartiges Ambiente mit Blick auf das Wasser.\n\nDie abwechslungsreiche Speisekarte bietet eine große Auswahl an Fisch- und Meeresfrüchtespezialitäten, von klassischen Fischgerichten über frische Fischbrötchen bis hin zu saisonalen Kreationen. Dabei werden Qualität, Frische und authentischer Geschmack großgeschrieben.\n\nOb zum Mittagessen, Abendessen oder für eine kleine Stärkung zwischendurch – das Restaurant ist ein beliebter Treffpunkt für Einheimische, Urlaubsgäste und Fischliebhaber. Die Kombination aus maritimem Flair, freundlichem Service und erstklassiger Küche macht jeden Besuch zu einem besonderen Erlebnis.",
     "content": "Das Fischrestaurant Gosch in Kiel steht für frische Fischspezialitäten, maritime Atmosphäre und norddeutschen Genuss direkt an der Kieler Förde. Hier erwarten Gäste hochwertige Fischgerichte, regionale Spezialitäten und ein einzigartiges Ambiente mit Blick auf das Wasser.\n\nDie abwechslungsreiche Speisekarte bietet eine große Auswahl an Fisch- und Meeresfrüchtespezialitäten, von klassischen Fischgerichten über frische Fischbrötchen bis hin zu saisonalen Kreationen. Dabei werden Qualität, Frische und authentischer Geschmack großgeschrieben.\n\nOb zum Mittagessen, Abendessen oder für eine kleine Stärkung zwischendurch – das Restaurant ist ein beliebter Treffpunkt für Einheimische, Urlaubsgäste und Fischliebhaber. Die Kombination aus maritimem Flair, freundlichem Service und erstklassiger Küche macht jeden Besuch zu einem besonderen Erlebnis.",
@@ -1723,13 +1607,14 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Kiellinie 1, 24105 Kiel",
+    "address": "Kaistraße 51, 24114 Kiel",
     "phone": "0431 9826390",
     "email": "",
     "weather": "all-weather",
-    "lat": 54.3233,
-    "lng": 10.1228,
-    "coordinateQuality": "town"
+    "lat": 54.3151271,
+    "lng": 10.134301,
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 66,
@@ -1752,13 +1637,14 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Hafenplatz 6, 24235 Laboe",
+    "address": "Hafenplatz 1, 24235 Laboe",
     "phone": "04343 1238",
     "email": "",
     "weather": "all-weather",
     "lat": 54.4038,
     "lng": 10.2229,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 67,
@@ -1781,13 +1667,14 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Soling 22, 24159 Kiel-Schilksee",
+    "address": "Soling 36, 24159 Kiel-Schilksee",
     "phone": "0431 396998",
     "email": "info@elmoevenschiss.de",
     "weather": "all-weather",
     "lat": 54.4242,
     "lng": 10.1717,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 68,
@@ -1810,13 +1697,14 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Mühlenstraße 4, 24232 Schönkirchen",
+    "address": "Am Dorfteich 3, 24232 Schönkirchen",
     "phone": "04348 917717",
     "email": "",
     "weather": "all-weather",
     "lat": 54.3338,
     "lng": 10.223,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 69,
@@ -1838,14 +1726,15 @@ export const activities = [
       "Öffnungszeiten saisonal prüfen",
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
-    "website": "",
+    "website": "https://www.der-alte-auf.de/",
     "address": "Am Dorfteich 15, 24217 Fiefbergen",
     "phone": "04344 415525",
     "email": "info@der-alte-auf.de",
     "weather": "all-weather",
     "lat": 54.378,
     "lng": 10.356,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 70,
@@ -1874,7 +1763,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.3233,
     "lng": 10.1228,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 71,
@@ -1897,42 +1787,14 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Strandweg 1, 24226 Heikendorf",
+    "address": "Uferweg 1a, 24226 Heikendorf",
     "phone": "0431 2393920",
     "email": "info@daskleinestrandhaus.de",
     "weather": "all-weather",
     "lat": 54.371,
     "lng": 10.205,
-    "coordinateQuality": "town"
-  },
-  {
-    "id": 72,
-    "slug": "caf-steinkamp-futterkamp",
-    "title": "Café Steinkamp Futterkamp",
-    "category": "Restaurants",
-    "description": "Das Café Steinkamp in Futterkamp ist ein beliebtes Ausflugsziel für Genießer, Familien und Naturfreunde. In gemütlicher Atmosphäre können Gäste hausgemachte Kuchen, frische Torten und Kaffeespezialitäten genießen und dabei die ländliche Idylle der Holsteinischen Schweiz erleben.\n\nBesonderen Wert legt das Café auf hochwertige Zutaten, traditionelle Rezepturen und eine herzliche Gastfreundschaft. Die täglich frisch zubereiteten Backwaren sorgen für besondere Genussmomente und machen jeden Besuch zu einem kleinen Urlaub vom Alltag.\n\nDurch die ruhige Lage und die Nähe zum Tierpark Arche Warder sowie weiteren Ausflugszielen der Region ist das Café ein idealer Ort für eine entspannte Pause nach einem erlebnisreichen Tag. Familien, Radfahrer und Urlaubsgäste schätzen das gemütliche Ambiente und die hausgemachten Spezialitäten.",
-    "content": "Das Café Steinkamp in Futterkamp ist ein beliebtes Ausflugsziel für Genießer, Familien und Naturfreunde. In gemütlicher Atmosphäre können Gäste hausgemachte Kuchen, frische Torten und Kaffeespezialitäten genießen und dabei die ländliche Idylle der Holsteinischen Schweiz erleben.\n\nBesonderen Wert legt das Café auf hochwertige Zutaten, traditionelle Rezepturen und eine herzliche Gastfreundschaft. Die täglich frisch zubereiteten Backwaren sorgen für besondere Genussmomente und machen jeden Besuch zu einem kleinen Urlaub vom Alltag.\n\nDurch die ruhige Lage und die Nähe zum Tierpark Arche Warder sowie weiteren Ausflugszielen der Region ist das Café ein idealer Ort für eine entspannte Pause nach einem erlebnisreichen Tag. Familien, Radfahrer und Urlaubsgäste schätzen das gemütliche Ambiente und die hausgemachten Spezialitäten.",
-    "shortDescription": "Das Café Steinkamp in Futterkamp ist ein beliebtes Ausflugsziel für Genießer, Familien und Naturfreunde.",
-    "highlights": [
-      "Hausgemachte Kuchen",
-      "Kaffeespezialitäten",
-      "Ländliche Lage",
-      "Familienfreundlich",
-      "Regionale Gastlichkeit"
-    ],
-    "tips": [
-      "Reservierung empfohlen",
-      "Öffnungszeiten saisonal prüfen",
-      "Ideal mit Ausflug in der Nähe kombinieren"
-    ],
-    "website": "",
-    "address": "Futterkamp 1, 24327 Blekendorf",
-    "phone": "04381 8471",
-    "email": "",
-    "weather": "all-weather",
-    "lat": 54.244,
-    "lng": 10.653,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 73,
@@ -1961,7 +1823,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.4157,
     "lng": 10.2666,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 74,
@@ -1984,13 +1847,14 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Dorfstraße 14, 24253 Passade",
+    "address": "An de Laak 11, 24253 Passade",
     "phone": "04344 8193",
     "email": "",
     "weather": "all-weather",
     "lat": 54.3665,
     "lng": 10.32,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 75,
@@ -2019,36 +1883,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.2917,
     "lng": 10.589,
-    "coordinateQuality": "town"
-  },
-  {
-    "id": 76,
-    "slug": "baltic-bay-laboe",
-    "title": "Baltic Bay Laboe",
-    "category": "Restaurants",
-    "description": "Baltic Bay Laboe zählt zu den schönsten Golfanlagen an der Ostseeküste und bietet Golfern ein außergewöhnliches Spielerlebnis inmitten einer beeindruckenden Naturlandschaft. Die moderne Anlage verbindet sportliche Herausforderungen mit herrlichen Ausblicken auf die Küstenregion und die sanften Hügel der Probstei.\n\nDer abwechslungsreich gestaltete Golfplatz bietet optimale Bedingungen für Anfänger, Freizeitgolfer und erfahrene Spieler. Neben dem anspruchsvollen Platz stehen großzügige Übungsanlagen, professionelle Trainingsmöglichkeiten und individuelle Golfkurse zur Verfügung. Die gepflegte Anlage und das hochwertige Ambiente sorgen für ein besonderes Golferlebnis in entspannter Atmosphäre.\n\nNach einer erfolgreichen Golfrunde lädt das Clubhaus mit Gastronomie und Sonnenterrasse zum Verweilen ein. Baltic Bay Laboe ist ein beliebtes Ziel für Golfbegeisterte, Naturliebhaber und Urlaubsgäste, die Sport und Erholung miteinander verbinden möchten.",
-    "content": "Baltic Bay Laboe zählt zu den schönsten Golfanlagen an der Ostseeküste und bietet Golfern ein außergewöhnliches Spielerlebnis inmitten einer beeindruckenden Naturlandschaft. Die moderne Anlage verbindet sportliche Herausforderungen mit herrlichen Ausblicken auf die Küstenregion und die sanften Hügel der Probstei.\n\nDer abwechslungsreich gestaltete Golfplatz bietet optimale Bedingungen für Anfänger, Freizeitgolfer und erfahrene Spieler. Neben dem anspruchsvollen Platz stehen großzügige Übungsanlagen, professionelle Trainingsmöglichkeiten und individuelle Golfkurse zur Verfügung. Die gepflegte Anlage und das hochwertige Ambiente sorgen für ein besonderes Golferlebnis in entspannter Atmosphäre.\n\nNach einer erfolgreichen Golfrunde lädt das Clubhaus mit Gastronomie und Sonnenterrasse zum Verweilen ein. Baltic Bay Laboe ist ein beliebtes Ziel für Golfbegeisterte, Naturliebhaber und Urlaubsgäste, die Sport und Erholung miteinander verbinden möchten.",
-    "shortDescription": "Baltic Bay Laboe zählt zu den schönsten Golfanlagen an der Ostseeküste und bietet Golfern ein außergewöhnliches Spielerlebnis inmitten einer beeindruckenden Naturlandschaft.",
-    "highlights": [
-      "Golfplatz in Küstenlage",
-      "Übungsanlagen",
-      "Golfkurse",
-      "Clubhaus mit Gastronomie",
-      "Für Anfänger und Fortgeschrittene"
-    ],
-    "tips": [
-      "Reservierung empfohlen",
-      "Öffnungszeiten saisonal prüfen",
-      "Ideal mit Ausflug in der Nähe kombinieren"
-    ],
-    "website": "",
-    "address": "An der Au 1, 24235 Laboe",
-    "phone": "04343 304990",
-    "email": "info@balticbay.de",
-    "weather": "outdoor",
-    "lat": 54.3995,
-    "lng": 10.2347,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 77,
@@ -2071,13 +1907,14 @@ export const activities = [
       "Ideal mit Ausflug in der Nähe kombinieren"
     ],
     "website": "",
-    "address": "Alte Dorfstraße 21, 24253 Probsteierhagen",
+    "address": "Alte Dorfstraße 50, 24253 Probsteierhagen",
     "phone": "04348 913131",
     "email": "",
     "weather": "all-weather",
     "lat": 54.362,
     "lng": 10.287,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 78,
@@ -2100,18 +1937,19 @@ export const activities = [
       "Direktverkauf vorher telefonisch klären"
     ],
     "website": "",
-    "address": "Dorfstraße 17, 24220 Boksee",
+    "address": "Kastanienallee 19, 24220 Boksee",
     "phone": "04302 900165",
     "email": "",
     "weather": "outdoor",
     "lat": 54.2428,
     "lng": 10.1318,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 79,
     "slug": "spirituosen-dh-boll-luetjenburg",
-    "title": "Spirituosen DH Boll Lütjenburg",
+    "title": "D.H. Boll Lütjenburg",
     "category": "Selbsterzeuger",
     "description": "Spirituosen DH Boll in Lütjenburg ist eine beliebte Adresse für hochwertige Spirituosen, regionale Spezialitäten und ausgewählte Genussprodukte. Das Unternehmen bietet eine große Auswahl an erlesenen Getränken und legt besonderen Wert auf Qualität, fachkundige Beratung und persönlichen Service.\n\nOb edle Whiskys, feine Liköre, hochwertige Brände oder weitere Spirituosenspezialitäten – Genießer finden hier ein vielfältiges Sortiment für jeden Geschmack. Dank langjähriger Erfahrung und Leidenschaft für hochwertige Produkte erhalten Kunden eine kompetente Beratung und individuelle Empfehlungen.\n\nSowohl Einheimische als auch Urlaubsgäste schätzen die große Auswahl und die persönliche Atmosphäre. Spirituosen DH Boll ist damit eine feste Anlaufstelle für alle, die besondere Genussmomente und hochwertige Getränke suchen.",
     "content": "Spirituosen DH Boll in Lütjenburg ist eine beliebte Adresse für hochwertige Spirituosen, regionale Spezialitäten und ausgewählte Genussprodukte. Das Unternehmen bietet eine große Auswahl an erlesenen Getränken und legt besonderen Wert auf Qualität, fachkundige Beratung und persönlichen Service.\n\nOb edle Whiskys, feine Liköre, hochwertige Brände oder weitere Spirituosenspezialitäten – Genießer finden hier ein vielfältiges Sortiment für jeden Geschmack. Dank langjähriger Erfahrung und Leidenschaft für hochwertige Produkte erhalten Kunden eine kompetente Beratung und individuelle Empfehlungen.\n\nSowohl Einheimische als auch Urlaubsgäste schätzen die große Auswahl und die persönliche Atmosphäre. Spirituosen DH Boll ist damit eine feste Anlaufstelle für alle, die besondere Genussmomente und hochwertige Getränke suchen.",
@@ -2129,18 +1967,19 @@ export const activities = [
       "Direktverkauf vorher telefonisch klären"
     ],
     "website": "",
-    "address": "Gildenplatz 3, 24321 Lütjenburg",
+    "address": "Waldweg 3B, 24321 Lütjenburg",
     "phone": "04381 416044",
     "email": "",
     "weather": "indoor",
     "lat": 54.2917,
     "lng": 10.589,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 80,
     "slug": "schlachterei-und-schinkenraeucherei-petersen-bad-malente",
-    "title": "Schlachterei und Schinkenräucherei Petersen Bad Malente",
+    "title": "Schlachterei Petersen Bad Malente",
     "category": "Selbsterzeuger",
     "description": "Die Schlachterei und Schinkenräucherei Petersen in Bad Malente steht für traditionelle Handwerkskunst, hochwertige Fleischwaren und regionale Spezialitäten. Mit viel Erfahrung und nach bewährten Familienrezepten entstehen hier erstklassige Wurst- und Schinkenprodukte, die für ihren besonderen Geschmack und ihre hohe Qualität geschätzt werden.\n\nBesonders bekannt ist der Betrieb für seine hausgeräucherten Schinkenspezialitäten, die nach traditioneller Art veredelt werden. Neben einer großen Auswahl an Fleisch- und Wurstwaren erhalten Kunden auch regionale Delikatessen und Spezialitäten aus eigener Herstellung.\n\nDie Verbindung aus traditionellem Fleischerhandwerk, sorgfältiger Verarbeitung und hochwertigen Zutaten macht die Schlachterei Petersen zu einer beliebten Adresse für Genießer und Liebhaber regionaler Produkte.",
     "content": "Die Schlachterei und Schinkenräucherei Petersen in Bad Malente steht für traditionelle Handwerkskunst, hochwertige Fleischwaren und regionale Spezialitäten. Mit viel Erfahrung und nach bewährten Familienrezepten entstehen hier erstklassige Wurst- und Schinkenprodukte, die für ihren besonderen Geschmack und ihre hohe Qualität geschätzt werden.\n\nBesonders bekannt ist der Betrieb für seine hausgeräucherten Schinkenspezialitäten, die nach traditioneller Art veredelt werden. Neben einer großen Auswahl an Fleisch- und Wurstwaren erhalten Kunden auch regionale Delikatessen und Spezialitäten aus eigener Herstellung.\n\nDie Verbindung aus traditionellem Fleischerhandwerk, sorgfältiger Verarbeitung und hochwertigen Zutaten macht die Schlachterei Petersen zu einer beliebten Adresse für Genießer und Liebhaber regionaler Produkte.",
@@ -2158,13 +1997,14 @@ export const activities = [
       "Direktverkauf vorher telefonisch klären"
     ],
     "website": "",
-    "address": "Neversfelder Straße 9, 23714 Bad Malente",
+    "address": "Bahnhofstraße 23, 23714 Malente",
     "phone": "04523 2290",
     "email": "",
     "weather": "indoor",
     "lat": 54.172,
     "lng": 10.556,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 81,
@@ -2187,22 +2027,23 @@ export const activities = [
       "Direktverkauf vorher telefonisch klären"
     ],
     "website": "",
-    "address": "Dorfstraße 1, 24217 Wisch",
+    "address": "Holzredder 50, 24217 Wisch",
     "phone": "04344 414555",
     "email": "",
     "weather": "outdoor",
     "lat": 54.41,
     "lng": 10.34,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 82,
     "slug": "probsteier-honig",
-    "title": "Probsteier Honig",
+    "title": "Probsteier Imker Gerhard Heide",
     "category": "Selbsterzeuger",
-    "description": "Probsteier Honig steht für hochwertigen, regional erzeugten Honig aus der schönen Probstei an der Ostseeküste. Mit viel Leidenschaft für die Imkerei und einem verantwortungsvollen Umgang mit Natur und Bienen entstehen hier naturbelassene Honigspezialitäten mit einem unverwechselbaren Geschmack.\n\nDie Bienen sammeln ihren Nektar auf blühenden Wiesen, Feldern und in den vielfältigen Naturlandschaften der Region. Durch die schonende Verarbeitung bleiben die wertvollen Inhaltsstoffe und das natürliche Aroma des Honigs erhalten. Das Ergebnis sind hochwertige Honigsorten, die die Vielfalt der Probstei widerspiegeln.\n\nNeben verschiedenen Honigsorten erhalten Besucher interessante Einblicke in die Imkerei und die wichtige Arbeit der Bienen für die Natur. Probsteier Honig ist eine beliebte Adresse für Genießer, Naturfreunde und alle, die regionale Produkte direkt vom Erzeuger schätzen.",
-    "content": "Probsteier Honig steht für hochwertigen, regional erzeugten Honig aus der schönen Probstei an der Ostseeküste. Mit viel Leidenschaft für die Imkerei und einem verantwortungsvollen Umgang mit Natur und Bienen entstehen hier naturbelassene Honigspezialitäten mit einem unverwechselbaren Geschmack.\n\nDie Bienen sammeln ihren Nektar auf blühenden Wiesen, Feldern und in den vielfältigen Naturlandschaften der Region. Durch die schonende Verarbeitung bleiben die wertvollen Inhaltsstoffe und das natürliche Aroma des Honigs erhalten. Das Ergebnis sind hochwertige Honigsorten, die die Vielfalt der Probstei widerspiegeln.\n\nNeben verschiedenen Honigsorten erhalten Besucher interessante Einblicke in die Imkerei und die wichtige Arbeit der Bienen für die Natur. Probsteier Honig ist eine beliebte Adresse für Genießer, Naturfreunde und alle, die regionale Produkte direkt vom Erzeuger schätzen.",
-    "shortDescription": "Probsteier Honig steht für hochwertigen, regional erzeugten Honig aus der schönen Probstei an der Ostseeküste.",
+    "description": "Probsteier Imker Gerhard Heide steht für hochwertigen, regional erzeugten Honig aus der schönen Probstei an der Ostseeküste. Mit viel Leidenschaft für die Imkerei und einem verantwortungsvollen Umgang mit Natur und Bienen entstehen hier naturbelassene Honigspezialitäten mit einem unverwechselbaren Geschmack.\n\nDie Bienen sammeln ihren Nektar auf blühenden Wiesen, Feldern und in den vielfältigen Naturlandschaften der Region. Durch die schonende Verarbeitung bleiben die wertvollen Inhaltsstoffe und das natürliche Aroma des Honigs erhalten. Das Ergebnis sind hochwertige Honigsorten, die die Vielfalt der Probstei widerspiegeln.\n\nNeben verschiedenen Honigsorten erhalten Besucher interessante Einblicke in die Imkerei und die wichtige Arbeit der Bienen für die Natur. Probsteier Imker Gerhard Heide ist eine beliebte Adresse für Genießer, Naturfreunde und alle, die regionale Produkte direkt vom Erzeuger schätzen.",
+    "content": "Probsteier Imker Gerhard Heide steht für hochwertigen, regional erzeugten Honig aus der schönen Probstei an der Ostseeküste. Mit viel Leidenschaft für die Imkerei und einem verantwortungsvollen Umgang mit Natur und Bienen entstehen hier naturbelassene Honigspezialitäten mit einem unverwechselbaren Geschmack.\n\nDie Bienen sammeln ihren Nektar auf blühenden Wiesen, Feldern und in den vielfältigen Naturlandschaften der Region. Durch die schonende Verarbeitung bleiben die wertvollen Inhaltsstoffe und das natürliche Aroma des Honigs erhalten. Das Ergebnis sind hochwertige Honigsorten, die die Vielfalt der Probstei widerspiegeln.\n\nNeben verschiedenen Honigsorten erhalten Besucher interessante Einblicke in die Imkerei und die wichtige Arbeit der Bienen für die Natur. Probsteier Imker Gerhard Heide ist eine beliebte Adresse für Genießer, Naturfreunde und alle, die regionale Produkte direkt vom Erzeuger schätzen.",
+    "shortDescription": "Probsteier Imker Gerhard Heide steht für hochwertigen, regional erzeugten Honig aus der schönen Probstei an der Ostseeküste.",
     "highlights": [
       "Regionaler Honig",
       "Naturbelassene Verarbeitung",
@@ -2215,14 +2056,15 @@ export const activities = [
       "Bargeld einplanen",
       "Direktverkauf vorher telefonisch klären"
     ],
-    "website": "",
-    "address": "24217 Schönberg (Holstein)",
-    "phone": "04344 414848",
+    "website": "https://www.probsteier-imker.de",
+    "address": "Dorfstraße 1b, 24217 Krokau",
+    "phone": "04344 1414",
     "email": "info@probsteier-honig.de",
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 83,
@@ -2244,14 +2086,15 @@ export const activities = [
       "Bargeld einplanen",
       "Direktverkauf vorher telefonisch klären"
     ],
-    "website": "",
-    "address": "Dorfstraße 24, 24253 Passade",
-    "phone": "04344 413421",
+    "website": "https://www.passader-backhaus.de",
+    "address": "Dörpstraat 11, 24253 Passade",
+    "phone": "04344 4652",
     "email": "info@passader-backhaus.de",
     "weather": "indoor",
     "lat": 54.3665,
     "lng": 10.32,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 84,
@@ -2280,7 +2123,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.4185,
     "lng": 10.4115,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": false
   },
   {
     "id": 85,
@@ -2303,13 +2147,14 @@ export const activities = [
       "Direktverkauf vorher telefonisch klären"
     ],
     "website": "",
-    "address": "Preetzer Chaussee 67, 24223 Schwentinental",
+    "address": "Rastorfer Mühle 3, 24223 Schwentinental",
     "phone": "04307 823322",
     "email": "info@obstquelle.de",
     "weather": "outdoor",
     "lat": 54.286,
     "lng": 10.226,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 86,
@@ -2338,7 +2183,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 54.382,
     "lng": 10.352,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": false
   },
   {
     "id": 87,
@@ -2361,13 +2207,14 @@ export const activities = [
       "Direktverkauf vorher telefonisch klären"
     ],
     "website": "",
-    "address": "Dorfstraße 19, 24306 Malente-Malkwitz",
+    "address": "Bergstraße 2, 24306 Malente-Malkwitz",
     "phone": "04523 202220",
     "email": "info@ingenhof.de",
     "weather": "outdoor",
     "lat": 54.1947,
     "lng": 10.5001,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 88,
@@ -2390,13 +2237,14 @@ export const activities = [
       "Direktverkauf vorher telefonisch klären"
     ],
     "website": "",
-    "address": "24601 Wankendorf",
+    "address": "Bösterredder 10, 24601 Wankendorf",
     "phone": "04326 986366",
     "email": "info@imkerei-butenschoen.de",
     "weather": "indoor",
     "lat": 54.1116,
     "lng": 10.2072,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 89,
@@ -2418,14 +2266,15 @@ export const activities = [
       "Bargeld einplanen",
       "Direktverkauf vorher telefonisch klären"
     ],
-    "website": "",
+    "website": "https://www.hunkelstide.de",
     "address": "Schwartbucker Holz 14, 24257 Schwartbuck",
     "phone": "04385 5960847",
     "email": "info@hunkelstide.de",
     "weather": "indoor",
-    "lat": 54.35,
-    "lng": 10.479,
-    "coordinateQuality": "town"
+    "lat": 54.36887,
+    "lng": 10.46457,
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 90,
@@ -2454,12 +2303,13 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.4054,
     "lng": 10.3138,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 91,
     "slug": "stanges-kur-apotheke-ohg-laboe",
-    "title": "Stanges Kur-Apotheke OHG Laboe",
+    "title": "Kur-Apotheke Laboe",
     "category": "Gesundheit",
     "description": "Die Stanges Kur-Apotheke in Laboe ist ein zuverlässiger Ansprechpartner für Gesundheit, Vorsorge und Arzneimittelversorgung direkt an der Ostseeküste. Mit fachkundiger Beratung und einem engagierten Team unterstützt die Apotheke sowohl Einheimische als auch Urlaubsgäste bei allen Fragen rund um Medikamente und Gesundheit.\n\nNeben der Versorgung mit verschreibungspflichtigen und rezeptfreien Arzneimitteln bietet die Apotheke umfangreiche Service- und Beratungsleistungen. Dazu gehören Gesundheitsberatung, Unterstützung bei E-Rezepten sowie Informationen zu verschiedenen Gesundheits- und Vorsorgethemen.\n\nDurch die zentrale Lage in Laboe ist die Apotheke bequem erreichbar und trägt täglich zu einer umfassenden medizinischen Versorgung der Region bei.",
     "content": "Die Stanges Kur-Apotheke in Laboe ist ein zuverlässiger Ansprechpartner für Gesundheit, Vorsorge und Arzneimittelversorgung direkt an der Ostseeküste. Mit fachkundiger Beratung und einem engagierten Team unterstützt die Apotheke sowohl Einheimische als auch Urlaubsgäste bei allen Fragen rund um Medikamente und Gesundheit.\n\nNeben der Versorgung mit verschreibungspflichtigen und rezeptfreien Arzneimitteln bietet die Apotheke umfangreiche Service- und Beratungsleistungen. Dazu gehören Gesundheitsberatung, Unterstützung bei E-Rezepten sowie Informationen zu verschiedenen Gesundheits- und Vorsorgethemen.\n\nDurch die zentrale Lage in Laboe ist die Apotheke bequem erreichbar und trägt täglich zu einer umfassenden medizinischen Versorgung der Region bei.",
@@ -2477,13 +2327,14 @@ export const activities = [
       "Öffnungszeiten und Notdienst prüfen"
     ],
     "website": "",
-    "address": "Strandstraße 4, 24235 Laboe",
+    "address": "Oberdorf 1a, 24235 Laboe",
     "phone": "04343 92420",
     "email": "info@kur-apotheke-laboe.de",
     "weather": "indoor",
     "lat": 54.4038,
     "lng": 10.2229,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 92,
@@ -2506,13 +2357,14 @@ export const activities = [
       "Öffnungszeiten und Notdienst prüfen"
     ],
     "website": "",
-    "address": "Bahnhofstraße 8, 24217 Schönberg (Holstein)",
+    "address": "Albert-Koch-Straße 24, 24217 Schönberg (Holstein)",
     "phone": "04344 8141",
     "email": "info@praxis-mayerhoff.de",
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 93,
@@ -2535,13 +2387,14 @@ export const activities = [
       "Öffnungszeiten und Notdienst prüfen"
     ],
     "website": "",
-    "address": "Bahnhofstraße 14, 24217 Schönberg (Holstein)",
+    "address": "Bahnhofstraße 42A, 24217 Schönberg (Holstein)",
     "phone": "04344 1390",
     "email": "info@praxis-engelke.de",
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 94,
@@ -2564,13 +2417,14 @@ export const activities = [
       "Öffnungszeiten und Notdienst prüfen"
     ],
     "website": "",
-    "address": "Knüllgasse 2, 24217 Schönberg (Holstein)",
-    "phone": "04344 3000",
+    "address": "Bahnhofstraße 20, 24217 Schönberg (Holstein)",
+    "phone": "04344 9743",
     "email": "info@ostsee-apotheke-schoenberg.de",
     "weather": "indoor",
-    "lat": 54.3922,
-    "lng": 10.3697,
-    "coordinateQuality": "town"
+    "lat": 54.390724,
+    "lng": 10.373066,
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 95,
@@ -2599,7 +2453,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 96,
@@ -2622,13 +2477,14 @@ export const activities = [
       "Öffnungszeiten und Notdienst prüfen"
     ],
     "website": "",
-    "address": "Bahnhofstraße 12, 24217 Schönberg (Holstein)",
+    "address": "Bahnhofstraße 39A, 24217 Schönberg (Holstein)",
     "phone": "04344 414140",
     "email": "info@kinderaerzte-schoenberg.de",
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 97,
@@ -2657,7 +2513,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 98,
@@ -2686,7 +2543,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 99,
@@ -2715,7 +2573,8 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 100,
@@ -2744,7 +2603,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 54.3095,
     "lng": 10.3211,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": false
   },
   {
     "id": 101,
@@ -2767,13 +2627,14 @@ export const activities = [
       "Wetterfeste Kleidung einplanen"
     ],
     "website": "",
-    "address": "Bahnhof Schönberger Strand, 24217 Schönberg",
+    "address": "Am Schierbek 1, 24217 Schönberger Strand",
     "phone": "04344 3090",
     "email": "info@vvm-museumsbahn.de",
     "weather": "outdoor",
     "lat": 54.4185,
     "lng": 10.4115,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 102,
@@ -2802,7 +2663,8 @@ export const activities = [
     "weather": "outdoor",
     "lat": 53.8667,
     "lng": 10.6866,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 103,
@@ -2825,13 +2687,14 @@ export const activities = [
       "Wetterfeste Kleidung einplanen"
     ],
     "website": "",
-    "address": "Hessenstein 1, 24321 Panker",
+    "address": "Hessensteiner Weg, 24321 Panker",
     "phone": "04381 41850",
     "email": "info@hessenstein.de",
     "weather": "outdoor",
     "lat": 54.322,
     "lng": 10.57,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 104,
@@ -2860,16 +2723,17 @@ export const activities = [
     "weather": "outdoor",
     "lat": 54.1106,
     "lng": 10.6022,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 105,
     "slug": "country-golf-club-hohwacht",
-    "title": "Country Golf Club Hohwacht",
+    "title": "Golfanlage Hohwacht",
     "category": "Golf",
-    "description": "Der Country Golf Club Hohwacht bietet Golferinnen und Golfern ein einzigartiges Spielerlebnis inmitten der reizvollen Küstenlandschaft der Hohwachter Bucht. Die gepflegte Golfanlage verbindet sportliche Herausforderungen mit einer entspannten Atmosphäre und beeindruckenden Ausblicken auf die Natur Schleswig-Holsteins.\n\nSowohl Einsteiger als auch erfahrene Spieler finden auf dem abwechslungsreichen Platz ideale Bedingungen für eine entspannte oder anspruchsvolle Golfrunde. Professionelle Trainingsangebote, Schnupperkurse und individuelle Betreuung ermöglichen einen perfekten Einstieg in den Golfsport oder die Weiterentwicklung des eigenen Spiels.\n\nNeben dem Golfplatz lädt die Anlage mit ihren großzügigen Grünflächen und dem Clubhaus zum Verweilen ein. Der Country Golf Club Hohwacht ist ein beliebtes Ziel für Sportbegeisterte, Urlauber und alle, die einen aktiven Tag in der Natur verbringen möchten.",
-    "content": "Der Country Golf Club Hohwacht bietet Golferinnen und Golfern ein einzigartiges Spielerlebnis inmitten der reizvollen Küstenlandschaft der Hohwachter Bucht. Die gepflegte Golfanlage verbindet sportliche Herausforderungen mit einer entspannten Atmosphäre und beeindruckenden Ausblicken auf die Natur Schleswig-Holsteins.\n\nSowohl Einsteiger als auch erfahrene Spieler finden auf dem abwechslungsreichen Platz ideale Bedingungen für eine entspannte oder anspruchsvolle Golfrunde. Professionelle Trainingsangebote, Schnupperkurse und individuelle Betreuung ermöglichen einen perfekten Einstieg in den Golfsport oder die Weiterentwicklung des eigenen Spiels.\n\nNeben dem Golfplatz lädt die Anlage mit ihren großzügigen Grünflächen und dem Clubhaus zum Verweilen ein. Der Country Golf Club Hohwacht ist ein beliebtes Ziel für Sportbegeisterte, Urlauber und alle, die einen aktiven Tag in der Natur verbringen möchten.",
-    "shortDescription": "Der Country Golf Club Hohwacht bietet Golferinnen und Golfern ein einzigartiges Spielerlebnis inmitten der reizvollen Küstenlandschaft der Hohwachter Bucht.",
+    "description": "Der Golfanlage Hohwacht bietet Golferinnen und Golfern ein einzigartiges Spielerlebnis inmitten der reizvollen Küstenlandschaft der Hohwachter Bucht. Die gepflegte Golfanlage verbindet sportliche Herausforderungen mit einer entspannten Atmosphäre und beeindruckenden Ausblicken auf die Natur Schleswig-Holsteins.\n\nSowohl Einsteiger als auch erfahrene Spieler finden auf dem abwechslungsreichen Platz ideale Bedingungen für eine entspannte oder anspruchsvolle Golfrunde. Professionelle Trainingsangebote, Schnupperkurse und individuelle Betreuung ermöglichen einen perfekten Einstieg in den Golfsport oder die Weiterentwicklung des eigenen Spiels.\n\nNeben dem Golfplatz lädt die Anlage mit ihren großzügigen Grünflächen und dem Clubhaus zum Verweilen ein. Der Golfanlage Hohwacht ist ein beliebtes Ziel für Sportbegeisterte, Urlauber und alle, die einen aktiven Tag in der Natur verbringen möchten.",
+    "content": "Der Golfanlage Hohwacht bietet Golferinnen und Golfern ein einzigartiges Spielerlebnis inmitten der reizvollen Küstenlandschaft der Hohwachter Bucht. Die gepflegte Golfanlage verbindet sportliche Herausforderungen mit einer entspannten Atmosphäre und beeindruckenden Ausblicken auf die Natur Schleswig-Holsteins.\n\nSowohl Einsteiger als auch erfahrene Spieler finden auf dem abwechslungsreichen Platz ideale Bedingungen für eine entspannte oder anspruchsvolle Golfrunde. Professionelle Trainingsangebote, Schnupperkurse und individuelle Betreuung ermöglichen einen perfekten Einstieg in den Golfsport oder die Weiterentwicklung des eigenen Spiels.\n\nNeben dem Golfplatz lädt die Anlage mit ihren großzügigen Grünflächen und dem Clubhaus zum Verweilen ein. Der Golfanlage Hohwacht ist ein beliebtes Ziel für Sportbegeisterte, Urlauber und alle, die einen aktiven Tag in der Natur verbringen möchten.",
+    "shortDescription": "Der Golfanlage Hohwacht bietet Golferinnen und Golfern ein einzigartiges Spielerlebnis inmitten der reizvollen Küstenlandschaft der Hohwachter Bucht.",
     "highlights": [
       "Golfplatz in Küstenlandschaft",
       "Kurse für Anfänger",
@@ -2883,13 +2747,14 @@ export const activities = [
       "Wetterbedingungen beachten"
     ],
     "website": "",
-    "address": "An der Hohwachter Bucht 3, 24321 Hohwacht",
+    "address": "Eichenallee 4, 24321 Hohwacht",
     "phone": "04381 415830",
     "email": "info@cgch.de",
     "weather": "outdoor",
     "lat": 54.3209,
     "lng": 10.6681,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 106,
@@ -2912,13 +2777,14 @@ export const activities = [
       "Gute Option bei Regen"
     ],
     "website": "",
-    "address": "Haddebyer Chaussee 13, 24866 Busdorf",
+    "address": "Am Haddebyer Noor 5, 24866 Busdorf",
     "phone": "04621 813222",
     "email": "service@landesmuseen.sh",
     "weather": "all-weather",
     "lat": 54.491,
     "lng": 9.5686,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 107,
@@ -2947,7 +2813,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.5126,
     "lng": 9.5419,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 108,
@@ -2976,7 +2843,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.1371,
     "lng": 10.6167,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 109,
@@ -3005,12 +2873,13 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.3922,
     "lng": 10.3697,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 110,
     "slug": "marine-und-u-boot-ehrenmal-laboe",
-    "title": "Marine- und U-Boot-Ehrenmal Laboe",
+    "title": "Marine-Ehrenmal Laboe & Technisches Museum U 995",
     "category": "Museum",
     "description": "Das Marine- und U-Boot-Ehrenmal in Laboe zählt zu den bekanntesten Sehenswürdigkeiten an der Ostsee und bietet Besuchern eine eindrucksvolle Verbindung aus Geschichte, Erinnerungskultur und maritimer Tradition. Der markante Turm des Ehrenmals prägt seit Jahrzehnten das Bild der Kieler Förde und bietet von seiner Aussichtsplattform einen beeindruckenden Panoramablick über die Ostsee und die umliegende Küstenlandschaft.\n\nNeben dem Ehrenmal können Besucher das historische U-Boot U 995 besichtigen, das heute als technisches Museum dient. Im Inneren erhalten Gäste spannende Einblicke in die beengten Lebens- und Arbeitsbedingungen der Besatzung sowie in die Geschichte der Unterseebootfahrt.\n\nDie weitläufige Anlage umfasst außerdem Ausstellungen zur Schifffahrts- und Marinegeschichte, eine Gedenkhalle sowie zahlreiche historische Exponate. Das Marine- und U-Boot-Ehrenmal ist ein beliebtes Ausflugsziel für Familien, Geschichtsinteressierte und Urlauber an der Ostsee.",
     "content": "Das Marine- und U-Boot-Ehrenmal in Laboe zählt zu den bekanntesten Sehenswürdigkeiten an der Ostsee und bietet Besuchern eine eindrucksvolle Verbindung aus Geschichte, Erinnerungskultur und maritimer Tradition. Der markante Turm des Ehrenmals prägt seit Jahrzehnten das Bild der Kieler Förde und bietet von seiner Aussichtsplattform einen beeindruckenden Panoramablick über die Ostsee und die umliegende Küstenlandschaft.\n\nNeben dem Ehrenmal können Besucher das historische U-Boot U 995 besichtigen, das heute als technisches Museum dient. Im Inneren erhalten Gäste spannende Einblicke in die beengten Lebens- und Arbeitsbedingungen der Besatzung sowie in die Geschichte der Unterseebootfahrt.\n\nDie weitläufige Anlage umfasst außerdem Ausstellungen zur Schifffahrts- und Marinegeschichte, eine Gedenkhalle sowie zahlreiche historische Exponate. Das Marine- und U-Boot-Ehrenmal ist ein beliebtes Ausflugsziel für Familien, Geschichtsinteressierte und Urlauber an der Ostsee.",
@@ -3034,12 +2903,13 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.412,
     "lng": 10.2303,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 111,
     "slug": "kuriosum-uebersee-das-expeditions-museum-auf-fehmarn",
-    "title": "Kuriosum Übersee – Das Expeditions-Museum auf Fehmarn",
+    "title": "Museum Übersee Fehmarn",
     "category": "Museum",
     "description": "Begeben Sie sich auf eine faszinierende Entdeckungsreise rund um den Globus. Das Kuriosum Übersee – Expeditions-Museum auf Fehmarn präsentiert eine außergewöhnliche Sammlung von Exponaten, Kunstgegenständen und Kuriositäten aus den verschiedensten Kulturen und Ländern der Welt.\n\nDie Ausstellung nimmt Besucher mit auf eine spannende Reise durch ferne Kontinente und vergangene Expeditionen. Zahlreiche Ausstellungsstücke, historische Dokumentationen und besondere Fundstücke vermitteln interessante Einblicke in fremde Kulturen, Traditionen und Lebensweisen. Ergänzt wird die Ausstellung durch außergewöhnliche Sammlerstücke und seltene Kuriositäten, die für Staunen bei Groß und Klein sorgen.\n\nDas Museum ist ein ideales Ausflugsziel für Familien, Entdecker und Kulturinteressierte, die sich für die Vielfalt unserer Welt begeistern. Besucher erwartet eine abwechslungsreiche Mischung aus Geschichte, Abenteuer und faszinierenden Geschichten aus aller Welt.",
     "content": "Begeben Sie sich auf eine faszinierende Entdeckungsreise rund um den Globus. Das Kuriosum Übersee – Expeditions-Museum auf Fehmarn präsentiert eine außergewöhnliche Sammlung von Exponaten, Kunstgegenständen und Kuriositäten aus den verschiedensten Kulturen und Ländern der Welt.\n\nDie Ausstellung nimmt Besucher mit auf eine spannende Reise durch ferne Kontinente und vergangene Expeditionen. Zahlreiche Ausstellungsstücke, historische Dokumentationen und besondere Fundstücke vermitteln interessante Einblicke in fremde Kulturen, Traditionen und Lebensweisen. Ergänzt wird die Ausstellung durch außergewöhnliche Sammlerstücke und seltene Kuriositäten, die für Staunen bei Groß und Klein sorgen.\n\nDas Museum ist ein ideales Ausflugsziel für Familien, Entdecker und Kulturinteressierte, die sich für die Vielfalt unserer Welt begeistern. Besucher erwartet eine abwechslungsreiche Mischung aus Geschichte, Abenteuer und faszinierenden Geschichten aus aller Welt.",
@@ -3056,14 +2926,15 @@ export const activities = [
       "Tickets/Führungen vorab ansehen",
       "Gute Option bei Regen"
     ],
-    "website": "",
-    "address": "Hafenstraße 69, 23769 Burgstaaken / Fehmarn",
+    "website": "https://www.abenteuer-uebersee.de",
+    "address": "Hafenstraße 69, 23769 Fehmarn OT Burgstaaken",
     "phone": "04371 879247",
     "email": "info@abenteuer-uebersee.de",
     "weather": "indoor",
     "lat": 54.4166,
     "lng": 11.1915,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 112,
@@ -3092,7 +2963,8 @@ export const activities = [
     "weather": "all-weather",
     "lat": 54.371,
     "lng": 10.205,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 113,
@@ -3121,7 +2993,9 @@ export const activities = [
     "weather": "indoor",
     "lat": 54.3355,
     "lng": 10.1498,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true,
+    "temporarilyClosed": true
   },
   {
     "id": 114,
@@ -3144,21 +3018,22 @@ export const activities = [
       "Gute Option bei Regen"
     ],
     "website": "",
-    "address": "Rothensande 1, 23714 Bad Malente",
+    "address": "Kampstraße 1, 23714 Malente",
     "phone": "0151 10212951",
     "email": "info@immenhofmuseum.de",
     "weather": "indoor",
     "lat": 54.172,
     "lng": 10.556,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 115,
     "slug": "westwind-schoenberger-strand",
-    "title": "Westwind Schönberger Strand",
+    "title": "Wetwind Wassersportschule Schönberger Strand",
     "category": "Wassersport",
-    "description": "Am Schönberger Strand erwartet Wassersportbegeisterte ein abwechslungsreiches Angebot für unvergessliche Erlebnisse auf der Ostsee. Westwind Schönberger Strand bietet professionelle Kurse und moderne Ausrüstung für Windsurfen, Kitesurfen, Wingfoilen und Stand-Up-Paddling.\n\nSowohl Einsteiger als auch erfahrene Wassersportler profitieren von der langjährigen Erfahrung der Trainer und den idealen Bedingungen direkt an der Ostseeküste. Die Kurse verbinden Spaß, Sicherheit und sportliche Herausforderungen in einer einzigartigen Umgebung.\n\nDurch die direkte Strandlage und die hervorragenden Windverhältnisse zählt der Standort zu den beliebten Wassersportrevieren in Schleswig-Holstein. Familien, Freunde und Aktivurlauber finden hier beste Voraussetzungen für einen erlebnisreichen Tag am Meer.",
-    "content": "Am Schönberger Strand erwartet Wassersportbegeisterte ein abwechslungsreiches Angebot für unvergessliche Erlebnisse auf der Ostsee. Westwind Schönberger Strand bietet professionelle Kurse und moderne Ausrüstung für Windsurfen, Kitesurfen, Wingfoilen und Stand-Up-Paddling.\n\nSowohl Einsteiger als auch erfahrene Wassersportler profitieren von der langjährigen Erfahrung der Trainer und den idealen Bedingungen direkt an der Ostseeküste. Die Kurse verbinden Spaß, Sicherheit und sportliche Herausforderungen in einer einzigartigen Umgebung.\n\nDurch die direkte Strandlage und die hervorragenden Windverhältnisse zählt der Standort zu den beliebten Wassersportrevieren in Schleswig-Holstein. Familien, Freunde und Aktivurlauber finden hier beste Voraussetzungen für einen erlebnisreichen Tag am Meer.",
+    "description": "Am Schönberger Strand erwartet Wassersportbegeisterte ein abwechslungsreiches Angebot für unvergessliche Erlebnisse auf der Ostsee. Wetwind Wassersportschule Schönberger Strand bietet professionelle Kurse und moderne Ausrüstung für Windsurfen, Kitesurfen, Wingfoilen und Stand-Up-Paddling.\n\nSowohl Einsteiger als auch erfahrene Wassersportler profitieren von der langjährigen Erfahrung der Trainer und den idealen Bedingungen direkt an der Ostseeküste. Die Kurse verbinden Spaß, Sicherheit und sportliche Herausforderungen in einer einzigartigen Umgebung.\n\nDurch die direkte Strandlage und die hervorragenden Windverhältnisse zählt der Standort zu den beliebten Wassersportrevieren in Schleswig-Holstein. Familien, Freunde und Aktivurlauber finden hier beste Voraussetzungen für einen erlebnisreichen Tag am Meer.",
+    "content": "Am Schönberger Strand erwartet Wassersportbegeisterte ein abwechslungsreiches Angebot für unvergessliche Erlebnisse auf der Ostsee. Wetwind Wassersportschule Schönberger Strand bietet professionelle Kurse und moderne Ausrüstung für Windsurfen, Kitesurfen, Wingfoilen und Stand-Up-Paddling.\n\nSowohl Einsteiger als auch erfahrene Wassersportler profitieren von der langjährigen Erfahrung der Trainer und den idealen Bedingungen direkt an der Ostseeküste. Die Kurse verbinden Spaß, Sicherheit und sportliche Herausforderungen in einer einzigartigen Umgebung.\n\nDurch die direkte Strandlage und die hervorragenden Windverhältnisse zählt der Standort zu den beliebten Wassersportrevieren in Schleswig-Holstein. Familien, Freunde und Aktivurlauber finden hier beste Voraussetzungen für einen erlebnisreichen Tag am Meer.",
     "shortDescription": "Am Schönberger Strand erwartet Wassersportbegeisterte ein abwechslungsreiches Angebot für unvergessliche Erlebnisse auf der Ostsee.",
     "highlights": [
       "Windsurf- und Kitesurfkurse",
@@ -3172,14 +3047,15 @@ export const activities = [
       "Wechselkleidung mitnehmen",
       "Wind- und Wetterbedingungen prüfen"
     ],
-    "website": "",
-    "address": "Promenade 1A, 24217 Schönberger Strand",
-    "phone": "04344 413745",
+    "website": "https://www.wetwind.net",
+    "address": "Promenade 17, Buhne 39/40, 24217 Schönberger Strand",
+    "phone": "04344 301104",
     "email": "info@westwind-sup.de",
     "weather": "outdoor",
     "lat": 54.4182,
     "lng": 10.4115,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 116,
@@ -3202,18 +3078,19 @@ export const activities = [
       "Wind- und Wetterbedingungen prüfen"
     ],
     "website": "",
-    "address": "Falckensteiner Strand 87, 24159 Kiel-Schilksee",
+    "address": "Falckensteiner Strand 87, 24159 Kiel",
     "phone": "0431 2483872",
     "email": "",
     "weather": "outdoor",
     "lat": 54.4212,
     "lng": 10.18,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 117,
     "slug": "wassersport-brasilien",
-    "title": "Wassersport Brasilien",
+    "title": "Wassersport Brasilien – Bo Roosch",
     "category": "Wassersport",
     "description": "Direkt am feinen Ostseestrand von Brasilien bei Schönberg erwartet Sie ein vielseitiges Wassersportzentrum für Anfänger und Fortgeschrittene. Ob Windsurfen, Stand-Up-Paddling, Wellenreiten oder weitere Wassersportarten – hier finden Besucher ideale Bedingungen für sportliche Aktivitäten auf dem Wasser.\n\nDie erfahrenen Trainer vermitteln die Grundlagen des Wassersports in einer sicheren und entspannten Atmosphäre. Neben verschiedenen Kursangeboten stehen auch zahlreiche Wassersportgeräte, Kajaks und Tretboote zum Verleih bereit. Damit eignet sich das Angebot sowohl für Einsteiger als auch für erfahrene Wassersportler.\n\nDank der direkten Lage am kilometerlangen Sandstrand können Gäste die Ostsee in vollen Zügen genießen und gleichzeitig die beeindruckende Küstenlandschaft der Probstei erleben. Familien, Gruppen und Einzelpersonen erwartet hier ein abwechslungsreiches Freizeitangebot direkt am Meer.",
     "content": "Direkt am feinen Ostseestrand von Brasilien bei Schönberg erwartet Sie ein vielseitiges Wassersportzentrum für Anfänger und Fortgeschrittene. Ob Windsurfen, Stand-Up-Paddling, Wellenreiten oder weitere Wassersportarten – hier finden Besucher ideale Bedingungen für sportliche Aktivitäten auf dem Wasser.\n\nDie erfahrenen Trainer vermitteln die Grundlagen des Wassersports in einer sicheren und entspannten Atmosphäre. Neben verschiedenen Kursangeboten stehen auch zahlreiche Wassersportgeräte, Kajaks und Tretboote zum Verleih bereit. Damit eignet sich das Angebot sowohl für Einsteiger als auch für erfahrene Wassersportler.\n\nDank der direkten Lage am kilometerlangen Sandstrand können Gäste die Ostsee in vollen Zügen genießen und gleichzeitig die beeindruckende Küstenlandschaft der Probstei erleben. Familien, Gruppen und Einzelpersonen erwartet hier ein abwechslungsreiches Freizeitangebot direkt am Meer.",
@@ -3230,14 +3107,15 @@ export const activities = [
       "Wechselkleidung mitnehmen",
       "Wind- und Wetterbedingungen prüfen"
     ],
-    "website": "",
-    "address": "Mohle 33/34, 24217 Brasilien (Schönberg)",
-    "phone": "04344 3013880",
+    "website": "https://www.brasilsports.de",
+    "address": "Mittelstrand, Buhne 33/34, 24217 Brasilien (Schönberg)",
+    "phone": "0172 4054554",
     "email": "office@brasilsports.de",
     "weather": "outdoor",
     "lat": 54.4238,
     "lng": 10.361,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 118,
@@ -3259,19 +3137,20 @@ export const activities = [
       "Wechselkleidung mitnehmen",
       "Wind- und Wetterbedingungen prüfen"
     ],
-    "website": "",
+    "website": "https://www.kiel.surfers-p.de",
     "address": "Strandstraße 33, 24235 Laboe",
-    "phone": "+49 4343 496396",
+    "phone": "04343 496396",
     "email": "kiel@surfers-p.de",
     "weather": "outdoor",
     "lat": 54.4038,
     "lng": 10.2229,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   },
   {
     "id": 119,
     "slug": "segelcamp-24-7-kiel",
-    "title": "Segelcamp 24/7 Kiel",
+    "title": "Segelcamp powered by Stadtwerke Kiel",
     "category": "Wassersport",
     "description": "Erleben Sie die Faszination des Segelns direkt an der Kieler Förde. Das Segelcamp 24/7 bietet Kindern, Jugendlichen und Erwachsenen die Möglichkeit, die Welt des Wassersports kennenzulernen und unvergessliche Stunden auf dem Wasser zu verbringen.\n\nVon Mai bis September erwartet Besucher ein abwechslungsreiches Programm mit zahlreichen Segelkursen und Freizeitangeboten. Egal ob Anfänger oder Fortgeschrittener – hier findet jeder das passende Erlebnis. Neben dem Segeln stehen Teamgeist, Naturerlebnisse und der Spaß am Wassersport im Mittelpunkt.\n\nDas Camp bietet verschiedene Segelangebote für Familien, Gruppen und Einzelpersonen. Erfahrene Trainer begleiten die Teilnehmer und sorgen für eine sichere und angenehme Atmosphäre. Auch an Land gibt es zahlreiche Möglichkeiten zur Freizeitgestaltung und zum Entspannen direkt an der Förde.",
     "content": "Erleben Sie die Faszination des Segelns direkt an der Kieler Förde. Das Segelcamp 24/7 bietet Kindern, Jugendlichen und Erwachsenen die Möglichkeit, die Welt des Wassersports kennenzulernen und unvergessliche Stunden auf dem Wasser zu verbringen.\n\nVon Mai bis September erwartet Besucher ein abwechslungsreiches Programm mit zahlreichen Segelkursen und Freizeitangeboten. Egal ob Anfänger oder Fortgeschrittener – hier findet jeder das passende Erlebnis. Neben dem Segeln stehen Teamgeist, Naturerlebnisse und der Spaß am Wassersport im Mittelpunkt.\n\nDas Camp bietet verschiedene Segelangebote für Familien, Gruppen und Einzelpersonen. Erfahrene Trainer begleiten die Teilnehmer und sorgen für eine sichere und angenehme Atmosphäre. Auch an Land gibt es zahlreiche Möglichkeiten zur Freizeitgestaltung und zum Entspannen direkt an der Förde.",
@@ -3288,14 +3167,15 @@ export const activities = [
       "Wechselkleidung mitnehmen",
       "Wind- und Wetterbedingungen prüfen"
     ],
-    "website": "",
-    "address": "Kiellinie 11, 24105 Kiel",
+    "website": "https://segelcamp-kiel.de",
+    "address": "Düsternbrooker Weg 46, 24105 Kiel",
     "phone": "+49 431 901 2573",
     "email": "info@kiel-sailing-city.de",
     "weather": "outdoor",
     "lat": 54.3377,
     "lng": 10.1509,
-    "coordinateQuality": "marker"
+    "coordinateQuality": "marker",
+    "addressVerified": true
   },
   {
     "id": 120,
@@ -3318,14 +3198,13 @@ export const activities = [
       "Wind- und Wetterbedingungen prüfen"
     ],
     "website": "",
-    "address": "Wagrienring 20, 23730 Sierksdorf",
+    "address": "Wagrienring 24, 23730 Sierksdorf",
     "phone": "04561 7146884",
     "email": "info@baltic-pirates.de",
     "weather": "outdoor",
     "lat": 54.074,
     "lng": 10.78,
-    "coordinateQuality": "town"
+    "coordinateQuality": "town",
+    "addressVerified": true
   }
 ];
-
-export default activities;

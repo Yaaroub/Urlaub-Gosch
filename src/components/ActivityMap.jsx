@@ -2,413 +2,431 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import Map, { Marker, Popup } from "react-map-gl/mapbox";
+import MapGL, { Layer, Popup, Source } from "react-map-gl/mapbox";
 import mapboxgl from "mapbox-gl";
-import { ExternalLink } from "lucide-react";
-import { getActivityGroup, getGoogleMapsUrl } from "@/lib/activity-groups";
+import { ExternalLink, MapPin } from "lucide-react";
 
-const FILTERS = [
-  { key: "all", label: "Alle" },
-  { key: "familie", label: "Familie" },
-  { key: "natur", label: "Natur" },
-  { key: "sport", label: "Sport" },
-  { key: "restaurant", label: "Restaurant" },
-  { key: "kultur", label: "Kultur" },
-];
+import {
+  ACTIVITY_GROUP_META,
+  getActivityGroup,
+  getActivityMapGroup,
+  getGoogleMapsUrl,
+  isValidCoordinate,
+} from "@/lib/activity-groups";
 
-const GROUP_STYLE = {
-  familie: {
-    bg: "bg-[#c49a3a]",
-    text: "text-[#7a5b18]",
-    chip: "bg-[#f7f1e5] ring-[#ead9b6]",
-    activeChip: "bg-[#c49a3a] text-white ring-[#c49a3a]",
-    Icon: FamilyIcon,
-  },
-  natur: {
-    bg: "bg-[#0077b6]",
-    text: "text-[#075985]",
-    chip: "bg-[#eaf7fb] ring-[#bae6fd]",
-    activeChip: "bg-[#0077b6] text-white ring-[#0077b6]",
-    Icon: LeafIcon,
-  },
-  sport: {
-    bg: "bg-[#050b1f]",
-    text: "text-[#050b1f]",
-    chip: "bg-slate-50 ring-slate-200",
-    activeChip: "bg-[#050b1f] text-white ring-[#050b1f]",
-    Icon: SportIcon,
-  },
-  restaurant: {
-    bg: "bg-[#b8791c]",
-    text: "text-orange-800",
-    chip: "bg-orange-50 ring-orange-200",
-    activeChip: "bg-[#b8791c] text-white ring-[#b8791c]",
-    Icon: CupIcon,
-  },
-  kultur: {
-    bg: "bg-[#475569]",
-    text: "text-slate-700",
-    chip: "bg-slate-100 ring-slate-200",
-    activeChip: "bg-[#475569] text-white ring-[#475569]",
-    Icon: MuseumIcon,
+const POINT_LAYER_ID = "urlaub-gosch-activity-points";
+const ICON_LAYER_ID = "urlaub-gosch-activity-icons";
+
+const MAP_COLORS = {
+  familie: ACTIVITY_GROUP_META?.Familie?.mapColor || "#d6a62e",
+  natur: ACTIVITY_GROUP_META?.Natur?.mapColor || "#0077b6",
+  sport: ACTIVITY_GROUP_META?.Sport?.mapColor || "#0f2742",
+  restaurant: ACTIVITY_GROUP_META?.Restaurant?.mapColor || "#d97706",
+  kultur: ACTIVITY_GROUP_META?.Kultur?.mapColor || "#6d5b8c",
+};
+
+const pointLayer = {
+  id: POINT_LAYER_ID,
+  type: "circle",
+  paint: {
+    "circle-radius": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      6,
+      6.5,
+      8,
+      8.5,
+      10,
+      10.5,
+      13,
+      12,
+    ],
+    "circle-color": [
+      "match",
+      ["get", "group"],
+      "familie",
+      MAP_COLORS.familie,
+      "natur",
+      MAP_COLORS.natur,
+      "sport",
+      MAP_COLORS.sport,
+      "restaurant",
+      MAP_COLORS.restaurant,
+      "kultur",
+      MAP_COLORS.kultur,
+      MAP_COLORS.natur,
+    ],
+    "circle-opacity": 1,
+    "circle-stroke-width": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      6,
+      1.5,
+      10,
+      2.5,
+    ],
+    "circle-stroke-color": "#ffffff",
+    "circle-stroke-opacity": 1,
   },
 };
+
+const iconLayer = {
+  id: ICON_LAYER_ID,
+  type: "symbol",
+  layout: {
+    "icon-image": [
+      "match",
+      ["get", "group"],
+      "familie",
+      "ug-family",
+      "natur",
+      "ug-nature",
+      "sport",
+      "ug-sport",
+      "restaurant",
+      "ug-restaurant",
+      "kultur",
+      "ug-culture",
+      "ug-nature",
+    ],
+    "icon-size": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      6,
+      0.48,
+      8,
+      0.58,
+      10,
+      0.68,
+      13,
+      0.76,
+    ],
+    "icon-allow-overlap": true,
+    "icon-ignore-placement": true,
+  },
+  paint: {
+    "icon-opacity": 1,
+  },
+};
+
+const ICON_DEFINITIONS = {
+  "ug-family": `
+    <circle cx="9" cy="7" r="3.2"/>
+    <path d="M3.5 20v-1.2A4.8 4.8 0 0 1 8.3 14h1.4a4.8 4.8 0 0 1 4.8 4.8V20"/>
+    <path d="M15.5 4.2a3 3 0 0 1 0 5.8"/>
+    <path d="M17.2 14.3a4.5 4.5 0 0 1 3.3 4.3V20"/>
+  `,
+  "ug-nature": `
+    <path d="M19.5 3.5C13 4 7.8 7.2 6.2 11.6c-1.2 3.2.1 6.7 3.2 8.2 3.3 1.6 7.1.1 8.8-3.2 1.7-3.4 1.1-8.1 1.3-13.1Z"/>
+    <path d="M4 21c1.8-4.3 5.4-7.7 11.1-10.5"/>
+  `,
+  "ug-sport": `
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="m8.2 5.1 3.8 2.6 3.8-2.6"/>
+    <path d="m12 7.7-2.4 3.5 2.4 2.1 3.5-1.8-.8-3.8"/>
+    <path d="m9.6 11.2-4.2 1.4"/>
+    <path d="m15.5 11.5 3.6 1.8"/>
+    <path d="m12 13.3-.7 4.2 3 1.8"/>
+  `,
+  "ug-restaurant": `
+    <path d="M5 3v7"/>
+    <path d="M3 3v4"/>
+    <path d="M7 3v4"/>
+    <path d="M3 7c0 1.7.9 3 2 3s2-1.3 2-3"/>
+    <path d="M5 10v11"/>
+    <path d="M18 3v18"/>
+    <path d="M14.5 3v5.2c0 2.2 1.4 3.8 3.5 3.8"/>
+  `,
+  "ug-culture": `
+    <path d="M3 21h18"/>
+    <path d="M5 18h14"/>
+    <path d="M6.5 18v-8"/>
+    <path d="M10.2 18v-8"/>
+    <path d="M13.8 18v-8"/>
+    <path d="M17.5 18v-8"/>
+    <path d="M4 8h16"/>
+    <path d="m12 3 8 4H4l8-4Z"/>
+  `,
+};
+
+function createSvg(content) {
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg"
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#ffffff"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round">
+      ${content}
+    </svg>
+  `;
+}
+
+function loadSvgImage(svg) {
+  return new Promise((resolve, reject) => {
+    const image = new Image(28, 28);
+
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  });
+}
+
+async function registerActivityIcons(map) {
+  await Promise.all(
+    Object.entries(ICON_DEFINITIONS).map(async ([name, content]) => {
+      if (map.hasImage(name)) return;
+
+      const image = await loadSvgImage(createSvg(content));
+
+      if (!map.hasImage(name)) {
+        map.addImage(name, image, {
+          pixelRatio: 2,
+        });
+      }
+    })
+  );
+}
+
+function getGroupColor(activity) {
+  const group = getActivityMapGroup(activity);
+  return MAP_COLORS[group] || MAP_COLORS.natur;
+}
 
 export default function ActivityMap({
   items = [],
   center = [54.35, 10.13],
   zoom = 9,
-  showFilters = true,
 }) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-  const [selected, setSelected] = useState(null);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [iconsReady, setIconsReady] = useState(false);
 
   const safeCenter = useMemo(() => {
     const lat = Number(center?.[0]);
     const lng = Number(center?.[1]);
 
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      return [54.35, 10.13];
-    }
-
-    return [lat, lng];
+    return Number.isFinite(lat) && Number.isFinite(lng)
+      ? [lat, lng]
+      : [54.35, 10.13];
   }, [center]);
-
-  const initialView = useMemo(
-    () => ({
-      latitude: safeCenter[0],
-      longitude: safeCenter[1],
-      zoom,
-    }),
-    [safeCenter, zoom]
-  );
 
   const normalizedItems = useMemo(() => {
     return items
       .filter((item) => isValidCoordinate(item.lat, item.lng))
-      .map((item) => ({
+      .map((item, index) => ({
         ...item,
         lat: Number(item.lat),
         lng: Number(item.lng),
-        group: toMapGroup(getActivityGroup(item)),
+        __mapKey: String(
+          item.id ?? item.slug ?? `${item.lat}-${item.lng}-${index}`
+        ),
+        __group: getActivityMapGroup(item),
       }));
   }, [items]);
 
-  const visibleItems = useMemo(() => {
-    if (activeFilter === "all") return normalizedItems;
+  const itemByKey = useMemo(
+    () =>
+      new Map(
+        normalizedItems.map((item) => [item.__mapKey, item])
+      ),
+    [normalizedItems]
+  );
 
-    return normalizedItems.filter((item) => item.group === activeFilter);
-  }, [normalizedItems, activeFilter]);
+  const geojson = useMemo(
+    () => ({
+      type: "FeatureCollection",
+      features: normalizedItems.map((item) => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [item.lng, item.lat],
+        },
+        properties: {
+          key: item.__mapKey,
+          group: item.__group,
+        },
+      })),
+    }),
+    [normalizedItems]
+  );
 
-  const counts = useMemo(() => {
-    const result = {
-      all: normalizedItems.length,
-      familie: 0,
-      natur: 0,
-      sport: 0,
-      restaurant: 0,
-      kultur: 0,
-    };
-
-    for (const item of normalizedItems) {
-      if (result[item.group] !== undefined) {
-        result[item.group] += 1;
-      }
-    }
-
-    return result;
-  }, [normalizedItems]);
+  const selected = selectedKey ? itemByKey.get(selectedKey) : null;
 
   if (!token) {
     return (
-      <div className="grid h-full min-h-[360px] place-items-center rounded-2xl bg-[#eaf7fb] p-6 text-center text-sm text-slate-600 ring-1 ring-[#0077b6]/10">
+      <div className="grid h-full min-h-[360px] place-items-center rounded-[1.5rem] border border-[#dbeafe] bg-[#eaf7fb]/70 p-6 text-center text-sm text-slate-600">
         <div>
-          <p className="font-semibold text-[#050b1f]">Mapbox Token fehlt</p>
-          <p className="mt-2 text-slate-500">
-            Bitte in deiner{" "}
-            <code className="rounded bg-white px-1 py-0.5">.env</code> Datei
-            setzen:
+          <p className="font-bold text-[#050b1f]">
+            Mapbox Token fehlt
           </p>
-          <code className="mt-3 inline-block rounded-lg bg-white px-3 py-2 text-xs text-slate-700 shadow-sm">
-            NEXT_PUBLIC_MAPBOX_TOKEN
-          </code>
+
+          <p className="mt-2 text-slate-500">
+            Bitte{" "}
+            <code className="rounded bg-white px-1 py-0.5">
+              NEXT_PUBLIC_MAPBOX_TOKEN
+            </code>{" "}
+            setzen.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {showFilters && (
-        <div className="absolute left-3 right-3 top-3 z-10 rounded-2xl border border-white/70 bg-white/90 p-3 shadow-xl shadow-[#050b1f]/10 backdrop-blur-xl">
-          <div className="flex gap-2 overflow-x-auto pb-0.5">
-            {FILTERS.map((filter) => {
-              const active = activeFilter === filter.key;
-
-              const style =
-                filter.key === "all"
-                  ? {
-                      chip: "bg-white ring-[#dbeafe]",
-                      text: "text-[#0f172a]",
-                      activeChip: "bg-[#050b1f] text-white ring-[#050b1f]",
-                    }
-                  : GROUP_STYLE[filter.key];
-
-              return (
-                <button
-                  key={filter.key}
-                  type="button"
-                  onClick={() => {
-                    setActiveFilter(filter.key);
-                    setSelected(null);
-                  }}
-                  className={[
-                    "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-bold ring-1 transition",
-                    active
-                      ? style.activeChip
-                      : `${style.chip} ${style.text} hover:bg-white hover:shadow-sm`,
-                  ].join(" ")}
-                >
-                  <span>{filter.label}</span>
-
-                  <span
-                    className={[
-                      "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
-                      active
-                        ? "bg-white/20 text-white"
-                        : "bg-white/90 text-slate-500",
-                    ].join(" ")}
-                  >
-                    {counts[filter.key] ?? 0}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <Map
+    <div className="relative h-full w-full overflow-hidden rounded-[1.5rem] bg-[#eaf7fb]">
+      <MapGL
         mapLib={mapboxgl}
         mapboxAccessToken={token}
-        initialViewState={initialView}
+        initialViewState={{
+          latitude: safeCenter[0],
+          longitude: safeCenter[1],
+          zoom,
+        }}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         scrollZoom={false}
         dragPan
         doubleClickZoom
         touchZoomRotate
         reuseMaps
-        style={{ width: "100%", height: "100%" }}
-        onClick={() => setSelected(null)}
-        attributionControl={true}
+        attributionControl
+        interactiveLayerIds={[POINT_LAYER_ID]}
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+        onLoad={async (event) => {
+          try {
+            await registerActivityIcons(event.target);
+            setIconsReady(true);
+          } catch (error) {
+            console.error("Aktivitäts-Icons konnten nicht geladen werden:", error);
+            setIconsReady(false);
+          }
+        }}
+        onMouseEnter={(event) => {
+          event.target.getCanvas().style.cursor = "pointer";
+        }}
+        onMouseLeave={(event) => {
+          event.target.getCanvas().style.cursor = "";
+        }}
+        onClick={(event) => {
+          const feature = event.features?.[0];
+
+          if (!feature) {
+            setSelectedKey(null);
+            return;
+          }
+
+          const key = String(feature.properties?.key || "");
+          const item = itemByKey.get(key);
+
+          if (!item) return;
+
+          setSelectedKey(key);
+          item.onClick?.();
+        }}
       >
-        {visibleItems.map((activity) => {
-          const style = GROUP_STYLE[activity.group] || GROUP_STYLE.natur;
-          const Icon = style.Icon;
+        <Source
+          id="urlaub-gosch-activities"
+          type="geojson"
+          data={geojson}
+        >
+          <Layer {...pointLayer} />
 
-          return (
-            <Marker
-              key={
-                activity.id ??
-                activity.slug ??
-                `${activity.lat}-${activity.lng}`
-              }
-              latitude={activity.lat}
-              longitude={activity.lng}
-              anchor="bottom"
-              onClick={(event) => event.originalEvent.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  activity.onClick?.();
-                  setSelected(activity);
-                }}
-                className={[
-                  "relative grid h-10 w-10 place-items-center rounded-full",
-                  "ring-[3px] ring-white shadow-lg shadow-[#050b1f]/25",
-                  style.bg,
-                  "transition duration-200 hover:scale-110",
-                ].join(" ")}
-                title={`${activity.title} • ${activity.category}`}
-                aria-label={activity.title}
-              >
-                <Icon className="h-4 w-4 text-white" />
-                <span className="absolute -bottom-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 rounded-sm bg-inherit" />
-              </button>
-            </Marker>
-          );
-        })}
+          {iconsReady ? <Layer {...iconLayer} /> : null}
+        </Source>
 
-        {selected && (
+        {selected ? (
           <Popup
             latitude={selected.lat}
             longitude={selected.lng}
             anchor="top"
-            closeButton={false}
+            closeButton
             closeOnClick={false}
-            offset={16}
-            onClose={() => setSelected(null)}
-            maxWidth="320px"
+            offset={14}
+            onClose={() => setSelectedKey(null)}
+            maxWidth="340px"
           >
-            <div className="min-w-[220px] space-y-3 rounded-xl">
-              <div>
-                <p className="text-sm font-bold text-[#050b1f]">
-                  {selected.title}
-                </p>
-
-                <p className="mt-0.5 text-xs font-medium text-slate-500">
-                  {selected.category}
-                </p>
-              </div>
-
-              {selected.shortDescription || selected.description ? (
-                <p className="line-clamp-4 text-sm leading-5 text-slate-700">
-                  {selected.shortDescription || selected.description}
-                </p>
-              ) : null}
-
-              {typeof selected.distanceKm === "number" ? (
-                <p className="rounded-full bg-[#eaf7fb] px-3 py-1.5 text-xs font-bold text-[#075985]">
-                  {selected.distanceKm.toFixed(1)} km entfernt
-                </p>
-              ) : null}
-
-              <div className="flex flex-wrap gap-2">
-                {selected.slug ? (
-                  <Link
-                    href={`/aktivitaeten/${selected.slug}`}
-                    className="inline-flex rounded-full bg-[#050b1f] px-3 py-1.5 text-xs font-bold text-white transition hover:bg-[#0f172a]"
+            <div className="min-w-[235px] overflow-hidden rounded-[1.1rem] bg-white">
+              <div className="p-1">
+                <div className="flex items-start gap-3">
+                  <div
+                    className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full text-white shadow-sm ring-2 ring-white"
+                    style={{
+                      backgroundColor: getGroupColor(selected),
+                    }}
                   >
-                    Details ansehen
-                  </Link>
+                    <MapPin className="h-4 w-4" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 text-[15px] font-bold leading-5 text-[#050b1f]">
+                      {selected.title}
+                    </p>
+
+                    <p
+                      className="mt-1 text-xs font-bold"
+                      style={{
+                        color: getGroupColor(selected),
+                      }}
+                    >
+                      {getActivityGroup(selected)}
+                    </p>
+                  </div>
+                </div>
+
+                {selected.shortDescription || selected.description ? (
+                  <p className="mt-3 line-clamp-3 text-sm leading-5 text-slate-600">
+                    {selected.shortDescription || selected.description}
+                  </p>
                 ) : null}
 
-                <a
-                  href={getGoogleMapsUrl(selected)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(event) => event.stopPropagation()}
-                  className="inline-flex items-center gap-1 rounded-full border border-[#dbeafe] bg-white px-3 py-1.5 text-xs font-bold text-[#075985] transition hover:bg-[#eaf7fb]"
-                >
-                  Google Maps
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
+                {selected.address ? (
+                  <p className="mt-3 line-clamp-2 text-xs leading-5 text-slate-500">
+                    {selected.address}
+                  </p>
+                ) : null}
 
-              <p className="text-[11px] leading-4 text-slate-400">
-                Tipp: Die Karte zoomt nicht beim Scrollen. Zum Zoomen bitte die
-                Kartensteuerung oder Touch-Gesten nutzen.
-              </p>
+                {typeof selected.distanceKm === "number" ? (
+                  <div className="mt-3 inline-flex rounded-full bg-[#eaf7fb] px-3 py-1.5 text-xs font-bold text-[#075985]">
+                    {selected.distanceKm.toFixed(1)} km entfernt
+                  </div>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {selected.slug ? (
+                    <Link
+                      href={`/aktivitaeten/${selected.slug}`}
+                      className="inline-flex items-center justify-center rounded-full bg-[#050b1f] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#0f172a]"
+                    >
+                      Mehr erfahren
+                    </Link>
+                  ) : null}
+
+                  <a
+                    href={getGoogleMapsUrl(selected)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(event) => event.stopPropagation()}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#dbeafe] bg-white px-4 py-2 text-xs font-bold text-[#075985] transition hover:border-[#0077b6]/30 hover:bg-[#eaf7fb]"
+                  >
+                    Route
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
             </div>
           </Popup>
-        )}
-      </Map>
+        ) : null}
+      </MapGL>
     </div>
-  );
-}
-
-function toMapGroup(group) {
-  const value = String(group || "").toLowerCase();
-
-  if (value === "familie") return "familie";
-  if (value === "natur") return "natur";
-  if (value === "sport") return "sport";
-  if (value === "restaurant") return "restaurant";
-  if (value === "kultur") return "kultur";
-
-  return "natur";
-}
-
-function isValidCoordinate(lat, lng) {
-  return Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
-}
-
-function LeafIcon({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <path
-        d="M20 4s-7 0-11 4-4 11-4 11 7 0 11-4 4-11 4-11z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M9 15c2-2 6-6 11-11"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
-function FamilyIcon({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <path
-        d="M7 10a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4z"
-        fill="currentColor"
-      />
-      <path
-        d="M4 18v-2c0-2 2-4 3-4s3 2 3 4v2H4zm10 0v-2c0-2 2-4 3-4s3 2 3 4v2h-6z"
-        fill="currentColor"
-        opacity="0.9"
-      />
-    </svg>
-  );
-}
-
-function MuseumIcon({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <path d="M3 10l9-6 9 6" stroke="currentColor" strokeWidth="2" />
-      <path d="M5 10h14" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M6 10v8M10 10v8M14 10v8M18 10v8"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path d="M4 20h16" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  );
-}
-
-function SportIcon({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <path
-        d="M7 17l10-10M8 7h9v9"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M5 19c4-1 7-4 8-8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity="0.85"
-      />
-    </svg>
-  );
-}
-
-function CupIcon({ className = "" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <path
-        d="M6 8h10v5a5 5 0 01-10 0V8z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M16 9h1.5a2.5 2.5 0 010 5H16"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path d="M5 20h12" stroke="currentColor" strokeWidth="2" />
-      <path d="M8 4v2M12 4v2M16 4v2" stroke="currentColor" strokeWidth="2" />
-    </svg>
   );
 }

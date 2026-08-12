@@ -1,7 +1,9 @@
 import { activities } from "@/lib/activities";
 import ActivityMapClient from "@/components/ActivityMapClient";
+import SmartStickySidebar from "@/components/SmartStickySidebar";
 import Link from "next/link";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import {
   ArrowLeft,
@@ -15,31 +17,70 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { getActivityGroup, getGoogleMapsUrl } from "@/lib/activity-groups";
+import {
+  getActivityGroup,
+  getGoogleMapsUrl,
+} from "@/lib/activity-groups";
+import { buildActivityJsonLd, safeJsonLd } from "@/lib/activity-seo";
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "");
+
+export const revalidate = 900;
+
+export function generateStaticParams() {
+  return activities
+    .filter((activity) => activity.slug)
+    .map((activity) => ({ slug: activity.slug }));
+}
 
 export async function generateMetadata({ params }) {
-  const resolvedParams = await params;
-  const activity = activities.find((item) => item.slug === resolvedParams.slug);
+  const { slug } = await params;
+  const activity = activities.find((item) => item.slug === slug);
 
   if (!activity) {
     return {
       title: "Aktivität nicht gefunden | Urlaub GOSCH",
+      robots: { index: false, follow: false },
     };
   }
 
+  const description =
+    activity.shortDescription ||
+    activity.description ||
+    "Ausflugsziel und passende Ferienunterkünfte bei Urlaub GOSCH entdecken.";
+  const canonical = SITE_URL ? `${SITE_URL}/aktivitaeten/${activity.slug}` : undefined;
+
   return {
     title: `${activity.title} – Ausflugsziel | Urlaub GOSCH`,
-    description:
-      activity.shortDescription ||
-      activity.description ||
-      "Ausflugsziel und passende Unterkünfte bei Urlaub GOSCH entdecken.",
+    description,
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: {
+      type: "article",
+      title: `${activity.title} – Ausflugsziel | Urlaub GOSCH`,
+      description,
+      url: canonical,
+      siteName: "Urlaub GOSCH",
+      locale: "de_DE",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${activity.title} – Ausflugsziel | Urlaub GOSCH`,
+      description,
+    },
   };
 }
 
 async function getNearby({ lat, lng, radiusKm }) {
   try {
     const h = await headers();
-    const host = h.get("x-forwarded-host") || h.get("host");
+
+    const host =
+      h.get("x-forwarded-host") ||
+      h.get("host");
 
     if (!host) {
       return {
@@ -48,21 +89,25 @@ async function getNearby({ lat, lng, radiusKm }) {
       };
     }
 
-    const proto = h.get("x-forwarded-proto") || "http";
+    const forwardedProto = h.get("x-forwarded-proto");
+    const proto =
+      forwardedProto ||
+      (host.includes("localhost") || host.startsWith("127.0.0.1")
+        ? "http"
+        : "https");
+
     const baseUrl = `${proto}://${host}`;
 
     const res = await fetch(
-      `${baseUrl}/api/properties/nearby?lat=${lat}&lng=${lng}&radius=${radiusKm}`,
-      { cache: "no-store" }
+      `${baseUrl}/api/properties/nearby?lat=${encodeURIComponent(
+        lat
+      )}&lng=${encodeURIComponent(lng)}&radius=${encodeURIComponent(radiusKm)}`,
+      {
+        next: { revalidate: 900 },
+      }
     );
 
-    let json = null;
-
-    try {
-      json = await res.json();
-    } catch {
-      json = null;
-    }
+    const json = await res.json().catch(() => null);
 
     if (!res.ok) {
       return {
@@ -76,7 +121,7 @@ async function getNearby({ lat, lng, radiusKm }) {
       error: null,
     };
   } catch (error) {
-    console.error(error);
+    console.error("Nearby-Unterkünfte konnten nicht geladen werden:", error);
 
     return {
       items: [],
@@ -85,36 +130,68 @@ async function getNearby({ lat, lng, radiusKm }) {
   }
 }
 
+function getNearbyActivities(currentActivity, radiusKm = 25, limit = 12) {
+  const lat = Number(currentActivity?.lat);
+  const lng = Number(currentActivity?.lng);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return [];
+  }
+
+  return activities
+    .filter((item) => item.slug && item.slug !== currentActivity.slug)
+    .map((item) => {
+      const itemLat = Number(item.lat);
+      const itemLng = Number(item.lng);
+
+      if (!Number.isFinite(itemLat) || !Number.isFinite(itemLng)) {
+        return null;
+      }
+
+      const distanceKm = haversineKm(lat, lng, itemLat, itemLng);
+
+      if (distanceKm > radiusKm) {
+        return null;
+      }
+
+      return {
+        ...item,
+        distanceKm,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit);
+}
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const toRad = (value) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export default async function ActivityDetailPage({ params }) {
   const resolvedParams = await params;
   const activity = activities.find((item) => item.slug === resolvedParams.slug);
 
-  if (!activity) {
-    return (
-      <main className="min-h-screen bg-[#f7f1e5]/40 px-4 pb-20 pt-32 text-[#0f172a] sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl rounded-[2rem] border border-[#dbeafe] bg-white p-8 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Nicht gefunden
-          </p>
-
-          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[#050b1f]">
-            Aktivität nicht gefunden
-          </h1>
-
-          <Link
-            href="/aktivitaeten"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#050b1f] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#0f172a]"
-          >
-            Zurück zu Aktivitäten
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  if (!activity) notFound();
 
   const radiusKm = 25;
   const detectedGroup = getActivityGroup(activity);
+  const jsonLd = buildActivityJsonLd(activity, { siteUrl: SITE_URL || undefined });
+
+  const nearbyActivities = getNearbyActivities(activity, radiusKm, 12);
+  const mapActivities = [activity, ...nearbyActivities];
 
   const { items: nearby, error } = await getNearby({
     lat: activity.lat,
@@ -124,6 +201,13 @@ export default async function ActivityDetailPage({ params }) {
 
   return (
     <main className="min-h-screen bg-[#f7f1e5]/40 px-4 pb-24 pt-32 text-[#0f172a] sm:px-6 lg:px-8">
+      {jsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+        />
+      ) : null}
+
       <div className="mx-auto max-w-7xl">
         <Link
           href="/aktivitaeten"
@@ -135,36 +219,201 @@ export default async function ActivityDetailPage({ params }) {
           Zurück zu Ausflugszielen
         </Link>
 
-        <section className="relative overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white shadow-sm">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(196,154,58,0.18),transparent_32%),radial-gradient(circle_at_85%_15%,rgba(0,119,182,0.13),transparent_30%)]" />
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="min-w-0">
+            <section className="relative overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white shadow-sm">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(196,154,58,0.18),transparent_32%),radial-gradient(circle_at_85%_15%,rgba(0,119,182,0.13),transparent_30%)]" />
 
-          <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
-            <div className="max-w-4xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5 text-[#c49a3a]" />
-                {detectedGroup}
+              <div className="relative p-6 sm:p-8 lg:p-10">
+                <div className="max-w-4xl">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 backdrop-blur">
+                    <Sparkles className="h-3.5 w-3.5 text-[#c49a3a]" />
+                    {detectedGroup}
+                  </div>
+
+                  <h1 className="mt-6 max-w-4xl text-[clamp(2.2rem,6vw,5rem)] font-semibold leading-[0.98] tracking-[-0.07em] text-[#050b1f]">
+                    {activity.title}
+                  </h1>
+
+                  {activity.shortDescription ? (
+                    <p className="mt-6 max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
+                      {activity.shortDescription}
+                    </p>
+                  ) : null}
+
+                  {activity.description ? (
+                    <div className="mt-6 max-w-3xl space-y-4 text-sm leading-7 text-slate-500 sm:text-base">
+                      {splitParagraphs(activity.description).map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
+            </section>
 
-              <h1 className="mt-6 max-w-4xl text-[clamp(2.2rem,6vw,5rem)] font-semibold leading-[0.98] tracking-[-0.07em] text-[#050b1f]">
-                {activity.title}
-              </h1>
-
-              {activity.shortDescription ? (
-                <p className="mt-6 max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
-                  {activity.shortDescription}
+            {Array.isArray(activity.highlights) && activity.highlights.length > 0 ? (
+              <section className="mt-8 rounded-[2rem] border border-[#dbeafe] bg-white p-6 shadow-sm sm:p-8">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#c49a3a]">
+                  Highlights
                 </p>
-              ) : null}
 
-              {activity.description ? (
-                <div className="mt-6 max-w-3xl space-y-4 text-sm leading-7 text-slate-500 sm:text-base">
-                  {splitParagraphs(activity.description).map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {activity.highlights.map((highlight) => (
+                    <div
+                      key={highlight}
+                      className="rounded-2xl border border-[#dbeafe] bg-[#eaf7fb]/50 px-4 py-3 text-sm font-semibold text-slate-700"
+                    >
+                      {highlight}
+                    </div>
                   ))}
                 </div>
-              ) : null}
-            </div>
+              </section>
+            ) : null}
 
-            <aside className="rounded-[1.5rem] border border-[#dbeafe] bg-white/85 p-5 shadow-sm backdrop-blur">
+            <section className="mt-8 overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#eaf7fb] p-5 sm:p-6">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#c49a3a]">
+                    Lage
+                  </p>
+
+                  <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f]">
+                    Auf der Karte
+                  </h2>
+                </div>
+
+                <a
+                  href={getGoogleMapsUrl(activity)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-[#eaf7fb] px-4 py-2 text-sm font-semibold text-[#075985] transition hover:bg-white"
+                >
+                  Google Maps
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+
+              <div className="p-3 sm:p-4">
+                <ActivityMapClient
+                  items={mapActivities}
+                  center={[activity.lat, activity.lng]}
+                  zoom={10.5}
+                  className="h-[360px] sm:h-[460px] lg:h-[540px]"
+                />
+              </div>
+            </section>
+
+            {nearbyActivities.length > 0 ? (
+              <section className="mt-8 rounded-[2rem] border border-[#dbeafe] bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#c49a3a]">
+                      Umgebung
+                    </p>
+
+                    <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f]">
+                      Weitere Ausflugsziele in der Nähe
+                    </h2>
+
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                      Entdecke weitere Ziele im Umkreis von {radiusKm} km rund um{" "}
+                      <span className="font-semibold text-[#050b1f]">
+                        {activity.title}
+                      </span>.
+                    </p>
+                  </div>
+
+                  <Link
+                    href="/aktivitaeten"
+                    className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-[#eaf7fb]/70 px-4 py-2 text-sm font-bold text-[#075985] transition hover:bg-white"
+                  >
+                    Alle Ausflugsziele
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {nearbyActivities.slice(0, 6).map((item) => (
+                    <Link
+                      key={item.slug}
+                      href={`/aktivitaeten/${item.slug}`}
+                      className="group rounded-[1.25rem] border border-[#dbeafe] bg-[#eaf7fb]/25 p-4 transition hover:-translate-y-0.5 hover:border-[#0077b6]/30 hover:bg-white hover:shadow-[0_12px_30px_rgba(5,11,31,0.06)]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="line-clamp-2 text-sm font-bold leading-5 text-[#050b1f] group-hover:text-[#0077b6]">
+                            {item.title}
+                          </p>
+
+                          <p className="mt-1 text-xs font-semibold text-slate-500">
+                            {getActivityGroup(item)}
+                          </p>
+                        </div>
+
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#075985] ring-1 ring-[#dbeafe]">
+                          <MapPin className="h-3 w-3" />
+                          {item.distanceKm.toFixed(1)} km
+                        </span>
+                      </div>
+
+                      {item.shortDescription ? (
+                        <p className="mt-3 line-clamp-2 text-xs leading-5 text-slate-500">
+                          {item.shortDescription}
+                        </p>
+                      ) : null}
+
+                      <span className="mt-3 inline-flex text-xs font-bold text-[#0077b6]">
+                        Ziel ansehen →
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <section className="mt-8">
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#c49a3a]">
+                    Nähe
+                  </p>
+
+                  <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f]">
+                    Unterkünfte in der Nähe
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Ferienunterkünfte im Umkreis von {radiusKm} km.
+                  </p>
+                </div>
+
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-white px-4 py-2 text-sm font-semibold text-[#075985] shadow-sm">
+                  <Home className="h-4 w-4" />
+                  {nearby.length} Treffer
+                </div>
+              </div>
+
+              {error ? (
+                <Notice text={error} />
+              ) : nearby.length === 0 ? (
+                <Notice text="Keine Unterkünfte im Umkreis gefunden." />
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {nearby.map((property) => (
+                    <NearbyProperty key={property.id} property={property} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          <SmartStickySidebar
+            topOffset={112}
+            bottomOffset={16}
+            ariaLabel="Informationen zum Ausflugsziel"
+          >
+            <aside className="rounded-[1.5rem] border border-[#dbeafe] bg-white/95 p-5 shadow-sm backdrop-blur">
               <div className="grid h-12 w-12 place-items-center rounded-full bg-[#050b1f] text-white">
                 <Compass className="h-5 w-5" />
               </div>
@@ -184,6 +433,12 @@ export default async function ActivityDetailPage({ params }) {
                   icon={Navigation}
                   label="Umkreis"
                   value={`${radiusKm} km`}
+                />
+
+                <InfoLine
+                  icon={Compass}
+                  label="Ausflugsziele"
+                  value={`${nearbyActivities.length} weitere in der Nähe`}
                 />
 
                 <InfoLine
@@ -210,97 +465,8 @@ export default async function ActivityDetailPage({ params }) {
                 <ExternalLink className="h-4 w-4" />
               </a>
             </aside>
-          </div>
-        </section>
-
-        {Array.isArray(activity.highlights) && activity.highlights.length > 0 ? (
-          <section className="mt-8 rounded-[2rem] border border-[#dbeafe] bg-white p-6 shadow-sm sm:p-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#c49a3a]">
-              Highlights
-            </p>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {activity.highlights.map((highlight) => (
-                <div
-                  key={highlight}
-                  className="rounded-2xl border border-[#dbeafe] bg-[#eaf7fb]/50 px-4 py-3 text-sm font-semibold text-slate-700"
-                >
-                  {highlight}
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        <section className="mt-8 overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#eaf7fb] p-5 sm:p-6">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#c49a3a]">
-                Lage
-              </p>
-
-              <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f]">
-                Auf der Karte
-              </h2>
-            </div>
-
-            <a
-              href={getGoogleMapsUrl(activity)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-[#eaf7fb] px-4 py-2 text-sm font-semibold text-[#075985] transition hover:bg-white"
-            >
-              Google Maps
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </div>
-
-          <div className="p-3 sm:p-4">
-            <div className="h-[360px] overflow-hidden rounded-[1.5rem] border border-[#dbeafe] bg-[#eaf7fb] sm:h-[460px] lg:h-[560px]">
-              <ActivityMapClient
-                items={[activity]}
-                center={[activity.lat, activity.lng]}
-                zoom={11}
-                showFilters={false}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-8">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#c49a3a]">
-                Nähe
-              </p>
-
-              <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f]">
-                Unterkünfte in der Nähe
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Ferienunterkünfte im Umkreis von {radiusKm} km.
-              </p>
-            </div>
-
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-white px-4 py-2 text-sm font-semibold text-[#075985] shadow-sm">
-              <Home className="h-4 w-4" />
-              {nearby.length} Treffer
-            </div>
-          </div>
-
-          {error ? (
-            <Notice text={error} />
-          ) : nearby.length === 0 ? (
-            <Notice text="Keine Unterkünfte im Umkreis gefunden." />
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {nearby.map((property) => (
-                <NearbyProperty key={property.id} property={property} />
-              ))}
-            </div>
-          )}
-        </section>
+          </SmartStickySidebar>
+        </div>
       </div>
     </main>
   );

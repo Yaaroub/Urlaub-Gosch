@@ -339,6 +339,8 @@ export default function AdminImagesPage() {
   const [items, setItems] = useState([]);
   const [selectedNew, setSelectedNew] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState(null);
   const [selectedExisting, setSelectedExisting] = useState(new Set());
@@ -346,27 +348,87 @@ export default function AdminImagesPage() {
   const [pendingDeleteMany, setPendingDeleteMany] = useState(false);
   const [dirtyOrder, setDirtyOrder] = useState(false);
 
+  /*
+   * propertyId aus der URL übernehmen.
+   *
+   * Beispiel:
+   * /admin/images?propertyId=21
+   */
   useEffect(() => {
-    (async () => {
-      try {
-        const r = await fetch("/api/admin/properties", { cache: "no-store" });
+    const searchParams = new URLSearchParams(window.location.search);
+    const propertyIdFromUrl = searchParams.get("propertyId");
 
-        if (r.status === 401) {
+    if (propertyIdFromUrl) {
+      setPropertyId(propertyIdFromUrl);
+    }
+  }, []);
+
+  /*
+   * Alle Objekte für das Dropdown laden.
+   */
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProperties() {
+      setIsLoadingProperties(true);
+
+      try {
+        const response = await fetch("/api/admin/properties", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (response.status === 401) {
           window.location.href = "/admin";
           return;
         }
 
-        const j = await r.json();
-        setProperties(Array.isArray(j) ? j : []);
-      } catch {
+        const data = await response.json().catch(() => []);
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || "Unterkünfte konnten nicht geladen werden."
+          );
+        }
+
+        const sortedProperties = Array.isArray(data)
+          ? [...data].sort((a, b) =>
+              String(a.title || "").localeCompare(
+                String(b.title || ""),
+                "de",
+                { sensitivity: "base" }
+              )
+            )
+          : [];
+
+        setProperties(sortedProperties);
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+
+        setProperties([]);
         setMsg({
           t: "error",
-          m: "Unterkünfte konnten nicht geladen werden.",
+          m:
+            error?.message ||
+            "Unterkünfte konnten nicht geladen werden.",
         });
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingProperties(false);
+        }
       }
-    })();
+    }
+
+    loadProperties();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
+  /*
+   * Bilder des ausgewählten Objekts laden.
+   */
   useEffect(() => {
     setItems([]);
     setSelectedExisting(new Set());
@@ -374,28 +436,96 @@ export default function AdminImagesPage() {
     setErr("");
     setDirtyOrder(false);
 
-    if (!propertyId) return;
+    if (!propertyId) {
+      setIsLoadingImages(false);
+      return;
+    }
 
-    (async () => {
+    const controller = new AbortController();
+
+    async function loadImages() {
+      setIsLoadingImages(true);
+
       try {
-        const r = await fetch(`/api/admin/images?propertyId=${propertyId}`, {
-          cache: "no-store",
-        });
+        const response = await fetch(
+          `/api/admin/images?propertyId=${encodeURIComponent(propertyId)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
 
-        if (r.status === 401) {
+        if (response.status === 401) {
           window.location.href = "/admin";
           return;
         }
 
-        const data = await r.json();
+        const data = await response.json().catch(() => []);
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || "Bilder konnten nicht geladen werden."
+          );
+        }
 
         setItems(normalizeSort(Array.isArray(data) ? data : []));
         setDirtyOrder(false);
-      } catch {
-        setMsg({ t: "error", m: "Bilder konnten nicht geladen werden." });
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+
+        setItems([]);
+        setMsg({
+          t: "error",
+          m: error?.message || "Bilder konnten nicht geladen werden.",
+        });
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingImages(false);
+        }
       }
-    })();
+    }
+
+    loadImages();
+
+    return () => {
+      controller.abort();
+    };
   }, [propertyId]);
+
+  /*
+   * Objekt wechseln und die URL synchron halten.
+   */
+  function handlePropertyChange(event) {
+    const nextPropertyId = event.target.value;
+
+    setSelectedNew((currentItems) => {
+      currentItems.forEach((item) => {
+        if (item.preview) {
+          URL.revokeObjectURL(item.preview);
+        }
+      });
+
+      return [];
+    });
+
+    setPendingDeleteOne(null);
+    setPendingDeleteMany(false);
+    setPropertyId(nextPropertyId);
+
+    const url = new URL(window.location.href);
+
+    if (nextPropertyId) {
+      url.searchParams.set("propertyId", nextPropertyId);
+    } else {
+      url.searchParams.delete("propertyId");
+    }
+
+    window.history.replaceState(
+      {},
+      "",
+      `${url.pathname}${url.search}${url.hash}`
+    );
+  }
 
   function onPick(e) {
     const files = Array.from(e.target.files || []);
@@ -835,11 +965,16 @@ export default function AdminImagesPage() {
           </label>
 
           <select
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60 disabled:cursor-not-allowed disabled:opacity-60"
             value={propertyId}
-            onChange={(e) => setPropertyId(e.target.value)}
+            onChange={handlePropertyChange}
+            disabled={isLoadingProperties}
           >
-            <option value="">— Objekt wählen —</option>
+            <option value="">
+              {isLoadingProperties
+                ? "Objekte werden geladen …"
+                : "— Objekt wählen —"}
+            </option>
 
             {properties.map((p) => (
               <option key={p.id} value={p.id}>
@@ -954,21 +1089,31 @@ export default function AdminImagesPage() {
         )}
       </div>
 
-      <ExistingImagesPremium
-        items={items}
-        setItems={setItems}
-        propertyId={propertyId}
-        busy={busy}
-        dirtyOrder={dirtyOrder}
-        setDirtyOrder={setDirtyOrder}
-        saveOrderAll={saveOrderAll}
-        saveAlt={saveAlt}
-        askRemoveOne={askRemoveOne}
-        selectedExisting={selectedExisting}
-        toggleExisting={toggleExisting}
-        toggleSelectAll={toggleSelectAll}
-        askRemoveSelectedMany={askRemoveSelectedMany}
-      />
+      {!propertyId ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500">
+          Bitte zuerst oben ein Objekt auswählen.
+        </div>
+      ) : isLoadingImages ? (
+        <div className="rounded-2xl bg-white p-6 text-sm text-slate-500 ring-1 ring-black/5">
+          Bilder werden geladen …
+        </div>
+      ) : (
+        <ExistingImagesPremium
+          items={items}
+          setItems={setItems}
+          propertyId={propertyId}
+          busy={busy}
+          dirtyOrder={dirtyOrder}
+          setDirtyOrder={setDirtyOrder}
+          saveOrderAll={saveOrderAll}
+          saveAlt={saveAlt}
+          askRemoveOne={askRemoveOne}
+          selectedExisting={selectedExisting}
+          toggleExisting={toggleExisting}
+          toggleSelectAll={toggleSelectAll}
+          askRemoveSelectedMany={askRemoveSelectedMany}
+        />
+      )}
 
       {pendingDeleteOne && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

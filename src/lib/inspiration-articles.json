@@ -1,0 +1,802 @@
+[
+  {
+    "slug": "schoenberger-strand",
+    "title": "Schönberger Strand: Ostsee, Seebrücke und Urlaub in der Probstei",
+    "shortTitle": "Schönberger Strand",
+    "category": "Orte & Regionen",
+    "kicker": "Ostseebad Schönberg",
+    "summary": "Schönberger Strand verbindet langen Sandstrand, Seebrücke, Fischbrötchen, Familienurlaub und die Ausflugsziele der Probstei – inklusive Kalifornien und Brasilien direkt an der Küste.",
+    "llmSummary": "Schönberger Strand ist ein Ortsteil des Ostseebads Schönberg in der Probstei an der Kieler Bucht. Der Ort eignet sich besonders für Strandurlaub, Familien, Radfahrer und Gäste, die Ausflüge in die Probstei mit kurzen Wegen zum Meer verbinden möchten.",
+    "heroImage": "/inspiration/schoenberger-strand-01.webp",
+    "images": ["/inspiration/schoenberger-strand-01.webp", "/inspiration/schoenberger-strand-02.webp", "/inspiration/schoenberger-strand-03.webp"],
+    "imageAlt": "Schönberger Strand an der Ostsee in der Probstei",
+    "seoTitle": "Schönberger Strand entdecken | Strand, Seebrücke & Probstei",
+    "seoDescription": "Schönberger Strand entdecken: Sandstrand, Seebrücke, Fischbrötchen, Museumsbahn, Radwege und Tipps für Urlaub in der Probstei an der Ostsee.",
+    "keywords": ["Schönberger Strand", "Schönberg Ostsee", "Probstei", "Ostseeurlaub", "Kalifornien Ostsee", "Brasilien Ostsee"],
+    "entities": ["Schönberger Strand", "Schönberg", "Probstei", "Kieler Bucht", "Kalifornien", "Brasilien"],
+    "places": ["Schönberger Strand", "Schönberg", "Kalifornien", "Brasilien"],
+    "facts": ["Langer Ostseestrand mit flachen Küstenabschnitten", "Seebrücke und maritime Atmosphäre", "Guter Ausgangspunkt für die Probstei", "Museumsbahn und regionale Veranstaltungen als Ausflugsziele"],
+    "sections": [
+      {"heading": "Warum Schönberger Strand so beliebt ist", "paragraphs": ["Schönberger Strand gehört zu den bekanntesten Küstenorten der Probstei. Der Ort verbindet direkten Zugang zur Ostsee mit einer touristischen Infrastruktur, die trotzdem überschaubar und familienfreundlich bleibt.", "Die Küste geht in Richtung Kalifornien und Brasilien in lange Strandabschnitte über. Dadurch lässt sich ein Strandtag gut mit Spaziergängen, Radtouren und kleinen Stopps entlang des Deichs verbinden."]},
+      {"heading": "Strand, Seebrücke und Fischbrötchen", "paragraphs": ["Die Seebrücke ist einer der zentralen Anlaufpunkte am Schönberger Strand. Rund um den Küstenbereich gehören Fischbrötchen und frischer Fisch traditionell zum Urlaubserlebnis.", "Wer morgens oder abends unterwegs ist, erlebt die Küste ruhiger und bekommt besonders viel von der typischen Ostseeatmosphäre mit."]},
+      {"heading": "Ausflüge rund um Schönberger Strand", "paragraphs": ["Direkt in der Umgebung liegen Kalifornien, Brasilien, Schönberg und weitere Orte der Probstei. Die Museumsbahn am Schönberger Strand ist ein besonderes Ziel für Familien und Eisenbahnfans.", "Auch Laboe, Kiel und die Hohwachter Bucht lassen sich gut als Tagesausflüge mit einem Aufenthalt am Schönberger Strand verbinden."]}
+    ],
+    "faq": [
+      {"q": "Für wen eignet sich Schönberger Strand?", "a": "Besonders für Familien, Paare, Radfahrer, Strandurlauber und Gäste, die eine ruhige Ostseebasis mit vielen Ausflugsmöglichkeiten suchen."},
+      {"q": "Was liegt in der Nähe von Schönberger Strand?", "a": "Direkt angrenzend liegen unter anderem Kalifornien und Brasilien; außerdem sind Schönberg, Laboe, Kiel und weitere Orte der Probstei gut erreichbar."}
+    ],
+    "officialSources": [{"label": "Probstei Tourismus", "url": "https://www.probstei.de/"}],
+    "sourceMail": {"id": "19fa9f3a1fba1bd8", "subject": "die Region Schönberger Strand", "receivedAt": "2026-07-28T18:18:48"}
+  },
+  {
+    "slug": "wochenmaerkte-ostsee",
+    "title": "Wochenmärkte an der Ostsee: regional einkaufen im Urlaub",
+    "shortTitle": "Wochenmärkte",
+    "category": "Service & Planung",
+    "kicker": "Regional einkaufen",
+    "summary": "Wochenmärkte in Schönberg, Kiel, Lütjenburg und Eutin sind gute Anlaufstellen für frische Lebensmittel und regionale Spezialitäten während des Ostseeurlaubs.",
+    "llmSummary": "In der Region zwischen Probstei, Kiel und Holsteinischer Schweiz gibt es mehrere regelmäßige Wochenmärkte. Marktzeiten können sich ändern; aktuelle Termine sollten vor dem Besuch bei der jeweiligen Gemeinde oder Tourist-Information geprüft werden.",
+    "heroImage": "/inspiration/wochenmaerkte-ostsee.webp",
+    "images": ["/inspiration/wochenmaerkte-ostsee.webp"],
+    "imageAlt": "Wochenmarkt mit regionalen Lebensmitteln in Schleswig-Holstein",
+    "seoTitle": "Wochenmärkte an der Ostsee | Schönberg, Kiel, Eutin & Lütjenburg",
+    "seoDescription": "Wochenmärkte rund um die Probstei: Tipps für Schönberg, Kiel, Lütjenburg und Eutin – regional einkaufen und aktuelle Marktzeiten prüfen.",
+    "keywords": ["Wochenmarkt Schönberg", "Wochenmarkt Kiel", "Wochenmarkt Eutin", "Wochenmarkt Lütjenburg", "regional einkaufen Ostsee"],
+    "entities": ["Schönberg", "Kiel", "Lütjenburg", "Eutin"],
+    "places": ["Schönberg", "Kiel", "Lütjenburg", "Eutin"],
+    "facts": ["Regionale Lebensmittel und Spezialitäten", "Gut mit einem Ausflug oder Strandtag kombinierbar", "Marktzeiten vorab aktuell prüfen"],
+    "sections": [
+      {"heading": "Marktbesuch im Ostseeurlaub", "paragraphs": ["Ein Wochenmarkt ist eine einfache Möglichkeit, die Region kulinarisch kennenzulernen. Neben Obst und Gemüse finden sich häufig Backwaren, Käse, Fleisch, Fisch oder andere Produkte aus Schleswig-Holstein.", "Besonders praktisch ist der Marktbesuch für Gäste in Ferienhäusern und Ferienwohnungen, die selbst kochen oder ein Picknick für den Strand planen."]},
+      {"heading": "Märkte rund um die Probstei", "paragraphs": ["Die ursprünglichen Urlaub-Gosch-Unterlagen nennen unter anderem Märkte in Schönberg, Lütjenburg, Kiel und Eutin. Da Wochentage, Uhrzeiten und Standorte saisonal angepasst werden können, sollten konkrete Zeiten nicht dauerhaft im Artikel festgeschrieben werden."]}
+    ],
+    "faq": [{"q": "Welche Wochenmärkte liegen nahe der Probstei?", "a": "Typische Ziele sind Schönberg, Lütjenburg und Kiel; auch Eutin lässt sich mit einem Tagesausflug verbinden."}, {"q": "Sind die Marktzeiten immer gleich?", "a": "Nein. Zeiten und Standorte können sich ändern, deshalb empfiehlt sich vor dem Besuch ein Blick auf die offizielle Gemeinde- oder Tourismusseite."}],
+    "officialSources": [{"label": "Tourist-Informationen der Probstei", "url": "https://www.probstei.de/tourist-informationen"}],
+    "sourceMail": {"id": "19fa9f17311e2027", "subject": "die Region Wochenmärkte", "receivedAt": "2026-07-28T18:16:38"},
+    "freshnessNote": "Konkrete Markttage und Uhrzeiten vor Veröffentlichung bzw. regelmäßig prüfen."
+  },
+  {
+    "slug": "wandern-ostsee-probstei",
+    "title": "Wandern an der Ostsee: Wege durch Probstei, Strand und Natur",
+    "shortTitle": "Wandern an der Ostsee",
+    "category": "Natur & Aktiv",
+    "kicker": "Zu Fuß entdecken",
+    "summary": "Wanderungen in der Probstei verbinden Ostseestrand, Knicks, Salzwiesen, Seen und Naturschutzgebiete – meist ohne große Höhenunterschiede.",
+    "llmSummary": "Die Probstei eignet sich für leichte Wanderungen entlang der Ostseeküste und durch die flache Kulturlandschaft Schleswig-Holsteins. Typische Landschaftselemente sind Strand, Wallhecken, Salzwiesen, Binnenseen und Naturschutzgebiete.",
+    "heroImage": "/inspiration/wandern-ostsee.webp",
+    "images": ["/inspiration/wandern-ostsee.webp"],
+    "imageAlt": "Wanderweg durch die Ostseelandschaft der Probstei",
+    "seoTitle": "Wandern an der Ostsee | Probstei, Strand & Naturwege",
+    "seoDescription": "Wandern in der Probstei: Strandwege, Knicks, Salzwiesen, Seen und Naturschutzgebiete rund um Schönberg, Wendtorf und die Ostseeküste.",
+    "keywords": ["Wandern Ostsee", "Wandern Probstei", "Wanderwege Schönberg", "Naturschutzgebiet Ostsee", "Spazieren Ostseeküste"],
+    "entities": ["Probstei", "Selenter See", "Passader See", "Plöner See", "Wendtorf"],
+    "places": ["Probstei", "Wendtorf", "Schönberg"],
+    "facts": ["Viele Wege mit geringen Höhenunterschieden", "Küste und Binnenland lassen sich kombinieren", "Naturschutzgebiete bieten Vogelbeobachtung", "Rad- und Wanderkarten sind über Tourist-Informationen erhältlich"],
+    "sections": [
+      {"heading": "Zwischen Strand und Binnenland", "paragraphs": ["Wandern an der Ostsee muss nicht nur Strandspaziergang bedeuten. In der Probstei führen Wege von der Küste durch Felder, Knicks und kleine Ortschaften bis zu Seen und geschützten Landschaften.", "Durch die meist geringen Höhenunterschiede sind viele Strecken auch für entspannte Halbtagestouren geeignet."]},
+      {"heading": "Natur beobachten", "paragraphs": ["Salzwiesen, Schilfzonen und Naturschutzgebiete sind wichtige Lebensräume für Vögel und andere Tiere. Wer bewusst langsam unterwegs ist, erlebt die Region oft intensiver als vom Auto aus."]}
+    ],
+    "faq": [{"q": "Ist die Probstei zum Wandern geeignet?", "a": "Ja. Viele Wege sind vergleichsweise flach und verbinden Küste, Felder, kleine Dörfer und Naturräume."}, {"q": "Wo gibt es Wandertipps vor Ort?", "a": "Tourist-Informationen in der Probstei und den umliegenden Ostseeorten bieten Karten und aktuelle Routenvorschläge."}],
+    "officialSources": [{"label": "Probstei Tourismus", "url": "https://www.probstei.de/"}],
+    "sourceMail": {"id": "19fa9f0cbd6366e0", "subject": "die Region wandern", "receivedAt": "2026-07-28T18:15:56"}
+  },
+  {
+    "slug": "kreuzfahrtschiffe-faehren-kiel",
+    "title": "Kreuzfahrtschiffe und Fähren in Kiel beobachten",
+    "shortTitle": "Schiffe in Kiel",
+    "category": "Kiel & Hafen",
+    "kicker": "Kieler Förde",
+    "summary": "Kiel ist Fähr- und Kreuzfahrthafen mitten in der Stadt. Von der Förde, der Kiellinie und auf Schifffahrten lassen sich große Fähren, Kreuzfahrtschiffe und andere Schiffe aus nächster Nähe erleben.",
+    "llmSummary": "Der PORT OF KIEL verbindet innerstädtische Kreuzfahrtterminals mit regelmäßigen Fährlinien nach Skandinavien und ins Baltikum. Aktuelle Anläufe und Fahrzeiten ändern sich und sollten direkt beim Hafen oder der Reederei geprüft werden.",
+    "heroImage": "/inspiration/kreuzfahrtschiffe-kiel.webp",
+    "images": ["/inspiration/kreuzfahrtschiffe-kiel.webp"],
+    "imageAlt": "Große Schiffe und Fähren in der Kieler Förde",
+    "seoTitle": "Kreuzfahrtschiffe in Kiel beobachten | Hafen & Fähren",
+    "seoDescription": "Schiffe in Kiel erleben: Kreuzfahrtschiffe, Color Line, Stena Line, Hafenrundfahrten und Aussichtspunkte an der Kieler Förde.",
+    "keywords": ["Kreuzfahrtschiffe Kiel", "Kiel Hafen Schiffe", "Color Line Kiel", "Stena Line Kiel", "Hafenrundfahrt Kiel", "Kieler Förde"],
+    "entities": ["PORT OF KIEL", "Kieler Förde", "Color Line", "Stena Line", "Ostseekai", "Norwegenkai", "Schwedenkai"],
+    "places": ["Kiel", "Kieler Förde", "Laboe"],
+    "facts": ["Kreuzfahrtterminals liegen zentral in Kiel", "Regelmäßige Fährverbindungen nach Skandinavien und ins Baltikum", "Anläufe können sich kurzfristig ändern", "Fördefahrten bieten zusätzliche Perspektiven auf den Hafen"],
+    "sections": [
+      {"heading": "Schiffe mitten in der Stadt", "paragraphs": ["Kiel gehört zu den deutschen Hafenstädten, in denen große Passagierschiffe besonders nah an der Innenstadt liegen. Ostseekai, Schwedenkai und Norwegenkai prägen das maritime Stadtbild.", "Ein Spaziergang an der Förde lässt sich deshalb unkompliziert mit einem Stadtbummel verbinden."]},
+      {"heading": "Fähren und Kreuzfahrtanläufe", "paragraphs": ["Color Line verbindet Kiel mit Oslo, Stena Line Kiel mit Göteborg. Zusätzlich laufen während der Kreuzfahrtsaison zahlreiche Kreuzfahrtschiffe die Kieler Terminals an.", "Da Fahrpläne, Liegeplätze und Anlaufzeiten dynamisch sind, sollte der Artikel keine dauerhaft festgeschriebenen Uhrzeiten enthalten. Der PORT OF KIEL veröffentlicht aktuelle Schiffsbewegungen."]}
+    ],
+    "faq": [{"q": "Wo kann man in Kiel große Schiffe sehen?", "a": "Gute Möglichkeiten bieten die Förde, die Kiellinie, Bereiche rund um die innerstädtischen Terminals und Schifffahrten auf der Kieler Förde."}, {"q": "Wo finde ich den aktuellen Kreuzfahrtplan für Kiel?", "a": "Die aktuelle Liste der Schiffsanläufe veröffentlicht der PORT OF KIEL auf seiner offiziellen Website."}],
+    "officialSources": [{"label": "PORT OF KIEL – Schiffe im Hafen", "url": "https://www.portofkiel.com/schiffe-im-hafen.html"}],
+    "sourceMail": {"id": "19fa9f0377787043", "subject": "Die Region Kreuzfahrer-Kalender", "receivedAt": "2026-07-28T18:15:15"},
+    "freshnessNote": "Fahrpläne und Kreuzfahrtanläufe immer aus der offiziellen Hafenliste beziehen."
+  },
+  {
+    "slug": "probsteier-korntage",
+    "title": "Probsteier Korntage: Strohfiguren und Landleben an der Ostsee",
+    "shortTitle": "Probsteier Korntage",
+    "category": "Ausflüge & Kultur",
+    "kicker": "Tradition in der Probstei",
+    "summary": "Die Probsteier Korntage verbinden Landwirtschaft, kreative Strohfiguren, regionale Veranstaltungen und die Dörfer der Probstei zu einem besonderen Sommererlebnis.",
+    "llmSummary": "Die Probsteier Korntage sind eine wiederkehrende Veranstaltungsreihe in der Probstei. Bekannt sind sie besonders für große Strohfiguren in den beteiligten Gemeinden und für Veranstaltungen rund um Landwirtschaft, Korn und regionale Traditionen.",
+    "heroImage": "/inspiration/probsteier-korntage.webp",
+    "images": ["/inspiration/probsteier-korntage.webp"],
+    "imageAlt": "Strohfigur bei den Probsteier Korntagen",
+    "seoTitle": "Probsteier Korntage | Strohfiguren & Ausflugstipps",
+    "seoDescription": "Probsteier Korntage entdecken: Strohfiguren, Landwirtschaft, regionale Traditionen und Ausflugstipps zwischen Schönberg, Laboe und der Probstei.",
+    "keywords": ["Probsteier Korntage", "Strohfiguren Probstei", "Probstei Veranstaltungen", "Schönberg Ostsee", "Ausflug Probstei"],
+    "entities": ["Probsteier Korntage", "Probstei", "Schönberg", "Laboe"],
+    "places": ["Probstei", "Schönberg", "Laboe"],
+    "facts": ["Wiederkehrende Sommerveranstaltung", "Große Strohfiguren in mehreren Gemeinden", "Landwirtschaft und regionale Kultur stehen im Mittelpunkt"],
+    "sections": [{"heading": "Was die Korntage besonders macht", "paragraphs": ["Während der Probsteier Korntage wird die landwirtschaftliche Identität der Region sichtbar. Besonders bekannt sind die großen, fantasievoll gestalteten Strohfiguren, die in verschiedenen Gemeinden aufgestellt werden.", "Die Rundfahrt zu den Figuren lässt sich gut mit Stränden, Cafés und weiteren Ausflugszielen der Probstei verbinden."]}, {"heading": "Aktuelle Termine", "paragraphs": ["Das Programm und die beteiligten Orte ändern sich von Jahr zu Jahr. Deshalb werden im redaktionellen Text bewusst keine alten Termine aus früheren Unterlagen übernommen. Aktuelle Informationen liefert die offizielle Probstei-Seite."]}],
+    "faq": [{"q": "Wann finden die Probsteier Korntage statt?", "a": "Die Korntage finden saisonal statt; die genauen Termine werden jährlich neu veröffentlicht."}, {"q": "Was sieht man bei den Probsteier Korntagen?", "a": "Vor allem große Strohfiguren in den Gemeinden sowie Veranstaltungen rund um Landwirtschaft, Korn und regionale Kultur."}],
+    "officialSources": [{"label": "Probstei Tourismus", "url": "https://www.probstei.de/"}],
+    "sourceMail": {"id": "19fa9ee2553a82c7", "subject": "die Region Probsteier Korntage", "receivedAt": "2026-07-28T18:13:02"},
+    "freshnessNote": "Jahreszahl und Veranstaltungszeitraum jeweils aktuell ergänzen."
+  },
+  {
+    "slug": "kiel-sailing-city",
+    "title": "Kiel Sailing City: maritime Erlebnisse rund um die Förde",
+    "shortTitle": "Kiel Sailing City",
+    "category": "Kiel & Hafen",
+    "kicker": "Landeshauptstadt am Meer",
+    "summary": "Kiel lässt sich zu Fuß, vom Wasser und auf geführten Touren entdecken. Hafen, Förde, Fähren, Kreuzfahrtschiffe und die Nähe zu Laboe machen die Stadt zu einem vielseitigen Tagesziel.",
+    "llmSummary": "Kiel ist eine maritime Landeshauptstadt an der Kieler Förde. Für Urlaubsgäste aus der Probstei sind Stadtrundgänge, Fördefahrten, Hafenrundfahrten und Ausflüge nach Laboe typische Möglichkeiten, Stadt und Ostsee zu verbinden.",
+    "heroImage": "/inspiration/kiel-sailing-city.webp",
+    "images": ["/inspiration/kiel-sailing-city.webp"],
+    "imageAlt": "Maritimes Kiel an der Kieler Förde",
+    "seoTitle": "Kiel Sailing City | Förde, Hafen & maritime Ausflüge",
+    "seoDescription": "Kiel entdecken: Förde, Hafen, Stadtrundgänge, Schiffstouren und maritime Ausflüge – ideal als Tagestrip aus der Probstei.",
+    "keywords": ["Kiel Sailing City", "Kiel Sehenswürdigkeiten", "Kiel Förde", "Kiel Tagesausflug", "Schiffstour Kiel"],
+    "entities": ["Kiel", "Kieler Förde", "Kiel-Marketing", "Laboe"],
+    "places": ["Kiel", "Laboe"],
+    "facts": ["Kiel verbindet Innenstadt und Hafen auf kurzen Wegen", "Stadt lässt sich vom Wasser und an Land erkunden", "Laboe ist über die Förde gut als Ausflugsziel kombinierbar"],
+    "sections": [{"heading": "Kiel vom Wasser und vom Land erleben", "paragraphs": ["Die Förde prägt Kiel stärker als fast jede andere deutsche Großstadt. Wer von der Probstei kommt, kann einen Stadtbesuch mit Hafen, Kiellinie, Innenstadt und einer Schifffahrt verbinden.", "Stadtrundgänge und maritime Touren eignen sich besonders, wenn an einem Tag möglichst viele Facetten Kiels erlebt werden sollen."]}, {"heading": "Als Tagesausflug aus der Probstei", "paragraphs": ["Von Schönberg, Laboe und weiteren Orten der Probstei ist Kiel ein naheliegendes Ziel für Shopping, Kultur, Hafenflair oder einen Schlechtwettertag. Durch die Lage an der Förde bleibt auch ein Stadtbesuch eng mit der Ostsee verbunden."]}],
+    "faq": [{"q": "Was kann man in Kiel an einem Tag machen?", "a": "Eine gute Kombination ist Innenstadt, Kiellinie bzw. Förde, Hafen und – je nach Zeit – eine Schiffstour oder ein Museumsbesuch."}, {"q": "Lohnt sich Kiel als Ausflug von der Probstei?", "a": "Ja. Die Landeshauptstadt ergänzt Strandurlaub um Shopping, Kultur, Museen und maritime Erlebnisse."}],
+    "officialSources": [{"label": "PORT OF KIEL", "url": "https://www.portofkiel.com/"}],
+    "sourceMail": {"id": "19fa9e888f0d7ba3", "subject": "die Region Kiel.Sailing.City", "receivedAt": "2026-07-28T18:06:55"}
+  },
+  {
+    "slug": "kiel-stadtrundgang-schiffstouren",
+    "title": "Kiel Touren: Stadtrundgang, Hafenrundfahrt und Fördefahrt",
+    "shortTitle": "Kiel Touren",
+    "category": "Kiel & Hafen",
+    "kicker": "Kiel aktiv entdecken",
+    "summary": "Stadtrundgang, Hafenrundfahrt, Fördefahrt und Sightseeing sind gute Wege, Kiel kompakt zu erleben. Termine und Anbieter sollten vorab aktuell geprüft werden.",
+    "llmSummary": "Kiel bietet verschiedene geführte und maritime Touren. Besonders relevant für Urlauber sind Stadtrundgänge, Hafenrundfahrten und Fahrten auf der Kieler Förde; konkrete Fahrpläne und Buchungsbedingungen sind saisonabhängig.",
+    "heroImage": "/inspiration/kiel-touren-01.webp",
+    "images": ["/inspiration/kiel-touren-01.webp", "/inspiration/kiel-touren-02.webp", "/inspiration/kiel-touren-03.webp", "/inspiration/kiel-touren-04.webp"],
+    "imageAlt": "Sightseeing und Schiffstouren in Kiel",
+    "seoTitle": "Kiel Touren | Stadtrundgang, Hafenrundfahrt & Fördefahrt",
+    "seoDescription": "Kiel auf Tour entdecken: Stadtrundgang, Hafenrundfahrt, Fördefahrt nach Laboe und Sightseeing – mit Hinweisen zu aktuellen Terminen.",
+    "keywords": ["Stadtrundgang Kiel", "Hafenrundfahrt Kiel", "Fördefahrt Laboe", "Kiel Sightseeing", "Schiffstour Kiel"],
+    "entities": ["Kiel", "Kieler Förde", "Laboe", "Marine-Ehrenmal", "U 995"],
+    "places": ["Kiel", "Laboe"],
+    "facts": ["Touren zu Fuß und auf dem Wasser", "Fördefahrten verbinden Kiel und Laboe", "Saison und Fahrplan vor Buchung prüfen"],
+    "sections": [{"heading": "Stadtrundgang durch Kiel", "paragraphs": ["Ein geführter Rundgang bietet einen kompakten Einstieg in Geschichte, Architektur und Stadtleben. Er eignet sich gut als erster Programmpunkt, bevor es weiter an die Förde geht."]}, {"heading": "Hafen- und Fördefahrten", "paragraphs": ["Vom Wasser aus werden Hafenanlagen, Werften und die Weite der Kieler Förde besonders sichtbar. Fahrten Richtung Laboe lassen sich mit Marine-Ehrenmal, U-Boot oder einem Strandspaziergang verbinden."]}, {"heading": "Termine aktuell halten", "paragraphs": ["Die ursprüngliche Mail enthielt feste Uhrzeiten und Telefonnummern. Für eine dauerhaft gute SEO-Seite sollten diese Informationen nicht statisch übernommen, sondern auf aktuelle Anbieter- und Tourismusseiten verlinkt werden."]}],
+    "faq": [{"q": "Welche Tour eignet sich für einen ersten Kiel-Besuch?", "a": "Ein Stadtrundgang plus eine kurze Förde- oder Hafenfahrt vermittelt sowohl die Stadt als auch Kiels maritime Seite."}, {"q": "Kann man Kiel und Laboe an einem Tag kombinieren?", "a": "Ja. Je nach Saison gibt es Schiffsverbindungen auf der Förde; alternativ ist Laboe auch über Land erreichbar."}],
+    "officialSources": [{"label": "PORT OF KIEL", "url": "https://www.portofkiel.com/"}],
+    "sourceMail": {"id": "19fa9ebeea796ff6", "subject": "Die Region Kiel.Sailing.City", "receivedAt": "2026-07-28T18:10:29"},
+    "freshnessNote": "Fahrzeiten, Preise und Buchungskontakte regelmäßig prüfen."
+  },
+  {
+    "slug": "golfen-an-der-ostsee",
+    "title": "Golfen an der Ostsee: Plätze rund um Hohwacht, Kiel und Holstein",
+    "shortTitle": "Golfen an der Ostsee",
+    "category": "Natur & Aktiv",
+    "kicker": "Golfurlaub",
+    "summary": "Rund um Hohwacht, Kiel und Ostholstein gibt es zahlreiche Golfplätze. Besonders die Hohwachter Bucht verbindet Golf, Küstenlandschaft und Ostseeurlaub.",
+    "llmSummary": "Die Region zwischen Kiel, Hohwacht und Ostholstein bietet mehrere Golfanlagen für unterschiedliche Spielstärken. Hohwacht ist ein besonders naheliegendes Ziel, wenn Golf mit Strand- und Natururlaub kombiniert werden soll.",
+    "heroImage": "/inspiration/golfen-an-der-ostsee.webp",
+    "images": ["/inspiration/golfen-an-der-ostsee.webp"],
+    "imageAlt": "Golfplatz nahe der Ostseeküste Schleswig-Holsteins",
+    "seoTitle": "Golfen an der Ostsee | Golfplätze rund um Hohwacht & Kiel",
+    "seoDescription": "Golfurlaub an der Ostsee: Golfplätze rund um Hohwacht, Kiel und Ostholstein sowie Tipps zur Kombination von Golf, Strand und Ferienhaus.",
+    "keywords": ["Golfen Ostsee", "Golf Hohwacht", "Golfplatz Kiel", "Golfurlaub Schleswig-Holstein", "Golf Hohwachter Bucht"],
+    "entities": ["Hohwachter Bucht", "Kiel", "Ostholstein"],
+    "places": ["Hohwacht", "Kiel", "Ostholstein"],
+    "facts": ["Mehrere Golfanlagen in Tagesausflugsdistanz", "Hohwacht verbindet Golf und Strandurlaub", "Startzeiten und Gastspielbedingungen direkt beim Club prüfen"],
+    "sections": [{"heading": "Golfurlaub mit Ostsee", "paragraphs": ["Golfplätze in Küstennähe lassen sich besonders gut mit einem Ferienhausurlaub verbinden: morgens eine Runde spielen, danach Strand, Hafen oder Restaurant.", "Die ursprüngliche Urlaub-Gosch-Liste enthält zahlreiche Anlagen in Schleswig-Holstein. Für die redaktionelle Seite ist eine kuratierte Auswahl sinnvoller als eine lange, schnell veraltende Telefonliste."]}, {"heading": "Hohwachter Bucht als Golfziel", "paragraphs": ["Die Hohwachter Bucht ist landschaftlich besonders attraktiv, weil Golf, Strände, Natur und kleine Orte nah beieinander liegen. Aktuelle Platzinformationen, Greenfees und Startzeiten sollten direkt beim jeweiligen Club geprüft werden."]}],
+    "faq": [{"q": "Wo kann man nahe der Ostsee golfen?", "a": "Unter anderem rund um Hohwacht, Kiel, Eckernförde, Ostholstein und weitere Regionen Schleswig-Holsteins."}, {"q": "Sollten Greenfees im Artikel stehen?", "a": "Besser nicht dauerhaft. Preise und Gastspielbedingungen ändern sich und sollten zum jeweiligen Golfclub verlinkt werden."}],
+    "sourceMail": {"id": "19fa9e7b30797595", "subject": "die Region Golfen an der Ostsee", "receivedAt": "2026-07-28T18:05:58"},
+    "freshnessNote": "Die ursprüngliche Club-Liste vor Veröffentlichung gegen aktuelle Clubseiten prüfen."
+  },
+  {
+    "slug": "probstei-ostsee",
+    "title": "Die Probstei an der Ostsee: Strände, Dörfer und Natur vor Kiel",
+    "shortTitle": "Probstei",
+    "category": "Orte & Regionen",
+    "kicker": "Meer und Landleben",
+    "summary": "Die Probstei liegt östlich der Kieler Förde und verbindet Ostseestrände mit Dörfern, Landwirtschaft, Radwegen und Natur. Schönberg und Laboe gehören zu den bekanntesten Urlaubsorten der Region.",
+    "llmSummary": "Die Probstei ist eine Urlaubsregion an der Kieler Bucht nordöstlich von Kiel. Typisch sind Ostseestrände, landwirtschaftlich geprägtes Binnenland, Rad- und Wanderwege sowie Orte wie Schönberg und Laboe.",
+    "heroImage": "/inspiration/probstei-ostsee.webp",
+    "images": ["/inspiration/probstei-ostsee.webp"],
+    "imageAlt": "Landschaft der Probstei nahe der Ostsee",
+    "seoTitle": "Probstei an der Ostsee | Strände, Natur & Urlaubstipps",
+    "seoDescription": "Die Probstei entdecken: Schönberg, Laboe, Ostseestrände, Radwege, Natur, Korntage und Urlaubstipps zwischen Kieler Förde und Ostsee.",
+    "keywords": ["Probstei Ostsee", "Urlaub Probstei", "Schönberg", "Laboe", "Kieler Bucht", "Ausflugsziele Probstei"],
+    "entities": ["Probstei", "Schönberg", "Laboe", "Kieler Bucht", "Passader See", "Selenter See"],
+    "places": ["Probstei", "Schönberg", "Laboe"],
+    "facts": ["Region nordöstlich von Kiel", "Kombination aus Küste und ländlicher Kulturlandschaft", "Schönberg und Laboe wichtige Urlaubsorte", "Radfahren und Naturerlebnisse prägen das Angebot"],
+    "sections": [{"heading": "Was ist die Probstei?", "paragraphs": ["Die Probstei liegt an der Kieler Bucht und verbindet die Ostseeküste mit einer landwirtschaftlich geprägten Landschaft. Die Region wirkt vielerorts offen und ländlich, während an der Küste Strände, Häfen und Ferienorte liegen.", "Historisch ist der Name mit dem Kloster Preetz verbunden; heute wird die Probstei vor allem als eigenständige Urlaubs- und Kulturlandschaft wahrgenommen."]}, {"heading": "Urlaub zwischen Meer und Land", "paragraphs": ["Die offizielle Tourismusregion beschreibt die Probstei als Verbindung von Strandleben, Natur, Veranstaltungen und regionalen Spezialitäten. Genau diese Mischung macht sie für Ferienhausgäste interessant: Strandtage lassen sich spontan mit Radtouren, Hofbesuchen oder Ausflügen verbinden."]}],
+    "faq": [{"q": "Wo liegt die Probstei?", "a": "Die Probstei liegt an der Ostseeküste Schleswig-Holsteins östlich bzw. nordöstlich von Kiel und der Kieler Förde."}, {"q": "Welche Orte gehören zu den bekanntesten Urlaubszielen?", "a": "Vor allem Schönberg mit Schönberger Strand sowie Laboe; daneben gibt es viele kleinere Dörfer und Küstenorte."}],
+    "officialSources": [{"label": "Probstei Tourismus", "url": "https://www.probstei.de/"}],
+    "sourceMail": {"id": "19fa9e6826d68170", "subject": "die Region Probstei", "receivedAt": "2026-07-28T18:04:38"}
+  },
+  {
+    "slug": "holsteinische-schweiz",
+    "title": "Holsteinische Schweiz: Seen, Wälder und Ausflüge nahe der Ostsee",
+    "shortTitle": "Holsteinische Schweiz",
+    "category": "Orte & Regionen",
+    "kicker": "Naturpark & Seen",
+    "summary": "Rund 200 Seen, sanfte Hügel, Wälder sowie Orte wie Plön, Eutin und Malente machen die Holsteinische Schweiz zum abwechslungsreichen Gegenpol zum Strandurlaub.",
+    "llmSummary": "Die Holsteinische Schweiz ist eine wasserreiche Natur- und Urlaubsregion zwischen Kiel und Lübeck, nur wenige Kilometer von der Ostsee entfernt. Typisch sind rund 200 Seen, Wälder, Endmoränenlandschaft sowie die Urlaubsorte Plön, Eutin und Malente.",
+    "heroImage": "/inspiration/holsteinische-schweiz.webp",
+    "images": ["/inspiration/holsteinische-schweiz.webp"],
+    "imageAlt": "Seenlandschaft in der Holsteinischen Schweiz",
+    "seoTitle": "Holsteinische Schweiz | Seen, Natur & Ausflugsziele",
+    "seoDescription": "Holsteinische Schweiz entdecken: rund 200 Seen, Plön, Eutin, Malente, Wälder, Wassersport und Ausflugsziele nahe der Ostsee.",
+    "keywords": ["Holsteinische Schweiz", "Plöner See", "Plön", "Eutin", "Malente", "Naturpark Schleswig-Holstein"],
+    "entities": ["Naturpark Holsteinische Schweiz", "Plön", "Eutin", "Malente", "Großer Plöner See", "Bungsberg"],
+    "places": ["Plön", "Eutin", "Malente"],
+    "facts": ["Rund 200 Seen", "Naturpark zwischen Kiel und Lübeck", "Beliebt für Wandern, Radfahren und Wassersport", "Historische Orte und Schlösser ergänzen die Natur"],
+    "sections": [{"heading": "Eine Landschaft aus Eiszeit, Seen und Hügeln", "paragraphs": ["Die Holsteinische Schweiz unterscheidet sich deutlich von der flachen Küstenlandschaft. Hügel, Wälder, Wiesen und eine große Zahl an Seen prägen das Bild.", "Der Naturpark zählt zu den großen Schutz- und Erholungslandschaften Schleswig-Holsteins und ist ein starkes Tagesausflugsziel für Gäste an der Ostsee."]}, {"heading": "Plön, Eutin und Malente", "paragraphs": ["Die drei Orte verbinden Natur mit Stadt- und Kulturerlebnissen. Plön liegt direkt am Großen Plöner See, Eutin ist für Schloss und Altstadt bekannt, Malente ist ein guter Ausgangspunkt für Natur- und Aktivangebote."]}],
+    "faq": [{"q": "Wie viele Seen hat die Holsteinische Schweiz?", "a": "Die offizielle Tourismusregion spricht von rund 200 Seen."}, {"q": "Welche Orte eignen sich für einen Tagesausflug?", "a": "Plön, Eutin und Malente gehören zu den wichtigsten Urlaubsorten und lassen sich gut mit Natur- und Kulturzielen verbinden."}],
+    "officialSources": [{"label": "Tourismuszentrale Holsteinische Schweiz", "url": "https://www.holsteinischeschweiz.de/"}],
+    "sourceMail": {"id": "19fa9e52453e2f94", "subject": "Die Region Holsteinische Schweiz", "receivedAt": "2026-07-28T18:03:10"}
+  },
+  {
+    "slug": "laboe-ostsee",
+    "title": "Laboe an der Ostsee: Strand, Schiffe und Kieler Förde",
+    "shortTitle": "Laboe",
+    "category": "Orte & Regionen",
+    "kicker": "Sonnenseite der Kieler Förde",
+    "summary": "Laboe verbindet feinen Strand und flaches Wasser mit Hafen, Promenade, Schiffsverkehr und maritimen Sehenswürdigkeiten an der Kieler Förde.",
+    "llmSummary": "Laboe ist ein Ostseebad an der Kieler Förde. Der Ort ist besonders für seinen Strand, die Aussicht auf den Schiffsverkehr, den Hafen sowie das Marine-Ehrenmal und U 995 bekannt.",
+    "heroImage": "/inspiration/laboe-ostsee.webp",
+    "images": ["/inspiration/laboe-ostsee.webp"],
+    "imageAlt": "Strand und Kieler Förde im Ostseebad Laboe",
+    "seoTitle": "Laboe an der Ostsee | Strand, Hafen & Schiffe beobachten",
+    "seoDescription": "Laboe entdecken: feiner Strand, flaches Wasser, Hafen, Promenade, Schiffe auf der Kieler Förde und maritime Ausflugsziele.",
+    "keywords": ["Laboe Ostsee", "Strand Laboe", "Kieler Förde", "Marine Ehrenmal", "U 995", "Urlaub Laboe"],
+    "entities": ["Laboe", "Kieler Förde", "Marine-Ehrenmal Laboe", "U 995"],
+    "places": ["Laboe", "Kieler Förde"],
+    "facts": ["Feinsandiger Strand mit flachen Uferbereichen", "Direkter Blick auf starken Schiffsverkehr der Förde", "Hafen und Promenade liegen nah beieinander", "Familienfreundliche Strandabschnitte"],
+    "sections": [{"heading": "Strandurlaub mit Schiffsverkehr", "paragraphs": ["Laboe ist ungewöhnlich, weil Strandurlaub und Schiffsbeobachtung direkt zusammenkommen. Von der Küste aus ziehen Segelboote, Fähren, Frachter und je nach Saison Kreuzfahrtschiffe durch die Kieler Förde.", "Die offizielle Tourismusseite hebt besonders den langen Strandbereich und das flache Wasser hervor, was Laboe für Familien attraktiv macht."]}, {"heading": "Hafen, Promenade und maritime Ziele", "paragraphs": ["Hafen und Promenade bieten Restaurants, Cafés und kurze Wege. Marine-Ehrenmal und U 995 gehören zu den bekanntesten Sehenswürdigkeiten und lassen sich mit einem Strandtag kombinieren."]}],
+    "faq": [{"q": "Ist Laboe familienfreundlich?", "a": "Ja. Besonders der feine Strand und flache Uferbereiche machen Laboe für Familien mit Kindern interessant."}, {"q": "Kann man in Laboe große Schiffe beobachten?", "a": "Ja. Die Kieler Förde ist eine stark befahrene Wasserstraße, sodass vom Strand und Hafen regelmäßig große Schiffe zu sehen sind."}],
+    "officialSources": [{"label": "Ostseebad Laboe", "url": "https://www.laboe.de/"}],
+    "sourceMail": {"id": "19fa9e508b19d25c", "subject": "die Region Laboe", "receivedAt": "2026-07-28T18:03:03"}
+  },
+  {
+    "slug": "hohwacht-ostsee",
+    "title": "Hohwacht an der Ostsee: Strand, Steilküste und Natur",
+    "shortTitle": "Hohwacht",
+    "category": "Orte & Regionen",
+    "kicker": "Hohwachter Bucht",
+    "summary": "Hohwacht steht für weiße Strände, bewaldete Steilküste, Natur, Radtouren und eine ruhige Atmosphäre. Die Hohwachter Flunder ist eines der Wahrzeichen des Ortes.",
+    "llmSummary": "Hohwacht ist ein kleines Ostseebad an der Hohwachter Bucht in Schleswig-Holstein. Der Ort eignet sich für ruhigen Strandurlaub, Naturerlebnisse, Radfahren und Golf; bekannt ist außerdem die Seeplattform Hohwachter Flunder.",
+    "heroImage": "/inspiration/hohwacht-ostsee.webp",
+    "images": ["/inspiration/hohwacht-ostsee.webp"],
+    "imageAlt": "Ostseestrand und Natur in Hohwacht",
+    "seoTitle": "Hohwacht Ostsee | Strand, Natur & Hohwachter Flunder",
+    "seoDescription": "Hohwacht entdecken: weiße Strände, bewaldete Steilküste, Hohwachter Flunder, Natur, Radfahren und Golf an der Ostsee.",
+    "keywords": ["Hohwacht Ostsee", "Hohwachter Bucht", "Hohwachter Flunder", "Strand Hohwacht", "Urlaub Hohwacht"],
+    "entities": ["Hohwacht", "Hohwachter Bucht", "Hohwachter Flunder"],
+    "places": ["Hohwacht", "Hohwachter Bucht"],
+    "facts": ["Kleines Ostseebad mit Fischerdorf-Charakter", "Weiße Sandstrände und bewaldete Steilküste", "Hohwachter Flunder als Wahrzeichen", "Golf, Radfahren und Naturerlebnisse in der Umgebung"],
+    "sections": [{"heading": "Ruhiger Ostseeurlaub", "paragraphs": ["Hohwacht wirkt deutlich kleiner und ursprünglicher als viele große Ostseebäder. Strand, Wald und kleine Straßen liegen nah beieinander und schaffen eine ruhige Urlaubsatmosphäre.", "Die offizielle Hohwachter Bucht Touristik beschreibt den Ort als Mischung aus Fischerdorf, Strand und Natur."]}, {"heading": "Die Hohwachter Flunder", "paragraphs": ["Die Seeplattform am Hauptbadestrand ist eines der bekanntesten Fotomotive des Ortes. Sie wird auch für Veranstaltungen genutzt und bietet einen freien Blick auf die Ostsee."]}],
+    "faq": [{"q": "Was ist die Hohwachter Flunder?", "a": "Eine markante Seeplattform am Hauptstrand von Hohwacht und eines der Wahrzeichen der Hohwachter Bucht."}, {"q": "Für wen eignet sich Hohwacht?", "a": "Für Gäste, die Ruhe, Strand, Natur, Radfahren oder Golf suchen und keinen großen Ferienort benötigen."}],
+    "officialSources": [{"label": "Hohwachter Bucht Touristik", "url": "https://www.hohwachterbucht.de/urlaubsorte/hohwacht"}],
+    "sourceMail": {"id": "19fa9dfcb5558f91", "subject": "die Region Hohwacht", "receivedAt": "2026-07-28T17:57:22"}
+  },
+  {
+    "slug": "hamburg-tagesausflug",
+    "title": "Tagesausflug nach Hamburg: Hafen, Speicherstadt und Innenstadt",
+    "shortTitle": "Hamburg",
+    "category": "Ausflüge & Kultur",
+    "kicker": "Großstadt-Ausflug",
+    "summary": "Hamburg eignet sich als größerer Tagesausflug: Hafen, Speicherstadt, Landungsbrücken, Innenstadt und Rundfahrten bieten einen starken Kontrast zum ruhigen Ostseeurlaub.",
+    "llmSummary": "Hamburg ist von Schleswig-Holstein aus ein klassisches Tagesausflugsziel. Besonders Hafen, Landungsbrücken, Speicherstadt und Innenstadt sind für einen ersten Besuch gut miteinander kombinierbar.",
+    "heroImage": null,
+    "images": [],
+    "imageAlt": "Hamburg als Tagesausflug von der Ostsee",
+    "seoTitle": "Hamburg als Tagesausflug | Hafen, Speicherstadt & City",
+    "seoDescription": "Hamburg als Tagesausflug vom Ostseeurlaub: Hafen, Landungsbrücken, Speicherstadt, Innenstadt und Tipps für einen kompakten Besuch.",
+    "keywords": ["Hamburg Tagesausflug", "Hamburg Hafen", "Speicherstadt", "Landungsbrücken", "Ausflug von der Ostsee"],
+    "entities": ["Hamburg", "Landungsbrücken", "Speicherstadt", "Elbtunnel", "St. Michaelis"],
+    "places": ["Hamburg"],
+    "facts": ["Großstadt- und Hafenerlebnis als Kontrast zum Ostseeurlaub", "Hafenrundfahrten und Stadtrundfahrten verfügbar", "Innenstadt und Hafen lassen sich gut kombinieren"],
+    "sections": [{"heading": "Hamburg kompakt erleben", "paragraphs": ["Für einen Tagesausflug bietet sich eine klare Route an: Innenstadt und Rathaus, anschließend Speicherstadt und Hafen. Wer wenig Zeit hat, kann mit einer Hafen- oder Stadtrundfahrt viele Eindrücke bündeln."]}, {"heading": "Hafen und Landungsbrücken", "paragraphs": ["An den Landungsbrücken konzentrieren sich Hafenrundfahrten, Museumsschiffe und der Zugang zum Alten Elbtunnel. Die Speicherstadt liegt ebenfalls in erreichbarer Nähe und ergänzt den maritimen Teil des Tages."]}],
+    "faq": [{"q": "Lohnt sich Hamburg als Tagesausflug vom Ostseeurlaub?", "a": "Ja, wenn eine längere Anfahrt in Ordnung ist. Hamburg bietet mit Hafen, Museen, Shopping und Stadtleben einen deutlichen Kontrast zur Küste."}, {"q": "Was sollte man bei wenig Zeit sehen?", "a": "Innenstadt, Speicherstadt und Landungsbrücken sind eine gute kompakte Kombination."}],
+    "sourceMail": {"id": "19fa9df05841ca7a", "subject": "die Region Hamburg", "receivedAt": "2026-07-28T17:56:30"}
+  },
+  {
+    "slug": "brasilien-kalifornien-ostsee",
+    "title": "Brasilien und Kalifornien an der Ostsee: zwei besondere Strandorte",
+    "shortTitle": "Brasilien & Kalifornien",
+    "category": "Orte & Regionen",
+    "kicker": "Exotische Namen, echte Ostsee",
+    "summary": "Brasilien und Kalifornien liegen nicht in Übersee, sondern am Ostseestrand von Schönberg. Die beiden Ortsteile stehen für lange Strände, Deichwege und einen entspannten Ferienhausurlaub.",
+    "llmSummary": "Brasilien und Kalifornien sind Küstenortsteile von Schönberg in der Probstei, Schleswig-Holstein. Bekannt sind sie wegen ihrer ungewöhnlichen Namen, der langen Ostseestrände und der guten Bedingungen für Radfahren, Spaziergänge und Ferienhausurlaub.",
+    "heroImage": "/inspiration/brasilien-kalifornien-02.webp",
+    "images": ["/inspiration/brasilien-kalifornien-01.webp", "/inspiration/brasilien-kalifornien-02.webp", "/inspiration/brasilien-kalifornien-03.webp"],
+    "imageAlt": "Ortsschild von Kalifornien oder Brasilien an der Ostsee",
+    "seoTitle": "Brasilien & Kalifornien an der Ostsee | Schönberg Probstei",
+    "seoDescription": "Brasilien und Kalifornien bei Schönberg entdecken: besondere Ortsnamen, lange Ostseestrände, Deichwege und Urlaub in der Probstei.",
+    "keywords": ["Kalifornien Ostsee", "Brasilien Ostsee", "Schönberg Kalifornien", "Schönberg Brasilien", "Probstei Strand"],
+    "entities": ["Kalifornien", "Brasilien", "Schönberg", "Probstei"],
+    "places": ["Kalifornien", "Brasilien", "Schönberg"],
+    "facts": ["Beide Orte liegen an der Ostsee in Schleswig-Holstein", "Ortsteile des Ostseebads Schönberg", "Lange Strand- und Deichabschnitte", "Beliebte Fotomotive wegen der Ortsnamen"],
+    "sections": [{"heading": "Warum heißen die Orte Brasilien und Kalifornien?", "paragraphs": ["Um die Herkunft der Namen rankt sich eine lokale Überlieferung: Eine angeschwemmte Planke mit der Aufschrift „California“ soll einem Strandabschnitt seinen Namen gegeben haben; als Gegenstück entstand der Name Brasilien. Die Geschichte gehört heute fest zur lokalen Identität."]}, {"heading": "Strand und Deich", "paragraphs": ["Die Küstenabschnitte eignen sich für klassische Strandtage ebenso wie für Spaziergänge und Radtouren auf oder nahe dem Deich. Ferienhäuser und kleinere Wege prägen den Charakter stärker als große Hotelanlagen."]}],
+    "faq": [{"q": "Liegen Brasilien und Kalifornien wirklich in Deutschland?", "a": "Ja. Beide sind Küstenortsteile von Schönberg in Schleswig-Holstein direkt an der Ostsee."}, {"q": "Was kann man dort machen?", "a": "Strandurlaub, Spaziergänge, Radfahren und Ausflüge in die Probstei; die Ortsschilder sind außerdem beliebte Fotomotive."}],
+    "officialSources": [{"label": "Probstei Tourismus", "url": "https://www.probstei.de/"}],
+    "sourceMail": {"id": "19fa9de71df674b5", "subject": "die Region Brasiilien & Kalifornien", "receivedAt": "2026-07-28T17:55:50"}
+  },
+  {
+    "slug": "angelurlaub-ostsee",
+    "title": "Angelurlaub an der Ostsee: Küste, Kutter und Fischereischein",
+    "shortTitle": "Angelurlaub",
+    "category": "Natur & Aktiv",
+    "kicker": "Angeln in Schleswig-Holstein",
+    "summary": "Die Ostseeküste bietet Brandungs-, Küsten- und Kutterangeln. Für Schleswig-Holstein gelten Fischereischein- und Abgaberegeln, die vor dem Angeln aktuell geprüft werden sollten.",
+    "llmSummary": "Zum Angeln in Schleswig-Holstein ist grundsätzlich ein gültiger Fischereischein erforderlich; anerkannte Scheine anderer Bundesländer gelten ebenfalls, zusätzlich ist die schleswig-holsteinische Fischereiabgabe relevant. Für Urlauber gibt es eine befristete Ausnahmemöglichkeit. Je nach Gewässer kann zusätzlich ein Erlaubnisschein nötig sein.",
+    "heroImage": "/inspiration/angelurlaub-ostsee.webp",
+    "images": ["/inspiration/angelurlaub-ostsee.webp"],
+    "imageAlt": "Angeln an der Ostseeküste Schleswig-Holsteins",
+    "seoTitle": "Angelurlaub Ostsee | Angeln in Schleswig-Holstein & Regeln",
+    "seoDescription": "Angelurlaub an der Ostsee: Küstenangeln, Kutter, Fischarten und wichtige Hinweise zu Fischereischein, Fischereiabgabe und Erlaubnissen.",
+    "keywords": ["Angelurlaub Ostsee", "Angeln Schleswig-Holstein", "Touristenfischereischein", "Küstenangeln Ostsee", "Angeln Schönberg"],
+    "entities": ["Schleswig-Holstein", "Ostsee", "Schönberger Strand", "Laboe"],
+    "places": ["Ostsee Schleswig-Holstein", "Schönberger Strand", "Laboe"],
+    "facts": ["Küsten- und Kutterangeln möglich", "Fischereischein-Regeln beachten", "Fischereiabgabe kann zusätzlich erforderlich sein", "Für einzelne Gewässer können Erlaubnisscheine gelten"],
+    "sections": [{"heading": "Angeln an der Küste", "paragraphs": ["Die Ostsee bietet verschiedene Möglichkeiten: Angeln vom Strand, von geeigneten Küstenabschnitten oder auf organisierten Kutterfahrten. Welche Fischarten realistisch sind, hängt stark von Jahreszeit, Bestand und Fangregeln ab."]}, {"heading": "Fischereischein und Fischereiabgabe", "paragraphs": ["Die alten Mailangaben zu Gebühren wurden nicht übernommen. Nach aktueller Behördeninformation ist in Schleswig-Holstein im Regelfall ein Fischereischein erforderlich. Gültige Fischereischeine anderer Bundesländer werden anerkannt; zusätzlich ist die Fischereiabgabe Schleswig-Holstein zu beachten.", "Für Personen ohne regulären Fischereischein gibt es eine befristete Urlauberregelung. Bei Binnengewässern oder besonderen Fischereirechten können zusätzliche Erlaubnisscheine nötig sein."]}],
+    "faq": [{"q": "Brauche ich zum Angeln an der Ostsee einen Fischereischein?", "a": "In Schleswig-Holstein grundsätzlich ja, mit bestimmten Ausnahmen. Zusätzlich können Fischereiabgabe oder Gewässererlaubnis relevant sein."}, {"q": "Gibt es einen Fischereischein für Urlauber?", "a": "Ja. Schleswig-Holstein sieht eine befristete Ausnahmemöglichkeit für Urlauber vor; die aktuellen Bedingungen sollten bei der zuständigen Behörde geprüft werden."}],
+    "officialSources": [{"label": "Behördeninformation Fischereischein Schleswig-Holstein", "url": "https://www.schleswig.de/wir-fuer-sie/was-erledige-ich-wo/zustaendigkeitsfinder/vorgang/fischereischein-beantragen-1114"}],
+    "sourceMail": {"id": "19fa9db1e69a339e", "subject": "die Region Angelurlaub", "receivedAt": "2026-07-28T17:52:11"},
+    "freshnessNote": "Gebühren, Schonzeiten, Fangregeln und Ausnahmen immer aktuell prüfen."
+  },
+{
+  "slug": "kurtaxe-ostsee",
+  "title": "Kurtaxe an der Ostsee: Preise, Saisonzeiten und OstseeCard",
+  "shortTitle": "Kurtaxe",
+  "category": "Service & Planung",
+  "kicker": "Kurtaxe & OstseeCard",
+  "summary": "Informationen zur Kurtaxe in Schönberger Strand, Brasilien, Kalifornien, Hohwacht, Sehlendorf, Sechendorf und Futterkamp – mit Saisonzeiten, Preisen, Befreiungen und Hinweisen zur OstseeCard.",
+  "llmSummary": "Die Kurtaxe an der Ostsee wird je nach Urlaubsort und Saison unterschiedlich erhoben. In Schönberger Strand, Brasilien, Kalifornien, Hohwacht, Sehlendorf, Sechendorf und Futterkamp gelten unterschiedliche saisonale Kurabgaben. Kinder und Jugendliche unter 18 Jahren sind nach den hier zugrunde gelegten Angaben von der Kurabgabe befreit. Die Kurtaxe wird in der Regel am Anreisetag bei der zuständigen Tourist-Information, Kurverwaltung oder über den Vermieter beziehungsweise Vermittler entrichtet.",
+  "heroImage": null,
+  "images": [],
+  "imageAlt": "Informationen zur Kurtaxe und OstseeCard an der Ostsee",
+  "seoTitle": "Kurtaxe Ostsee | Preise Schönberg, Hohwacht & Sehlendorf",
+  "seoDescription": "Kurtaxe an der Ostsee: Preise und Saisonzeiten für Schönberger Strand, Brasilien, Kalifornien, Hohwacht und Sehlendorf sowie Informationen zur OstseeCard.",
+  "keywords": [
+    "Kurtaxe Ostsee",
+    "Kurabgabe Ostsee",
+    "Kurtaxe Schönberger Strand",
+    "Kurabgabe Schönberger Strand",
+    "Kurtaxe Kalifornien Ostsee",
+    "Kurtaxe Brasilien Ostsee",
+    "Kurtaxe Hohwacht",
+    "Kurtaxe Sehlendorf",
+    "Kurtaxe Sechendorf",
+    "Kurtaxe Futterkamp",
+    "OstseeCard",
+    "Ostseecard Schönberg"
+  ],
+  "entities": [
+    "OstseeCard",
+    "Schönberger Strand",
+    "Schönberg",
+    "Kalifornien",
+    "Brasilien",
+    "Hohwacht",
+    "Sehlendorf",
+    "Sechendorf",
+    "Futterkamp"
+  ],
+  "places": [
+    "Schönberger Strand",
+    "Schönberg",
+    "Kalifornien",
+    "Brasilien",
+    "Hohwacht",
+    "Sehlendorf",
+    "Sechendorf",
+    "Futterkamp"
+  ],
+  "facts": [
+    "Die Höhe der Kurtaxe unterscheidet sich je nach Urlaubsort und Saison.",
+    "Kinder und Jugendliche unter 18 Jahren sind nach den hier zugrunde gelegten Angaben von der Kurabgabe befreit.",
+    "Die Kurabgabe wird in der Regel am Anreisetag fällig.",
+    "Die Einnahmen aus der Kurtaxe dienen unter anderem der Finanzierung und Unterhaltung touristischer Infrastruktur und Angebote.",
+    "Nach Entrichtung der Kurabgabe kann je nach Urlaubsort eine OstseeCard ausgegeben werden.",
+    "Kurtaxensätze und Saisonzeiträume können von den Gemeinden angepasst werden."
+  ],
+  "touristTaxRates": [
+    {
+      "region": "Schönberger Strand, Brasilien & Kalifornien",
+      "places": [
+        "Schönberger Strand",
+        "Brasilien",
+        "Kalifornien"
+      ],
+      "minimumAge": 18,
+      "periods": [
+        {
+          "from": "15.03.",
+          "to": "30.04.",
+          "price": 1.5,
+          "currency": "EUR",
+          "unit": "Person / Tag"
+        },
+        {
+          "from": "01.05.",
+          "to": "30.09.",
+          "price": 3,
+          "currency": "EUR",
+          "unit": "Person / Tag"
+        },
+        {
+          "from": "01.10.",
+          "to": "31.10.",
+          "price": 1.5,
+          "currency": "EUR",
+          "unit": "Person / Tag"
+        }
+      ]
+    },
+    {
+      "region": "Hohwacht",
+      "places": [
+        "Hohwacht"
+      ],
+      "minimumAge": 18,
+      "periods": [
+        {
+          "from": "01.01.",
+          "to": "31.05.",
+          "price": 1.5,
+          "currency": "EUR",
+          "unit": "Person / Tag"
+        },
+        {
+          "from": "01.06.",
+          "to": "30.09.",
+          "price": 2.5,
+          "currency": "EUR",
+          "unit": "Person / Tag"
+        },
+        {
+          "from": "01.10.",
+          "to": "31.12.",
+          "price": 1.5,
+          "currency": "EUR",
+          "unit": "Person / Tag"
+        }
+      ]
+    },
+    {
+      "region": "Sechendorf, Sehlendorf & Futterkamp",
+      "places": [
+        "Sechendorf",
+        "Sehlendorf",
+        "Futterkamp"
+      ],
+      "minimumAge": 18,
+      "periods": [
+        {
+          "from": "01.05.",
+          "to": "15.09.",
+          "price": 3,
+          "currency": "EUR",
+          "unit": "Person / Tag"
+        }
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Kurtaxe an der Ostsee",
+      "paragraphs": [
+        "Der Aufenthalt an den Stränden und in den Kur- und Erholungsorten an der Ostsee ist je nach Region kurabgabepflichtig. Die Höhe der Kurtaxe richtet sich nach dem jeweiligen Urlaubsort und teilweise auch nach der Reisezeit.",
+        "Als Vermieter beziehungsweise Vermittler sind wir von den zuständigen Verwaltungen angehalten, die Kurabgaben entsprechend den örtlichen Vorgaben von unseren Gästen zu erheben und an die jeweilige Gemeinde abzuführen."
+      ]
+    },
+    {
+      "heading": "Wann wird die Kurtaxe bezahlt?",
+      "paragraphs": [
+        "Die Kurabgabe wird in der Regel am Anreisetag fällig.",
+        "Je nach Urlaubsort wird sie bei der zuständigen Kurverwaltung beziehungsweise Tourist-Information oder direkt beim Vermieter beziehungsweise Vermittler entrichtet."
+      ]
+    },
+    {
+      "heading": "Kurtaxe in Schönberger Strand, Brasilien und Kalifornien",
+      "paragraphs": [
+        "Für Personen ab 18 Jahren gelten saisonabhängige Kurabgaben.",
+        "Vom 15. März bis 30. April beträgt die Kurtaxe 1,50 € pro Person und Tag.",
+        "Vom 1. Mai bis 30. September beträgt die Kurtaxe 3,00 € pro Person und Tag.",
+        "Vom 1. Oktober bis 31. Oktober beträgt die Kurtaxe 1,50 € pro Person und Tag."
+      ]
+    },
+    {
+      "heading": "Kurtaxe in Hohwacht",
+      "paragraphs": [
+        "Für Personen ab 18 Jahren gelten saisonabhängige Kurabgaben.",
+        "Vom 1. Januar bis 31. Mai beträgt die Kurtaxe 1,50 € pro Person und Tag.",
+        "Vom 1. Juni bis 30. September beträgt die Kurtaxe 2,50 € pro Person und Tag.",
+        "Vom 1. Oktober bis 31. Dezember beträgt die Kurtaxe 1,50 € pro Person und Tag."
+      ]
+    },
+    {
+      "heading": "Kurtaxe in Sechendorf, Sehlendorf und Futterkamp",
+      "paragraphs": [
+        "Für Personen ab 18 Jahren beträgt die Kurabgabe vom 1. Mai bis 15. September 3,00 € pro Person und Tag."
+      ]
+    },
+    {
+      "heading": "Kinder und Jugendliche",
+      "paragraphs": [
+        "Kinder und Jugendliche unter 18 Jahren sind nach den hier zugrunde gelegten Angaben von der Kurabgabe befreit."
+      ]
+    },
+    {
+      "heading": "Wofür wird die Kurtaxe verwendet?",
+      "paragraphs": [
+        "Die Kurabgabe trägt zur Finanzierung der Herstellung, Verwaltung und Unterhaltung öffentlicher Einrichtungen und Angebote bei, die für Kur-, Tourismus- und Erholungszwecke bereitgestellt werden.",
+        "Dazu können unter anderem die Reinigung und Pflege der Strände, öffentliche Sanitäranlagen, touristische Infrastruktur, kulturelle Programme und Veranstaltungen sowie Maßnahmen zur Badesicherheit gehören.",
+        "Auch die Beseitigung von Flut- und Sturmschäden an den Stränden kann zu den Aufgaben gehören, die durch Einnahmen aus der Kurabgabe unterstützt werden."
+      ]
+    },
+    {
+      "heading": "OstseeCard und Vorteile",
+      "paragraphs": [
+        "Nach Entrichtung der Kurabgabe erhalten Gäste je nach Urlaubsort eine OstseeCard beziehungsweise Gästekarte.",
+        "Mit der OstseeCard können verschiedene Vergünstigungen und Vorteile verbunden sein. Dazu können beispielsweise Ermäßigungen bei Freizeitangeboten, Ausflugszielen, Schwimmbädern, Tierparks, regionalen Gastronomiebetrieben oder weiteren touristischen Partnern gehören.",
+        "Die konkreten Leistungen und teilnehmenden Anbieter können sich ändern. Deshalb sollten die aktuellen Vorteile vor oder während des Aufenthalts direkt über die offizielle OstseeCard beziehungsweise die zuständige Tourist-Information geprüft werden."
+      ]
+    },
+    {
+      "heading": "Bitte aktuelle Kurabgabe beachten",
+      "paragraphs": [
+        "Die Höhe der Kurtaxe, Saisonzeiten, Befreiungen und Zahlungsbedingungen werden von den jeweiligen Gemeinden festgelegt und können sich ändern.",
+        "Die hier genannten Angaben sollten deshalb regelmäßig mit den aktuellen Informationen der zuständigen Gemeinden und Tourist-Informationen abgeglichen werden."
+      ]
+    }
+  ],
+  "faq": [
+    {
+      "q": "Wer muss Kurtaxe bezahlen?",
+      "a": "In den hier aufgeführten Urlaubsorten fällt nach den zugrunde gelegten Angaben die Kurabgabe grundsätzlich für Personen ab 18 Jahren an. Die genaue Höhe richtet sich nach Urlaubsort und Saison."
+    },
+    {
+      "q": "Müssen Kinder und Jugendliche Kurtaxe bezahlen?",
+      "a": "Kinder und Jugendliche unter 18 Jahren sind nach den hier zugrunde gelegten Angaben von der Kurabgabe befreit."
+    },
+    {
+      "q": "Wann muss die Kurtaxe bezahlt werden?",
+      "a": "Die Kurabgabe wird in der Regel am Anreisetag fällig."
+    },
+    {
+      "q": "Wo bezahle ich die Kurtaxe?",
+      "a": "Je nach Urlaubsort erfolgt die Zahlung bei der zuständigen Kurverwaltung beziehungsweise Tourist-Information oder direkt über den Vermieter beziehungsweise Vermittler."
+    },
+    {
+      "q": "Ist die Kurtaxe überall an der Ostsee gleich hoch?",
+      "a": "Nein. Die Höhe der Kurabgabe und die jeweiligen Saisonzeiten werden von den Gemeinden festgelegt und unterscheiden sich von Ort zu Ort."
+    },
+    {
+      "q": "Wie hoch ist die Kurtaxe am Schönberger Strand?",
+      "a": "Nach den hier zugrunde gelegten Angaben beträgt die Kurabgabe für Personen ab 18 Jahren vom 15. März bis 30. April 1,50 €, vom 1. Mai bis 30. September 3,00 € und vom 1. Oktober bis 31. Oktober 1,50 € pro Person und Tag."
+    },
+    {
+      "q": "Wie hoch ist die Kurtaxe in Hohwacht?",
+      "a": "Nach den hier zugrunde gelegten Angaben beträgt die Kurabgabe für Personen ab 18 Jahren vom 1. Januar bis 31. Mai 1,50 €, vom 1. Juni bis 30. September 2,50 € und vom 1. Oktober bis 31. Dezember 1,50 € pro Person und Tag."
+    },
+    {
+      "q": "Wie hoch ist die Kurtaxe in Sehlendorf?",
+      "a": "Nach den hier zugrunde gelegten Angaben beträgt die Kurabgabe in Sehlendorf sowie Sechendorf und Futterkamp vom 1. Mai bis 15. September 3,00 € pro Person und Tag für Personen ab 18 Jahren."
+    },
+    {
+      "q": "Was ist die OstseeCard?",
+      "a": "Die OstseeCard ist eine Gästekarte, die je nach Urlaubsort nach Entrichtung der Kurabgabe ausgegeben wird und verschiedene Vergünstigungen sowie touristische Vorteile bieten kann."
+    },
+    {
+      "q": "Wofür wird die Kurtaxe verwendet?",
+      "a": "Die Kurabgabe dient unter anderem der Finanzierung und Unterhaltung touristischer Infrastruktur und Leistungen wie Strandpflege, öffentlichen Einrichtungen, Veranstaltungen und Maßnahmen zur Badesicherheit."
+    }
+  ],
+  "officialSources": [
+    {
+      "label": "Probstei Tourismus",
+      "url": "https://www.probstei.de/"
+    },
+    {
+      "label": "Tourist-Informationen Probstei",
+      "url": "https://www.probstei.de/tourist-informationen"
+    },
+    {
+      "label": "Hohwachter Bucht Touristik",
+      "url": "https://www.hohwachterbucht.de/"
+    },
+    {
+      "label": "OstseeCard",
+      "url": "https://www.ostseecard.de/"
+    }
+  ],
+  "sourceMail": {
+    "id": "19fa9d94237774c0",
+    "subject": "die Region Kurtaxe",
+    "receivedAt": "2026-07-28T17:50:12"
+  },
+  "freshnessNote": "Kurtaxensätze, Saisonzeiten, Altersgrenzen, Befreiungen und Zahlungsbedingungen mindestens einmal jährlich vor Saisonbeginn und bei Änderungen der jeweiligen Satzungen gegen die offiziellen Angaben der Gemeinden beziehungsweise Tourist-Informationen prüfen."
+},
+  {
+    "slug": "schloesser-herrenhaeuser-schleswig-holstein",
+    "title": "Schlösser und Herrenhäuser in Schleswig-Holstein: Ausflüge mit Geschichte",
+    "shortTitle": "Schlösser & Herrenhäuser",
+    "category": "Ausflüge & Kultur",
+    "kicker": "Kultur & Geschichte",
+    "summary": "Schloss Gottorf, Schloss Eutin, Plöner Schloss, Gut Panker und weitere Herrenhäuser zeigen die Kulturgeschichte Schleswig-Holsteins zwischen Ostsee und Binnenland.",
+    "llmSummary": "Schleswig-Holstein besitzt zahlreiche Schlösser, Güter und Herrenhäuser. Für Urlauber an der Ostsee sind besonders Schloss Gottorf, Schloss Eutin, Plön und Gut Panker interessante Kulturziele; Zugänglichkeit und Öffnungszeiten müssen je Objekt aktuell geprüft werden.",
+    "heroImage": "/inspiration/schloesser-herrenhaeuser-01.webp",
+    "images": ["/inspiration/schloesser-herrenhaeuser-01.webp", "/inspiration/schloesser-herrenhaeuser-02.webp", "/inspiration/schloesser-herrenhaeuser-03.webp"],
+    "imageAlt": "Schloss oder Herrenhaus in Schleswig-Holstein",
+    "seoTitle": "Schlösser Schleswig-Holstein | Eutin, Plön, Gottorf & Panker",
+    "seoDescription": "Schlösser und Herrenhäuser in Schleswig-Holstein entdecken: Schloss Gottorf, Eutin, Plön, Gut Panker und weitere Kulturziele nahe der Ostsee.",
+    "keywords": ["Schlösser Schleswig-Holstein", "Schloss Eutin", "Plöner Schloss", "Schloss Gottorf", "Gut Panker", "Herrenhäuser Ostsee"],
+    "entities": ["Schloss Gottorf", "Schloss Eutin", "Plöner Schloss", "Gut Panker", "Herrenhaus Hagen"],
+    "places": ["Schleswig", "Eutin", "Plön", "Panker", "Probsteierhagen"],
+    "facts": ["Kulturziele zwischen Ostseeküste und Binnenland", "Viele Anlagen sind historisch, teils privat genutzt", "Zugänglichkeit und Öffnungszeiten variieren", "Gut mit Holsteinischer Schweiz und Hohwachter Bucht kombinierbar"],
+    "sections": [{"heading": "Schlösser als Tagesausflug", "paragraphs": ["Die Region bietet eine große Bandbreite von Residenzschlössern bis zu historischen Gütern. Schloss Gottorf in Schleswig und Schloss Eutin sind klassische Museums- und Kulturziele, während andere Anlagen teilweise privat genutzt werden."]}, {"heading": "Plön, Panker und die Probstei", "paragraphs": ["Plön verbindet Schlosskulisse und Seenlandschaft. Gut Panker liegt nahe der Hohwachter Bucht und lässt sich gut mit einem Küstenausflug kombinieren. In Probsteierhagen erinnert das Herrenhaus Hagen an die Geschichte der regionalen Gutslandschaft."]}, {"heading": "Öffnungszeiten nicht aus alten Texten übernehmen", "paragraphs": ["Die Quellmail enthält zahlreiche historische Öffnungszeiten, Telefonnummern und frühere Nutzungen. Für eine aktuelle Website sollten diese Angaben je Objekt neu geprüft oder durch Links zur offiziellen Einrichtung ersetzt werden."]}],
+    "faq": [{"q": "Welche Schlösser eignen sich für einen Ostsee-Tagesausflug?", "a": "Je nach Standort bieten sich unter anderem Schloss Eutin, Plön, Schloss Gottorf und Gut Panker an."}, {"q": "Sind alle Herrenhäuser öffentlich zugänglich?", "a": "Nein. Viele Anlagen sind privat oder nur eingeschränkt zugänglich. Vor der Anfahrt sollte die aktuelle Besuchsmöglichkeit geprüft werden."}],
+    "sourceMail": {"id": "19fa9d8e185e6d02", "subject": "Die Region Ausflugstipps Schlösser", "receivedAt": "2026-07-28T17:49:34"},
+    "freshnessNote": "Alle historischen Öffnungszeiten, Betreiber und Kontaktdaten aus der Altvorlage vor Veröffentlichung verifizieren."
+  },
+  {
+    "slug": "museumsbahn-schoenberger-strand",
+    "title": "Museumsbahn Schönberger Strand: historische Züge und Straßenbahnen",
+    "shortTitle": "Museumsbahn",
+    "category": "Ausflüge & Kultur",
+    "kicker": "Historische Mobilität",
+    "summary": "Am Schönberger Strand treffen historische Kleinbahnzüge und Straßenbahnen auf Ostseeurlaub – ein besonderes Ausflugsziel für Familien und Technikfans.",
+    "llmSummary": "Die Museumsbahn am Schönberger Strand ist ein technikhistorisches Ausflugsziel in der Probstei. Besucher können historische Schienenfahrzeuge erleben; Fahrtage und Betrieb sind saisonabhängig und sollten beim Betreiber geprüft werden.",
+    "heroImage": "/inspiration/museumsbahn-schoenberger-strand.webp",
+    "images": ["/inspiration/museumsbahn-schoenberger-strand.webp"],
+    "imageAlt": "Historische Museumsbahn am Schönberger Strand",
+    "seoTitle": "Museumsbahn Schönberger Strand | Züge & Straßenbahnen",
+    "seoDescription": "Museumsbahn Schönberger Strand entdecken: historische Kleinbahnzüge, Straßenbahnen und ein familienfreundliches Ausflugsziel direkt an der Ostsee.",
+    "keywords": ["Museumsbahn Schönberger Strand", "historische Straßenbahn", "Ausflug Schönberg", "Familienausflug Probstei", "Eisenbahn Museum Ostsee"],
+    "entities": ["Museumsbahn Schönberger Strand", "Schönberger Strand", "Probstei"],
+    "places": ["Schönberger Strand"],
+    "facts": ["Historische Schienenfahrzeuge", "Direkt mit einem Strandtag kombinierbar", "Fahrtage saisonabhängig"],
+    "sections": [{"heading": "Technikgeschichte direkt an der Ostsee", "paragraphs": ["Die Museumsbahn verbindet ein ungewöhnliches Thema mit einem klassischen Urlaubsort. Historische Züge und Straßenbahnen machen frühere Mobilität für Besucher unmittelbar erlebbar.", "Gerade für Familien bietet sich die Kombination aus Fahrt, Bahnhofserlebnis und anschließendem Strandbesuch an."]}],
+    "faq": [{"q": "Fährt die Museumsbahn täglich?", "a": "Der Betrieb ist saison- und veranstaltungsabhängig. Aktuelle Fahrtage sollten vor dem Besuch beim Betreiber geprüft werden."}, {"q": "Ist die Museumsbahn für Kinder geeignet?", "a": "Ja, besonders die historischen Fahrzeuge und die Nähe zum Strand machen sie zu einem beliebten Familienausflug."}],
+    "officialSources": [{"label": "Probstei Tourismus", "url": "https://www.probstei.de/"}],
+    "sourceMail": {"id": "19fa9d3df110733a", "subject": "die Region Ausflugstipps Museumsbahn Schönberger STrand", "receivedAt": "2026-07-28T17:44:09"},
+    "freshnessNote": "Fahrtage und Ticketinformationen aktuell verlinken."
+  },
+  {
+    "slug": "museen-schleswig-holstein",
+    "title": "Museen in Schleswig-Holstein: maritime Geschichte, Natur und Archäologie",
+    "shortTitle": "Museen",
+    "category": "Ausflüge & Kultur",
+    "kicker": "Schlechtwetter-Tipps",
+    "summary": "Schifffahrtsmuseum, Zoologisches Museum, Freilichtmuseum und Schloss Gottorf bieten abwechslungsreiche Kultur- und Wissensausflüge in Schleswig-Holstein.",
+    "llmSummary": "Für Urlauber an der Ostsee bieten Kiel und das weitere Schleswig-Holstein Museen zu Schifffahrt, Naturkunde, Landwirtschaft, Archäologie und Alltagsgeschichte. Das macht die Region auch bei schlechtem Wetter vielseitig.",
+    "heroImage": "/inspiration/museen-schleswig-holstein.webp",
+    "images": ["/inspiration/museen-schleswig-holstein.webp"],
+    "imageAlt": "Museum als Ausflugsziel in Schleswig-Holstein",
+    "seoTitle": "Museen Schleswig-Holstein | Kiel, Gottorf & Freilichtmuseum",
+    "seoDescription": "Museen in Schleswig-Holstein entdecken: Schifffahrtsmuseum Kiel, Zoologisches Museum, Schloss Gottorf, Freilichtmuseum und weitere Ausflugstipps.",
+    "keywords": ["Museen Schleswig-Holstein", "Schifffahrtsmuseum Kiel", "Zoologisches Museum Kiel", "Schloss Gottorf Museum", "Freilichtmuseum Molfsee"],
+    "entities": ["Kieler Schifffahrtsmuseum", "Zoologisches Museum Kiel", "Schloss Gottorf", "Freilichtmuseum Molfsee"],
+    "places": ["Kiel", "Schleswig", "Molfsee"],
+    "facts": ["Gute Schlechtwetter-Alternative", "Maritime, naturkundliche und kulturhistorische Themen", "Mehrere Ziele im Raum Kiel und Schleswig-Holstein"],
+    "sections": [{"heading": "Museen in und um Kiel", "paragraphs": ["Kiel bietet mit dem Schifffahrtsmuseum und dem Zoologischen Museum zwei sehr unterschiedliche Ziele: maritime Stadtgeschichte auf der einen, Naturkunde auf der anderen Seite."]}, {"heading": "Geschichte im ganzen Land", "paragraphs": ["Schloss Gottorf bündelt bedeutende kulturhistorische und archäologische Sammlungen. Das Freilichtmuseum Molfsee macht historische Bau- und Alltagskultur auf einem großen Gelände erlebbar."]}],
+    "faq": [{"q": "Welche Museen eignen sich bei schlechtem Wetter?", "a": "In Kiel etwa Schifffahrtsmuseum und Zoologisches Museum; außerdem Schloss Gottorf und weitere Museen im Land."}, {"q": "Gibt es auch ein Freilichtmuseum?", "a": "Ja, das Freilichtmuseum Molfsee zeigt historische Gebäude und Alltagskultur – allerdings ist dort ein Teil des Erlebnisses im Freien."}],
+    "sourceMail": {"id": "19fa9d141ed4fc19", "subject": "Die Region Ausflugstipps Museum", "receivedAt": "2026-07-28T17:41:27"}
+  },
+  {
+    "slug": "kultur-unterhaltung-ostsee",
+    "title": "Kultur und Unterhaltung an der Ostsee: Festspiele, Konzerte und Bühnen",
+    "shortTitle": "Kultur & Unterhaltung",
+    "category": "Ausflüge & Kultur",
+    "kicker": "Abends etwas erleben",
+    "summary": "Von Karl-May-Festspielen über Schleswig-Holstein Musik Festival bis zu Eutiner Festspielen: Kulturziele ergänzen den Ostseeurlaub um Konzerte, Theater und Open-Air-Erlebnisse.",
+    "llmSummary": "Schleswig-Holstein bietet im Sommer zahlreiche Kulturveranstaltungen, darunter bekannte Festspiele und Konzertreihen. Programme ändern sich jährlich; deshalb sollten Veranstaltungsdaten direkt beim jeweiligen Veranstalter bezogen werden.",
+    "heroImage": "/inspiration/kultur-unterhaltung-ostsee.webp",
+    "images": ["/inspiration/kultur-unterhaltung-ostsee.webp"],
+    "imageAlt": "Kulturveranstaltung in Schleswig-Holstein",
+    "seoTitle": "Kultur an der Ostsee | Festspiele, Konzerte & Unterhaltung",
+    "seoDescription": "Kultur und Unterhaltung im Ostseeurlaub: Karl-May-Festspiele, Musikfestival, Eutiner Festspiele und weitere Veranstaltungstipps in Schleswig-Holstein.",
+    "keywords": ["Kultur Ostsee", "Karl-May-Festspiele", "Schleswig-Holstein Musik Festival", "Eutiner Festspiele", "Veranstaltungen Ostsee"],
+    "entities": ["Karl-May-Spiele Bad Segeberg", "Schleswig-Holstein Musik Festival", "Eutiner Festspiele"],
+    "places": ["Bad Segeberg", "Eutin", "Schleswig-Holstein"],
+    "facts": ["Viele saisonale Open-Air-Veranstaltungen", "Programme ändern sich jährlich", "Kultur lässt sich gut mit Tagesausflügen verbinden"],
+    "sections": [{"heading": "Sommerkultur in Schleswig-Holstein", "paragraphs": ["Gerade in den Sommermonaten gibt es zahlreiche Veranstaltungen unter freiem Himmel. Große Namen wie die Karl-May-Spiele, das Schleswig-Holstein Musik Festival und die Eutiner Festspiele können gezielt als Anlass für einen Tages- oder Abendausflug genutzt werden."]}, {"heading": "Termine dynamisch behandeln", "paragraphs": ["Die Quellmail enthielt konkrete historische Saisontermine. Für SEO und Nutzervertrauen sollte die Seite stattdessen die Veranstaltung erklären und jeweils zur aktuellen Programmseite verlinken."]}],
+    "faq": [{"q": "Welche bekannten Kulturveranstaltungen gibt es in Schleswig-Holstein?", "a": "Unter anderem die Karl-May-Spiele in Bad Segeberg, das Schleswig-Holstein Musik Festival und die Eutiner Festspiele."}, {"q": "Sollten konkrete Termine im Artikel stehen?", "a": "Nur wenn sie regelmäßig aktualisiert werden. Für eine evergreen Seite ist eine Verlinkung zum aktuellen Programm sicherer."}],
+    "sourceMail": {"id": "19fa9d00bd51d501", "subject": "Die Region Ausflugstipps Kultur / Unterhaltung", "receivedAt": "2026-07-28T17:40:08"},
+    "freshnessNote": "Veranstaltungstermine jährlich aktualisieren."
+  },
+  {
+    "slug": "fahrradurlaub-ostsee",
+    "title": "Fahrradurlaub an der Ostsee: Probstei und Küste auf zwei Rädern",
+    "shortTitle": "Fahrradurlaub",
+    "category": "Natur & Aktiv",
+    "kicker": "Radfahren am Meer",
+    "summary": "Deichwege, Küstenabschnitte, Seen und ländliche Nebenstrecken machen die Probstei zu einer attraktiven Region für Fahrrad und E-Bike.",
+    "llmSummary": "Die Probstei und die Ostseeküste rund um Schönberg, Laboe und Hohwacht eignen sich gut für Radurlaub. Küstenwege, wenig steile Landschaft und viele kleine Ausflugsziele ermöglichen flexible Tagesrouten.",
+    "heroImage": "/inspiration/fahrradurlaub-ostsee.webp",
+    "images": ["/inspiration/fahrradurlaub-ostsee.webp"],
+    "imageAlt": "Fahrradtour an der Ostseeküste in Schleswig-Holstein",
+    "seoTitle": "Fahrradurlaub Ostsee | Radfahren in der Probstei",
+    "seoDescription": "Radfahren an der Ostsee: Touren durch die Probstei, entlang von Strand und Deich sowie Tipps für Fahrrad- und E-Bike-Urlaub rund um Schönberg und Laboe.",
+    "keywords": ["Fahrradurlaub Ostsee", "Radfahren Probstei", "Fahrradtour Schönberg", "E-Bike Ostsee", "Radweg Laboe"],
+    "entities": ["Probstei", "Schönberg", "Laboe", "Hohwacht"],
+    "places": ["Probstei", "Schönberg", "Laboe", "Hohwacht"],
+    "facts": ["Viele flache bis leicht hügelige Strecken", "Küste und Binnenland kombinierbar", "E-Bikes erweitern den Tagesradius", "Tourenkarten vor Ort erhältlich"],
+    "sections": [{"heading": "Warum die Ostsee gut für Radurlaub funktioniert", "paragraphs": ["Wer mit dem Rad unterwegs ist, erlebt Küste und Hinterland deutlich unmittelbarer als im Auto. In der Probstei wechseln sich Strandabschnitte, Felder, Dörfer und Seen auf kurzen Distanzen ab.", "E-Bikes machen auch längere Tagesrouten oder windige Abschnitte entspannter."]}, {"heading": "Touren planen", "paragraphs": ["Tourist-Informationen in Schönberg, Laboe und weiteren Orten stellen Karten und regionale Routentipps bereit. Bei der Planung lohnt sich eine Kombination aus landschaftlicher Strecke, Café- oder Hofstopp und einem Ziel am Wasser."]}],
+    "faq": [{"q": "Ist die Probstei hügelig?", "a": "Die Landschaft ist überwiegend gut fahrbar und oft nur leicht wellig; Wind kann an der Küste stärker ins Gewicht fallen als Steigungen."}, {"q": "Gibt es vor Ort Fahrradtourenkarten?", "a": "Ja, die regionalen Tourist-Informationen bieten Karten und Ausflugstipps für Radfahrer."}],
+    "officialSources": [{"label": "Probstei Tourismus", "url": "https://www.probstei.de/"}],
+    "sourceMail": {"id": "19fa9ce791961f03", "subject": "die Region Ausflugstipps Urlaub mit dem Fahrrad", "receivedAt": "2026-07-28T17:38:25"}
+  },
+  {
+    "slug": "erlebnisbaeder-schleswig-holstein",
+    "title": "Erlebnisbäder in Schleswig-Holstein: Schlechtwetter-Ausflüge mit Kindern",
+    "shortTitle": "Erlebnisbäder",
+    "category": "Familie",
+    "kicker": "Schietwetter? Kein Problem",
+    "summary": "Thermen und Erlebnisbäder in Schleswig-Holstein sind eine gute Alternative bei Regen. Je nach Standort gibt es Rutschen, Wellenbecken, Sauna und Familienbereiche.",
+    "llmSummary": "Rund um die Ostsee und in Schleswig-Holstein gibt es mehrere Erlebnisbäder und Thermen, die sich als Schlechtwetter-Ausflug eignen. Ausstattung, Preise und Öffnungszeiten ändern sich und sollten direkt beim jeweiligen Bad geprüft werden.",
+    "heroImage": "/inspiration/erlebnisbaeder-schleswig-holstein.webp",
+    "images": ["/inspiration/erlebnisbaeder-schleswig-holstein.webp"],
+    "imageAlt": "Erlebnisbad als Familienausflug in Schleswig-Holstein",
+    "seoTitle": "Erlebnisbäder Schleswig-Holstein | Familienausflug bei Regen",
+    "seoDescription": "Erlebnisbäder und Thermen in Schleswig-Holstein: Ideen für Familien und Schlechtwettertage rund um Ostsee, Kiel und Holstein.",
+    "keywords": ["Erlebnisbad Schleswig-Holstein", "Schlechtwetter Ostsee Kinder", "Therme Ostsee", "Familienausflug Regen", "Schwimmbad Ostsee"],
+    "entities": ["HolstenTherme", "Ostsee Therme", "Weissenhäuser Strand", "ARRIBA"],
+    "places": ["Schleswig-Holstein"],
+    "facts": ["Gute Alternative bei Regen", "Viele Angebote für Familien", "Entfernungen können größer sein", "Öffnungszeiten und Preise aktuell prüfen"],
+    "sections": [{"heading": "Wenn das Strandwetter Pause macht", "paragraphs": ["Ein Regentag muss im Ostseeurlaub nicht ausfallen. Erlebnisbäder kombinieren Bewegung und wetterunabhängiges Familienprogramm und können einen ganzen Urlaubstag füllen.", "Die ältere Urlaub-Gosch-Liste nennt verschiedene Bäder im Land. Für die aktuelle Seite ist eine kleinere, regelmäßig geprüfte Auswahl sinnvoller als eine starre historische Liste."]}],
+    "faq": [{"q": "Welche Schlechtwetteraktivität eignet sich mit Kindern?", "a": "Erlebnisbäder, Museen und Indoor-Ausflugsziele sind besonders flexibel. Bei Bädern sollten Fahrtzeit und Altersanforderungen vorab geprüft werden."}, {"q": "Sind die alten Öffnungszeiten aus der Mail noch gültig?", "a": "Nicht verlässlich. Öffnungszeiten, Preise und einzelne Attraktionen sollten direkt beim jeweiligen Erlebnisbad geprüft werden."}],
+    "sourceMail": {"id": "19fa9cd87f286888", "subject": "die Region Ausflugstipps Erlebnisbäder", "receivedAt": "2026-07-28T17:37:23"},
+    "freshnessNote": "Bäderliste, Namen, Preise und Öffnungszeiten regelmäßig verifizieren."
+  },
+  {
+    "slug": "abenteuerspielplaetze-probstei",
+    "title": "Abenteuerspielplätze in der Probstei: Ausflüge für Familien",
+    "shortTitle": "Abenteuerspielplätze",
+    "category": "Familie",
+    "kicker": "Mit Kindern unterwegs",
+    "summary": "Piratenlager, Naturspielplätze und Erlebnisangebote rund um Hohwacht, Futterkamp, Schönberger Strand und Wendtorf machen Familienausflüge abwechslungsreich.",
+    "llmSummary": "Die Probstei und angrenzende Küstenorte bieten mehrere Spiel- und Erlebnisplätze für Familien. Die ursprüngliche Sammlung nennt Hohwacht, Futterkamp, Schönberger Strand und Wendtorf als mögliche Ziele; der aktuelle Status sollte vor Anfahrt geprüft werden.",
+    "heroImage": null,
+    "images": [],
+    "imageAlt": "Abenteuerspielplatz für Familien in der Probstei",
+    "seoTitle": "Abenteuerspielplätze Probstei | Familienausflüge Ostsee",
+    "seoDescription": "Abenteuerspielplätze und Familienziele in der Probstei: Hohwacht, Futterkamp, Schönberger Strand und Wendtorf als Ideen für Urlaub mit Kindern.",
+    "keywords": ["Spielplatz Probstei", "Familienausflug Ostsee", "Piratenlager Hohwacht", "Spielplatz Schönberger Strand", "Kinder Wendtorf"],
+    "entities": ["Hohwacht", "Futterkamp", "Schönberger Strand", "Wendtorf"],
+    "places": ["Hohwacht", "Futterkamp", "Schönberger Strand", "Wendtorf"],
+    "facts": ["Mehrere familienorientierte Ziele in Küstennähe", "Gut mit Strand- oder Radtagen kombinierbar", "Status und Ausstattung vor Besuch prüfen"],
+    "sections": [{"heading": "Spielplätze als Teil des Urlaubstags", "paragraphs": ["Für Familien sind Spielplätze besonders praktisch, wenn sie nicht als eigener Tagesausflug geplant werden müssen. In der Probstei lassen sich Spiel- und Erlebnisangebote gut mit Strand, Hafen oder Radtour verbinden.", "Die Quellmail nennt unter anderem ein Piratenlager in Hohwacht, Angebote in Futterkamp, den Erlebnisbereich am Schönberger Strand und Wendtorf."]}],
+    "faq": [{"q": "Wo gibt es Familien-Spielplätze in der Region?", "a": "Als Ausgangspunkte nennt die Urlaub-Gosch-Sammlung Hohwacht, Futterkamp, Schönberger Strand und Wendtorf."}, {"q": "Sind alle genannten Plätze noch unverändert vorhanden?", "a": "Das sollte vor Veröffentlichung bzw. Besuch geprüft werden, da Spielplätze umgebaut, verlegt oder neu gestaltet werden können."}],
+    "sourceMail": {"id": "19fa9cca2c961127", "subject": "Die Region ausflugstipps - Abenteuerspielplätze", "receivedAt": "2026-07-28T17:36:25"},
+    "freshnessNote": "Aktuellen Status jedes Spielplatzes prüfen."
+  },
+  {
+    "slug": "ausflugstipps-ostsee-schleswig-holstein",
+    "title": "Ausflugstipps an der Ostsee: Natur, Tiere, Technik und Familie",
+    "shortTitle": "Ausflugstipps",
+    "category": "Ausflüge & Kultur",
+    "kicker": "Von der Probstei ins ganze Land",
+    "summary": "Von Meeresbiologie und Eiszeitmuseum über Wildparks, Schleusen und Modelleisenbahn bis zu Straußenfarm und Aussichtspunkten: Schleswig-Holstein bietet viele Tagesziele neben dem Strand.",
+    "llmSummary": "Die Ausflugssammlung von Urlaub-Gosch bündelt sehr unterschiedliche Ziele in Schleswig-Holstein: Natur- und Tiererlebnisse, Museen, Technik, Schifffahrt und familienfreundliche Attraktionen. Für eine moderne Seite sollten Ziele kuratiert, nach Entfernung gruppiert und regelmäßig auf Aktualität geprüft werden.",
+    "heroImage": "/inspiration/ausflugstipps-07.webp",
+    "images": ["/inspiration/ausflugstipps-01.webp", "/inspiration/ausflugstipps-03.webp", "/inspiration/ausflugstipps-04.webp", "/inspiration/ausflugstipps-05.webp", "/inspiration/ausflugstipps-06.webp", "/inspiration/ausflugstipps-07.webp"],
+    "imageAlt": "Ausflugsziel in Schleswig-Holstein nahe der Ostsee",
+    "seoTitle": "Ausflugstipps Ostsee Schleswig-Holstein | Familie & Natur",
+    "seoDescription": "Ausflugstipps für den Ostseeurlaub: Museen, Wildparks, Meer, Technik, Familienziele und Naturerlebnisse in der Probstei und Schleswig-Holstein.",
+    "keywords": ["Ausflugstipps Ostsee", "Ausflugsziele Schleswig-Holstein", "Familienausflug Probstei", "Schlechtwetter Ostsee", "Sehenswürdigkeiten Schleswig-Holstein"],
+    "entities": ["Meeresbiologische Station Laboe", "Eiszeitmuseum", "Nord-Ostsee-Kanal", "Miniatur Wunderland", "Gut Panker"],
+    "places": ["Laboe", "Lütjenburg", "Kiel", "Fehmarn", "Hamburg", "Panker"],
+    "facts": ["Große Bandbreite von Natur bis Technik", "Ziele sinnvoll nach Fahrzeit gruppieren", "Familien- und Schlechtwetterziele getrennt ausweisen", "Aktualität der einzelnen Attraktionen regelmäßig prüfen"],
+    "sections": [{"heading": "Natur und Tiere", "paragraphs": ["Meeresbiologie, Wildparks, Straußenfarm und Naturerlebnisse sind eine gute Ergänzung zum reinen Strandurlaub. Besonders für Familien bieten sie einen konkreten Anlass für einen halben oder ganzen Ausflugstag."]}, {"heading": "Technik und Geschichte", "paragraphs": ["Schleusen am Nord-Ostsee-Kanal, Museumsbahn, Modelleisenbahnen und historische Anlagen sprechen Gäste an, die Technik oder Geschichte erleben möchten. Diese Inhalte lassen sich in einer eigenen Karten- oder Filterkategorie bündeln."]}, {"heading": "Die Liste nicht einfach ungeprüft veröffentlichen", "paragraphs": ["Der Ausgangstext enthält ältere Links, Entfernungsangaben und Einrichtungen. Für eine professionelle Seite sollten einzelne Ziele vor Veröffentlichung geprüft und mit eigener Kurzbeschreibung, Standort und offizieller Quelle hinterlegt werden."]}],
+    "faq": [{"q": "Welche Ausflüge eignen sich mit Kindern?", "a": "Tierparks, naturkundliche Ziele, Museumsbahn, Spielplätze und ausgewählte Museen sind besonders familienfreundlich."}, {"q": "Was kann man bei schlechtem Wetter machen?", "a": "Museen, Erlebnisbäder und Indoor-Attraktionen sind gute Alternativen; die Ausflugsseite kann dafür einen eigenen Filter anbieten."}],
+    "sourceMail": {"id": "19fa9cb6bc37a4c6", "subject": "die Region ausflugstipps", "receivedAt": "2026-07-28T17:35:03"},
+    "freshnessNote": "Alle einzelnen Ziele, Links und Entfernungen vor Veröffentlichung überprüfen."
+  }
+]

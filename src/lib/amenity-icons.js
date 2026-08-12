@@ -43,10 +43,8 @@ export function normalizeAmenityName(name) {
     internet: "wlan",
 
     // Grundstück Varianten
-    eingezäunt: "eingezäuntes grundstück",
-    "eingezäunte": "eingezäuntes grundstück",
-    "eingezäuntes": "eingezäuntes grundstück",
-    "eingezäuntes grundstück": "eingezäuntes grundstück",
+    eingezäunt: "eingezäunt",
+
 
     // Blick Varianten
     seeblick: "meerblick",
