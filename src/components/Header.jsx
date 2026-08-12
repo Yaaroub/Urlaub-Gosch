@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import HeaderWebcams from "@/components/HeaderWebcams";
+
 import {
   ArrowRight,
   BookOpen,
@@ -54,6 +57,7 @@ export default function Header() {
 
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [webcamsOpen, setWebcamsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const [query, setQuery] = useState("");
@@ -84,12 +88,14 @@ export default function Header() {
   useEffect(() => {
     setOpen(false);
     setSearchOpen(false);
+    setWebcamsOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     if (!open && !searchOpen) return;
 
     const previousOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
 
     return () => {
@@ -104,7 +110,9 @@ export default function Header() {
       searchInputRef.current?.focus();
     }, 100);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [searchOpen]);
 
   useEffect(() => {
@@ -116,6 +124,7 @@ export default function Header() {
         event.preventDefault();
 
         setOpen(false);
+        setWebcamsOpen(false);
         setSearchOpen(true);
 
         return;
@@ -124,6 +133,7 @@ export default function Header() {
       if (event.key === "Escape") {
         setSearchOpen(false);
         setOpen(false);
+        setWebcamsOpen(false);
       }
     };
 
@@ -141,6 +151,7 @@ export default function Header() {
       setResults([]);
       setLoading(false);
       setSearchError(false);
+
       return;
     }
 
@@ -160,16 +171,27 @@ export default function Header() {
         );
 
         if (!response.ok) {
-          throw new Error(`Suche antwortet mit ${response.status}`);
+          throw new Error(
+            `Suche antwortet mit ${response.status}`
+          );
         }
 
         const data = await response.json();
 
-        setResults(Array.isArray(data?.items) ? data.items : []);
+        setResults(
+          Array.isArray(data?.items)
+            ? data.items
+            : []
+        );
       } catch (error) {
-        if (error?.name === "AbortError") return;
+        if (error?.name === "AbortError") {
+          return;
+        }
 
-        console.error("Globale Suche fehlgeschlagen:", error);
+        console.error(
+          "Globale Suche fehlgeschlagen:",
+          error
+        );
 
         setResults([]);
         setSearchError(true);
@@ -186,10 +208,16 @@ export default function Header() {
     };
   }, [query, searchOpen]);
 
-  const compact = scrolled || open || searchOpen;
+  const compact =
+    scrolled ||
+    open ||
+    searchOpen ||
+    webcamsOpen;
 
   const isActive = (href) => {
-    if (href.startsWith("/#")) return false;
+    if (href.startsWith("/#")) {
+      return false;
+    }
 
     return href === "/"
       ? pathname === "/"
@@ -198,6 +226,7 @@ export default function Header() {
 
   const openGlobalSearch = () => {
     setOpen(false);
+    setWebcamsOpen(false);
     setSearchOpen(true);
   };
 
@@ -209,6 +238,18 @@ export default function Header() {
       setResults([]);
       setSearchError(false);
     }, 200);
+  };
+
+  const toggleMobileMenu = () => {
+    setWebcamsOpen(false);
+
+    setOpen((value) => !value);
+  };
+
+  const toggleWebcams = (value) => {
+    setOpen(false);
+    setSearchOpen(false);
+    setWebcamsOpen(value);
   };
 
   const groupedCounts = results.reduce(
@@ -226,7 +267,8 @@ export default function Header() {
       <header
         className="
           fixed inset-x-0 top-0 z-50
-          px-4 pt-4 transition-all duration-300
+          px-4 pt-4
+          transition-all duration-300
           sm:px-6 sm:pt-5
           lg:px-8
         "
@@ -234,19 +276,27 @@ export default function Header() {
         <div
           className={[
             `
-              mx-auto flex max-w-7xl items-center justify-between
+              mx-auto flex max-w-7xl
+              items-center justify-between
               transition-all duration-300
             `,
             compact
               ? `
-                  h-[62px] rounded-full bg-white/88 px-4
+                  h-[62px]
+                  rounded-full
+                  bg-white/88
+                  px-4
                   shadow-[0_18px_60px_rgba(7,19,31,0.13)]
                   backdrop-blur-2xl
-                  sm:h-[68px] sm:px-5
+                  sm:h-[68px]
+                  sm:px-5
                 `
               : `
-                  h-[76px] bg-transparent px-0
-                  shadow-none backdrop-blur-0
+                  h-[76px]
+                  bg-transparent
+                  px-0
+                  shadow-none
+                  backdrop-blur-0
                   sm:h-[82px]
                 `,
           ].join(" ")}
@@ -276,7 +326,13 @@ export default function Header() {
             />
           </Link>
 
-          <nav className="hidden items-center gap-2 lg:flex">
+          <nav
+            aria-label="Hauptnavigation"
+            className="
+              hidden items-center gap-2
+              lg:flex
+            "
+          >
             {NAV.map((item) => {
               const active = isActive(item.href);
 
@@ -286,8 +342,10 @@ export default function Header() {
                   href={item.href}
                   className={[
                     `
-                      rounded-full px-4 py-2.5
-                      text-sm font-extrabold tracking-wide
+                      rounded-full
+                      px-4 py-2.5
+                      text-sm font-extrabold
+                      tracking-wide
                       transition
                     `,
                     active
@@ -305,20 +363,39 @@ export default function Header() {
             })}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div
+            className="
+              flex shrink-0
+              items-center
+              gap-2
+              sm:gap-3
+            "
+          >
+            {/* Favoriten */}
             <Link
               href="/favorites"
               aria-label="Favoriten"
+              onClick={() => {
+                setWebcamsOpen(false);
+              }}
               className={[
                 `
-                  grid place-items-center rounded-full
-                  text-[#07131f] transition
+                  grid place-items-center
+                  rounded-full
+                  text-[#07131f]
+                  transition
                   hover:bg-white/70
                 `,
                 compact
-                  ? "h-10 w-10 bg-white/55 sm:h-11 sm:w-11"
+                  ? `
+                      h-10 w-10
+                      bg-white/55
+                      sm:h-11 sm:w-11
+                    `
                   : `
-                      h-11 w-11 bg-white/28 backdrop-blur-md
+                      h-11 w-11
+                      bg-white/28
+                      backdrop-blur-md
                       sm:h-12 sm:w-12
                     `,
               ].join(" ")}
@@ -326,14 +403,24 @@ export default function Header() {
               <Heart className="h-5 w-5" />
             </Link>
 
+            {/* Strand-Webcams */}
+            <HeaderWebcams
+              compact={compact}
+              open={webcamsOpen}
+              onOpenChange={toggleWebcams}
+            />
+
+            {/* Desktop-Suche */}
             <button
               type="button"
               onClick={openGlobalSearch}
               className={[
                 `
-                  hidden items-center gap-2 rounded-full
+                  hidden items-center gap-2
+                  rounded-full
                   bg-[#e8c375]
-                  text-sm font-extrabold text-[#07131f]
+                  text-sm font-extrabold
+                  text-[#07131f]
                   shadow-[0_12px_35px_rgba(7,19,31,0.12)]
                   transition
                   hover:-translate-y-0.5
@@ -350,25 +437,34 @@ export default function Header() {
               Suchen
             </button>
 
+            {/* Mobile-Menü */}
             <button
               type="button"
-              onClick={() => setOpen((value) => !value)}
-              aria-label={open ? "Menü schließen" : "Menü öffnen"}
+              onClick={toggleMobileMenu}
+              aria-label={
+                open
+                  ? "Menü schließen"
+                  : "Menü öffnen"
+              }
               aria-expanded={open}
               className={[
                 `
-                  grid place-items-center rounded-full
-                  text-[#07131f] transition
+                  grid place-items-center
+                  rounded-full
+                  text-[#07131f]
+                  transition
                   hover:bg-white/70
                   lg:hidden
                 `,
                 compact
                   ? `
-                      h-10 w-10 bg-white/55
+                      h-10 w-10
+                      bg-white/55
                       sm:h-11 sm:w-11
                     `
                   : `
-                      h-11 w-11 bg-white/28
+                      h-11 w-11
+                      bg-white/28
                       backdrop-blur-md
                       sm:h-12 sm:w-12
                     `,
@@ -384,43 +480,59 @@ export default function Header() {
         </div>
       </header>
 
+      {/* Mobile Navigation */}
       {open && (
         <div
           className="
             fixed inset-0 z-40
-            bg-[#07131f]/96 px-4 pb-6 pt-24
-            text-white backdrop-blur-2xl
+            bg-[#07131f]/96
+            px-4 pb-6 pt-24
+            text-white
+            backdrop-blur-2xl
             lg:hidden
           "
         >
-          <div className="mx-auto flex h-full max-w-md flex-col">
+          <div
+            className="
+              mx-auto flex h-full
+              max-w-md flex-col
+            "
+          >
             <div
               className="
                 rounded-[2rem]
                 border border-white/10
                 bg-white/[0.08]
                 p-2
-                shadow-2xl shadow-black/30
+                shadow-2xl
+                shadow-black/30
               "
             >
               {NAV.map((item) => {
-                const active = isActive(item.href);
+                const active =
+                  isActive(item.href);
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                    }}
                     className={[
                       `
-                        flex items-center justify-between
+                        flex items-center
+                        justify-between
                         rounded-[1.35rem]
                         px-5 py-4
                         text-lg font-semibold
                         transition
                       `,
                       active
-                        ? "bg-[#e8c375] text-[#07131f]"
+                        ? `
+                            bg-[#e8c375]
+                            text-[#07131f]
+                          `
                         : `
                             text-white/82
                             hover:bg-white/10
@@ -430,7 +542,11 @@ export default function Header() {
                   >
                     {item.label}
 
-                    <span className="text-sm opacity-60">
+                    <span
+                      className="
+                        text-sm opacity-60
+                      "
+                    >
                       →
                     </span>
                   </Link>
@@ -439,12 +555,17 @@ export default function Header() {
 
               <Link
                 href="/favorites"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                }}
                 className="
-                  mt-2 flex items-center justify-between
+                  mt-2 flex
+                  items-center
+                  justify-between
                   rounded-[1.35rem]
                   px-5 py-4
-                  text-lg font-semibold text-white/82
+                  text-lg font-semibold
+                  text-white/82
                   transition
                   hover:bg-white/10
                   hover:text-white
@@ -454,18 +575,63 @@ export default function Header() {
 
                 <Heart className="h-5 w-5" />
               </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+
+                  window.setTimeout(() => {
+                    setWebcamsOpen(true);
+                  }, 120);
+                }}
+                className="
+                  mt-2 flex w-full
+                  items-center
+                  justify-between
+                  rounded-[1.35rem]
+                  px-5 py-4
+                  text-left
+                  text-lg font-semibold
+                  text-white/82
+                  transition
+                  hover:bg-white/10
+                  hover:text-white
+                "
+              >
+                Strand-Webcams
+
+                <span
+                  className="
+                    rounded-full
+                    bg-[#e8c375]
+                    px-2 py-0.5
+                    text-[10px] font-black
+                    text-[#07131f]
+                  "
+                >
+                  2
+                </span>
+              </button>
             </div>
 
             <div
               className="
-                mt-auto rounded-[2rem]
+                mt-auto
+                rounded-[2rem]
                 border border-white/10
                 bg-white/[0.08]
                 p-5
-                shadow-2xl shadow-black/20
+                shadow-2xl
+                shadow-black/20
               "
             >
-              <p className="text-sm leading-6 text-white/70">
+              <p
+                className="
+                  text-sm leading-6
+                  text-white/70
+                "
+              >
                 Suche in Unterkünften, Regionen,
                 Aktivitäten und Urlaubstipps.
               </p>
@@ -474,12 +640,15 @@ export default function Header() {
                 type="button"
                 onClick={openGlobalSearch}
                 className="
-                  mt-4 inline-flex min-h-12 w-full
-                  items-center justify-center gap-2
+                  mt-4 inline-flex
+                  min-h-12 w-full
+                  items-center
+                  justify-center gap-2
                   rounded-full
                   bg-[#e8c375]
                   px-5 py-3.5
-                  text-sm font-bold text-[#07131f]
+                  text-sm font-bold
+                  text-[#07131f]
                   transition
                   hover:bg-white
                 "
@@ -493,6 +662,7 @@ export default function Header() {
         </div>
       )}
 
+      {/* Globale Suche */}
       {searchOpen && (
         <div
           className="
@@ -504,7 +674,10 @@ export default function Header() {
             sm:px-6 sm:py-10
           "
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
               closeGlobalSearch();
             }
           }}
@@ -519,12 +692,23 @@ export default function Header() {
               shadow-[0_30px_100px_rgba(0,0,0,0.45)]
             "
           >
-            <div className="bg-[#07131f] p-4 sm:p-6">
-              <div className="flex items-center justify-between gap-4">
+            <div
+              className="
+                bg-[#07131f]
+                p-4 sm:p-6
+              "
+            >
+              <div
+                className="
+                  flex items-center
+                  justify-between gap-4
+                "
+              >
                 <div>
                   <p
                     className="
-                      text-[11px] font-bold uppercase
+                      text-[11px]
+                      font-bold uppercase
                       tracking-[0.2em]
                       text-[#e8c375]
                     "
@@ -534,7 +718,8 @@ export default function Header() {
 
                   <h2
                     className="
-                      mt-1 text-xl font-extrabold
+                      mt-1
+                      text-xl font-extrabold
                       tracking-tight text-white
                       sm:text-2xl
                     "
@@ -548,8 +733,8 @@ export default function Header() {
                   onClick={closeGlobalSearch}
                   aria-label="Suche schließen"
                   className="
-                    grid h-11 w-11 shrink-0
-                    place-items-center
+                    grid h-11 w-11
+                    shrink-0 place-items-center
                     rounded-full
                     border border-white/10
                     bg-white/10
@@ -578,7 +763,9 @@ export default function Header() {
                   type="search"
                   value={query}
                   onChange={(event) => {
-                    setQuery(event.target.value);
+                    setQuery(
+                      event.target.value
+                    );
                   }}
                   placeholder="z. B. Laboe, Museum, Strand, Ferienwohnung …"
                   autoComplete="off"
@@ -593,7 +780,8 @@ export default function Header() {
                     text-[#07131f]
                     shadow-sm
                     outline-none
-                    ring-2 ring-transparent
+                    ring-2
+                    ring-transparent
                     transition
                     placeholder:font-normal
                     placeholder:text-slate-400
@@ -614,7 +802,9 @@ export default function Header() {
                 ) : query ? (
                   <button
                     type="button"
-                    onClick={() => setQuery("")}
+                    onClick={() => {
+                      setQuery("");
+                    }}
                     aria-label="Suchtext löschen"
                     className="
                       absolute right-3 top-1/2
@@ -635,7 +825,8 @@ export default function Header() {
 
               <div
                 className="
-                  mt-3 flex flex-wrap items-center gap-2
+                  mt-3 flex flex-wrap
+                  items-center gap-2
                   text-[11px] font-semibold
                   text-white/55
                 "
@@ -666,7 +857,9 @@ export default function Header() {
                 <div
                   className="
                     flex min-h-[240px]
-                    flex-col items-center justify-center
+                    flex-col
+                    items-center
+                    justify-center
                     px-6 text-center
                   "
                 >
@@ -684,7 +877,8 @@ export default function Header() {
 
                   <h3
                     className="
-                      mt-5 text-lg font-extrabold
+                      mt-5
+                      text-lg font-extrabold
                       text-[#07131f]
                     "
                   >
@@ -699,9 +893,9 @@ export default function Header() {
                     "
                   >
                     Gib mindestens zwei Zeichen ein.
-                    Du kannst zum Beispiel nach einem Ort,
-                    einer Unterkunft, einer Straße oder
-                    einem Ausflugsziel suchen.
+                    Du kannst zum Beispiel nach einem
+                    Ort, einer Unterkunft, einer Straße
+                    oder einem Ausflugsziel suchen.
                   </p>
                 </div>
               ) : null}
@@ -712,7 +906,8 @@ export default function Header() {
                 <div
                   className="
                     flex min-h-[240px]
-                    items-center justify-center
+                    items-center
+                    justify-center
                     px-6 text-center
                   "
                 >
@@ -726,7 +921,12 @@ export default function Header() {
                       Suche momentan nicht verfügbar
                     </p>
 
-                    <p className="mt-2 text-sm text-slate-500">
+                    <p
+                      className="
+                        mt-2
+                        text-sm text-slate-500
+                      "
+                    >
                       Bitte versuche es noch einmal.
                     </p>
                   </div>
@@ -740,7 +940,8 @@ export default function Header() {
                 <div
                   className="
                     flex min-h-[240px]
-                    items-center justify-center
+                    items-center
+                    justify-center
                     px-6 text-center
                   "
                 >
@@ -754,9 +955,14 @@ export default function Header() {
                       Keine Treffer gefunden
                     </p>
 
-                    <p className="mt-2 text-sm text-slate-500">
-                      Versuche einen anderen Begriff oder
-                      nur einen Teil des Namens.
+                    <p
+                      className="
+                        mt-2
+                        text-sm text-slate-500
+                      "
+                    >
+                      Versuche einen anderen Begriff
+                      oder nur einen Teil des Namens.
                     </p>
                   </div>
                 </div>
@@ -767,13 +973,15 @@ export default function Header() {
                   <div
                     className="
                       mb-3 flex flex-wrap
-                      items-center justify-between gap-3
-                      px-1
+                      items-center
+                      justify-between
+                      gap-3 px-1
                     "
                   >
                     <p
                       className="
-                        text-sm font-bold text-[#07131f]
+                        text-sm font-bold
+                        text-[#07131f]
                       "
                     >
                       {results.length} Treffer
@@ -790,36 +998,45 @@ export default function Header() {
                       {groupedCounts.property ? (
                         <span
                           className="
-                            rounded-full bg-white
+                            rounded-full
+                            bg-white
                             px-2.5 py-1
-                            ring-1 ring-slate-200
+                            ring-1
+                            ring-slate-200
                           "
                         >
-                          {groupedCounts.property} Unterkünfte
+                          {groupedCounts.property}{" "}
+                          Unterkünfte
                         </span>
                       ) : null}
 
                       {groupedCounts.activity ? (
                         <span
                           className="
-                            rounded-full bg-white
+                            rounded-full
+                            bg-white
                             px-2.5 py-1
-                            ring-1 ring-slate-200
+                            ring-1
+                            ring-slate-200
                           "
                         >
-                          {groupedCounts.activity} Aktivitäten
+                          {groupedCounts.activity}{" "}
+                          Aktivitäten
                         </span>
                       ) : null}
 
                       {groupedCounts.article ? (
                         <span
                           className="
-                            rounded-full bg-white
+                            rounded-full
+                            bg-white
                             px-2.5 py-1
-                            ring-1 ring-slate-200
+                            ring-1
+                            ring-slate-200
                           "
                         >
-                          {groupedCounts.article} Inhalte
+                          {groupedCounts.article}{" "}
+                          Inhalte
                         </span>
                       ) : null}
                     </div>
@@ -832,11 +1049,10 @@ export default function Header() {
                         href={item.href}
                         onClick={closeGlobalSearch}
                         className="
-                          group flex items-center gap-4
-                          rounded-2xl
+                          group flex items-center
+                          gap-4 rounded-2xl
                           border border-slate-200
-                          bg-white
-                          p-4
+                          bg-white p-4
                           transition
                           hover:-translate-y-0.5
                           hover:border-sky-200
@@ -853,10 +1069,16 @@ export default function Header() {
                             text-[#e8c375]
                           "
                         >
-                          <ResultIcon type={item.type} />
+                          <ResultIcon
+                            type={item.type}
+                          />
                         </div>
 
-                        <div className="min-w-0 flex-1">
+                        <div
+                          className="
+                            min-w-0 flex-1
+                          "
+                        >
                           <div
                             className="
                               flex flex-wrap
@@ -865,18 +1087,24 @@ export default function Header() {
                           >
                             <span
                               className="
-                                text-[10px] font-extrabold
-                                uppercase tracking-[0.14em]
+                                text-[10px]
+                                font-extrabold
+                                uppercase
+                                tracking-[0.14em]
                                 text-sky-700
                               "
                             >
-                              <ResultType type={item.type} />
+                              <ResultType
+                                type={item.type}
+                              />
                             </span>
 
                             {item.location ? (
                               <span
                                 className="
-                                  inline-flex items-center gap-1
+                                  inline-flex
+                                  items-center
+                                  gap-1
                                   text-[11px]
                                   text-slate-400
                                 "
@@ -913,7 +1141,8 @@ export default function Header() {
 
                         <ArrowRight
                           className="
-                            h-5 w-5 shrink-0
+                            h-5 w-5
+                            shrink-0
                             text-slate-300
                             transition
                             group-hover:translate-x-1
@@ -929,11 +1158,13 @@ export default function Header() {
 
             <div
               className="
-                flex items-center justify-between gap-4
+                flex items-center
+                justify-between gap-4
                 border-t border-slate-200
                 bg-white
                 px-4 py-3
-                text-[11px] text-slate-400
+                text-[11px]
+                text-slate-400
                 sm:px-6
               "
             >
