@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Home, ShieldCheck, UserRound } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 const HERO_IMAGE = "/hero/hero.jpeg";
 
@@ -23,6 +26,26 @@ const trustItems = [
 ];
 
 export default function HomeHero({ hasActiveFilters, resultsCount }) {
+  const reduceMotion = useReducedMotion();
+
+  const reveal = (delay = 0, distance = 16) => ({
+    initial: reduceMotion
+      ? false
+      : {
+          opacity: 0,
+          y: distance,
+        },
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+    transition: {
+      duration: 0.7,
+      delay: reduceMotion ? 0 : delay,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  });
+
   return (
     <section
       className="
@@ -32,115 +55,165 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
       "
     >
       {/* Hintergrund */}
-      <div className="absolute inset-0 -z-10">
-        <Image
-          src={HERO_IMAGE}
-          alt="Ferienhaus am Meer"
-          fill
-          priority
-          fetchPriority="high"
-          quality={78}
-          sizes="100vw"
-          className="
-            object-cover
-            object-[70%_center]
-            sm:object-[68%_center]
-            md:object-[66%_center]
-            lg:object-[62%_center]
-            xl:object-center
-          "
-        />
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <motion.div
+          className="absolute inset-0"
+          initial={
+            reduceMotion
+              ? false
+              : {
+                  scale: 1.035,
+                  opacity: 0.94,
+                }
+          }
+          animate={{
+            scale: 1,
+            opacity: 1,
+          }}
+          transition={{
+            scale: {
+              duration: 1.8,
+              ease: [0.22, 1, 0.36, 1],
+            },
+            opacity: {
+              duration: 0.8,
+            },
+          }}
+        >
+          <Image
+            src={HERO_IMAGE}
+            alt="Ferienhaus am Meer"
+            fill
+            priority
+            fetchPriority="high"
+            quality={78}
+            sizes="100vw"
+            className="
+              object-cover
 
-        {/* Mobile */}
+              object-[72%_center]
+
+              sm:object-[69%_center]
+
+              md:object-[66%_center]
+
+              lg:object-[63%_center]
+
+              xl:object-center
+            "
+          />
+        </motion.div>
+
+        {/* Mobile Overlay */}
         <div
           className="
             absolute inset-0
+
             bg-gradient-to-b
             from-white/95
-            via-white/80
-            via-60%
-            to-[#07131f]/95
+            via-white/82
+            via-[58%]
+            to-[#07131f]/96
+
             md:hidden
           "
         />
 
-        {/* Tablet / Desktop */}
+        {/* Tablet / Desktop Overlay */}
         <div
           className="
-            absolute inset-0 hidden md:block
-            bg-gradient-to-r
-            from-white/98
-            via-white/82
-            via-50%
-            to-white/5
+            absolute inset-0
+            hidden
+
+            md:block
+            md:bg-gradient-to-r
+            md:from-white/98
+            md:via-white/86
+            md:via-[52%]
+            md:to-white/5
           "
         />
 
+        {/* Unterer Verlauf Desktop */}
         <div
           className="
-            absolute inset-0 hidden md:block
-            bg-gradient-to-t
-            from-[#07131f]/90
-            via-[#07131f]/10
-            to-transparent
+            absolute inset-0
+            hidden
+
+            md:block
+            md:bg-gradient-to-t
+            md:from-[#07131f]/94
+            md:via-[#07131f]/12
+            md:via-[28%]
+            md:to-transparent
           "
         />
       </div>
 
-      {/* Inhalt */}
+      {/* Gesamter Hero-Inhalt */}
       <div
         className="
-          mx-auto flex w-full max-w-7xl flex-col
+          mx-auto
+          flex
+          w-full
+          max-w-[1440px]
+          flex-col
+
           px-4
-          pb-5
-          pt-24
+          pb-4
+          pt-20
 
           sm:px-6
           sm:pb-6
-          sm:pt-28
+          sm:pt-24
 
-          md:min-h-[720px]
+          md:min-h-[clamp(720px,92svh,900px)]
           md:px-8
           md:pb-7
-          md:pt-28
+          md:pt-24
 
-          lg:min-h-[760px]
+          lg:min-h-[clamp(740px,92svh,920px)]
           lg:px-10
           lg:pb-8
-          lg:pt-32
+          lg:pt-28
 
-          xl:min-h-[min(920px,100svh)]
+          xl:px-12
         "
       >
-        {/* Hero Text */}
+        {/* Hauptinhalt */}
         <div
           className="
-            flex flex-1 items-start
-            pt-8
+            flex
+            flex-1
+            items-start
 
-            sm:pt-10
+            py-8
+
+            sm:py-10
 
             md:items-center
-            md:pt-0
+            md:py-12
 
-            lg:py-10
-
-            xl:py-12
+            lg:py-14
           "
         >
           <div
             className="
               w-full
-              max-w-[560px]
+              max-w-[570px]
 
-              sm:max-w-[600px]
+              sm:max-w-[610px]
 
-              md:max-w-[620px]
+              md:max-w-[630px]
 
               lg:max-w-[680px]
+
+              xl:max-w-[720px]
             "
           >
-            <p
+            {/* Eyebrow */}
+            <motion.p
+              {...reveal(0.05, 10)}
               className="
                 text-[10px]
                 font-bold
@@ -149,34 +222,40 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                 text-[#ad8d47]
 
                 sm:text-[11px]
-                sm:tracking-[0.3em]
+                sm:tracking-[0.28em]
 
                 md:text-xs
-                md:tracking-[0.34em]
+                md:tracking-[0.32em]
               "
             >
               Nordsee · Ostsee · Ferienunterkünfte
-            </p>
+            </motion.p>
 
-            <h1
+            {/* Überschrift */}
+            <motion.h1
+              {...reveal(0.12, 18)}
               className="
-                mt-4
+                mt-3
+
                 font-serif
                 font-semibold
-                leading-[0.92]
-                tracking-[-0.05em]
+                leading-[0.94]
+                tracking-[-0.045em]
                 text-[#071b31]
 
-                text-[clamp(3rem,14vw,4.6rem)]
+                text-[clamp(2.65rem,13vw,4.15rem)]
 
-                sm:text-[clamp(3.8rem,10vw,5.2rem)]
+                sm:mt-4
+                sm:text-[clamp(3.6rem,10vw,4.8rem)]
 
-                md:text-[clamp(4.2rem,8vw,5.5rem)]
+                md:text-[clamp(4rem,7.5vw,5.4rem)]
 
-                lg:text-[clamp(4.6rem,6.5vw,6rem)]
+                lg:text-[clamp(4.5rem,6vw,5.9rem)]
+
+                xl:text-[6rem]
               "
             >
-              Deine Auszeit
+              <span className="block">Deine Auszeit</span>
 
               <span
                 className="
@@ -188,22 +267,25 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
               >
                 am Meer.
               </span>
-            </h1>
+            </motion.h1>
 
-            <p
+            {/* Beschreibung */}
+            <motion.p
+              {...reveal(0.2, 14)}
               className="
                 mt-5
-                max-w-[540px]
+                max-w-[520px]
+
                 text-[14px]
                 leading-6
                 text-[#102033]/80
 
+                sm:max-w-[550px]
                 sm:text-[15px]
                 sm:leading-7
 
-                md:max-w-[600px]
+                md:max-w-[580px]
                 md:text-base
-                md:leading-7
 
                 lg:text-[17px]
                 lg:leading-8
@@ -212,10 +294,11 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
               Entdecke handverlesene Ferienhäuser und Apartments an Nord- und
               Ostsee – persönlich ausgewählt, übersichtlich geplant und perfekt
               für Familie, Hund oder ruhige Tage am Wasser.
-            </p>
+            </motion.p>
 
-            {/* Buttons */}
-            <div
+            {/* Aktionen */}
+            <motion.div
+              {...reveal(0.28, 14)}
               className="
                 mt-6
                 flex
@@ -232,24 +315,34 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                 href="#suche"
                 className="
                   group
+
                   inline-flex
                   min-h-12
                   w-full
                   items-center
                   justify-center
                   gap-3
+
                   rounded-2xl
                   bg-[#e8c375]
+
                   px-5
                   py-3
+
                   text-sm
                   font-extrabold
                   text-[#07131f]
+
                   shadow-[0_18px_50px_rgba(7,19,31,0.18)]
-                  transition
+
+                  transition-all
+                  duration-300
 
                   hover:-translate-y-0.5
                   hover:bg-[#f2d58e]
+                  hover:shadow-[0_22px_55px_rgba(7,19,31,0.23)]
+
+                  active:translate-y-0
 
                   focus-visible:outline-none
                   focus-visible:ring-2
@@ -264,8 +357,12 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
 
                 <ArrowRight
                   className="
-                    h-5 w-5
+                    h-5
+                    w-5
+
                     transition-transform
+                    duration-300
+
                     group-hover:translate-x-1
                   "
                 />
@@ -279,20 +376,31 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                   w-full
                   items-center
                   justify-center
+
                   rounded-2xl
+
                   border
                   border-[#07131f]/15
+
                   bg-white/45
+
                   px-5
                   py-3
+
                   text-sm
                   font-extrabold
                   text-[#07131f]
+
                   backdrop-blur-xl
-                  transition
+
+                  transition-all
+                  duration-300
 
                   hover:-translate-y-0.5
-                  hover:bg-white/70
+                  hover:border-[#07131f]/20
+                  hover:bg-white/75
+
+                  active:translate-y-0
 
                   focus-visible:outline-none
                   focus-visible:ring-2
@@ -311,6 +419,7 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                   className="
                     w-full
                     pt-1
+
                     text-center
                     text-sm
                     font-semibold
@@ -324,56 +433,79 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                   {resultsCount} Treffer
                 </span>
               )}
-            </div>
+            </motion.div>
           </div>
         </div>
 
         {/* Trust Bereich */}
-        <div
+        <motion.div
+          {...reveal(0.4, 18)}
           className="
-            mt-10
             grid
             w-full
             overflow-hidden
+
             rounded-[1.4rem]
+
             border
             border-white/10
+
             bg-[#061421]/92
+
             shadow-[0_24px_70px_rgba(0,0,0,0.28)]
+
             backdrop-blur-2xl
 
-            sm:mt-12
-
-            md:mt-6
             md:grid-cols-3
 
-            lg:max-w-[1000px]
+            lg:max-w-[1050px]
+
+            xl:rounded-[1.6rem]
           "
         >
           {trustItems.map((item, index) => {
             const Icon = item.icon;
 
             return (
-              <div
+              <motion.div
                 key={item.title}
+                initial={
+                  reduceMotion
+                    ? false
+                    : {
+                        opacity: 0,
+                        y: 10,
+                      }
+                }
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  duration: 0.55,
+                  delay: reduceMotion ? 0 : 0.48 + index * 0.07,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 className={`
                   flex
                   min-w-0
                   items-start
                   gap-4
+
                   p-4
+
                   text-white
 
                   sm:p-5
 
                   md:flex-col
                   md:gap-3
-                  md:p-5
+                  md:p-4
 
-                  lg:flex-row
-                  lg:gap-4
                   lg:p-5
 
+                  xl:flex-row
+                  xl:gap-4
                   xl:p-6
 
                   ${
@@ -389,6 +521,7 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                   }
                 `}
               >
+                {/* Icon */}
                 <div
                   className="
                     grid
@@ -396,9 +529,17 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                     w-11
                     shrink-0
                     place-items-center
+
                     rounded-2xl
-                    bg-white/[0.04]
+
+                    bg-white/[0.045]
+
                     text-[#3b9ae8]
+
+                    transition
+                    duration-300
+
+                    hover:bg-white/[0.075]
 
                     lg:h-12
                     lg:w-12
@@ -416,6 +557,7 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                   />
                 </div>
 
+                {/* Text */}
                 <div className="min-w-0">
                   <h3
                     className="
@@ -433,6 +575,7 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                   <p
                     className="
                       mt-1.5
+
                       text-xs
                       leading-5
                       text-white/65
@@ -444,10 +587,10 @@ export default function HomeHero({ hasActiveFilters, resultsCount }) {
                     {item.text}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

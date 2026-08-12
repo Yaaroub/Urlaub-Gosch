@@ -184,6 +184,7 @@ export default function PropertyGridClient({
   controls = true,
   lastMinuteDiscounts = {},
   desktopColumns = 3,
+  initialKuschelwochen = false,
 }) {
   const {
     ready,
@@ -204,6 +205,13 @@ export default function PropertyGridClient({
     onlyLastMinute,
     setOnlyLastMinute,
   ] = useState(false);
+
+  const [
+    onlyKuschelwochen,
+    setOnlyKuschelwochen,
+  ] = useState(
+    Boolean(initialKuschelwochen),
+  );
 
   /*
    * Snapshot für die Favoriten-Sortierung.
@@ -430,6 +438,21 @@ export default function PropertyGridClient({
           );
       }
 
+      /*
+       * Ostsee-Kuschelwochen:
+       * Nur Objekte anzeigen, bei denen
+       * die Teilnahme ausdrücklich aktiviert ist.
+       */
+      if (
+        onlyKuschelwochen
+      ) {
+        base =
+          base.filter(
+            (item) =>
+              item.kuschelwochenEnabled === true,
+          );
+      }
+
       if (
         onlyFavs &&
         ready
@@ -459,6 +482,7 @@ export default function PropertyGridClient({
     }, [
       properties,
       onlyLastMinute,
+      onlyKuschelwochen,
       onlyFavs,
       favFirst,
       ready,
@@ -492,6 +516,18 @@ export default function PropertyGridClient({
       lastMinuteMap,
     ]);
 
+  const kuschelwochenCount =
+    useMemo(
+      () =>
+        properties.filter(
+          (property) =>
+            property.kuschelwochenEnabled === true,
+        ).length,
+      [
+        properties,
+      ],
+    );
+
   return (
     <>
       {controls && (
@@ -503,10 +539,11 @@ export default function PropertyGridClient({
               </p>
 
               <p className="mt-1 text-sm text-slate-500">
-                Sortiere die
+                Filtere die
                 Objekte nach
-                Favoriten oder
-                Last-Minute-Angeboten.
+                Favoriten,
+                Last-Minute-Angeboten
+                oder Ostsee-Kuschelwochen.
               </p>
             </div>
 
@@ -546,6 +583,16 @@ export default function PropertyGridClient({
                 }
                 label={`Last-Minute (${lastMinuteCount})`}
               />
+
+              <SwitchRow
+                checked={
+                  onlyKuschelwochen
+                }
+                onChange={
+                  setOnlyKuschelwochen
+                }
+                label={`Kuschelwochen (${kuschelwochenCount})`}
+              />
             </div>
           </div>
 
@@ -583,6 +630,16 @@ export default function PropertyGridClient({
               <span className="font-semibold text-slate-700">
                 {
                   lastMinuteCount
+                }
+              </span>
+            </span>
+
+            <span className="rounded-full bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200">
+              Kuschelwochen:{" "}
+
+              <span className="font-semibold text-slate-700">
+                {
+                  kuschelwochenCount
                 }
               </span>
             </span>
@@ -720,6 +777,12 @@ export default function PropertyGridClient({
                           property.title
                         }
                       </h3>
+
+                      {property.kuschelwochenEnabled === true && (
+                        <span className="mt-2 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+                          Ostsee-Kuschelwochen
+                        </span>
+                      )}
 
                       {/* STRASSENNAME OHNE HAUSNUMMER */}
 

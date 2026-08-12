@@ -98,6 +98,14 @@ export default async function HomePage(props) {
         ? false
         : undefined;
 
+  const kuschelwochenValue = String(
+    getSingleSearchParam(searchParams, "kuschelwochen") ?? "",
+  );
+
+  const kuschelwochen =
+    kuschelwochenValue === "1" ||
+    kuschelwochenValue === "true";
+
   const amenitiesSelected = getSearchParamArray(
     searchParams,
     "amenity",
@@ -117,6 +125,12 @@ export default async function HomePage(props) {
   const where = {
     AND: [
       baseWhere,
+
+      kuschelwochen
+        ? {
+            kuschelwochenEnabled: true,
+          }
+        : {},
 
       objectName
         ? {
@@ -164,6 +178,9 @@ export default async function HomePage(props) {
         location: true,
         maxPersons: true,
         dogsAllowed: true,
+
+        // Ostsee-Kuschelwochen
+        kuschelwochenEnabled: true,
 
         amenities: {
           select: {
@@ -283,6 +300,7 @@ export default async function HomePage(props) {
         location ||
         persons ||
         amenitiesSelected.length ||
+        kuschelwochen ||
         typeof dogs === "boolean",
     ) || Boolean(arrival && departure);
 
@@ -414,6 +432,11 @@ export default async function HomePage(props) {
                   location,
                   persons,
 
+                  kuschelwochen:
+                    kuschelwochen
+                      ? "1"
+                      : "",
+
                   dogs:
                     dogs === true
                       ? "true"
@@ -544,6 +567,7 @@ export default async function HomePage(props) {
                 items={properties}
                 lastMinuteDiscounts={lastMinuteDiscounts}
                 controls={true}
+                initialKuschelwochen={kuschelwochen}
                 desktopColumns={2}
               />
             )}

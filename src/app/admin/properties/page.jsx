@@ -9,6 +9,7 @@ import {
   Euro,
   Eye,
   Home,
+  Heart,
   Images,
   MapPin,
   Pencil,
@@ -29,6 +30,7 @@ const EMPTY_FORM = {
   location: "",
   maxPersons: 2,
   dogsAllowed: false,
+  kuschelwochenEnabled: true,
   description: "",
   slug: "",
   amenityNames: [],
@@ -123,6 +125,7 @@ export default function AdminPropertiesPage() {
         item.title,
         item.location,
         item.slug,
+        item.kuschelwochenEnabled !== false ? "kuschelwochen" : "",
       ];
 
       return searchableValues.some((value) =>
@@ -380,6 +383,7 @@ export default function AdminPropertiesPage() {
       location: form.location.trim(),
       maxPersons: Number(form.maxPersons) || 2,
       dogsAllowed: Boolean(form.dogsAllowed),
+      kuschelwochenEnabled: Boolean(form.kuschelwochenEnabled),
       description: form.description?.trim() || "",
       slug: form.slug?.trim() || undefined,
       amenities: form.amenityNames,
@@ -513,6 +517,7 @@ export default function AdminPropertiesPage() {
         location: property.location || "",
         maxPersons: property.maxPersons || 2,
         dogsAllowed: Boolean(property.dogsAllowed),
+        kuschelwochenEnabled: property.kuschelwochenEnabled !== false,
         description: property.description || "",
         slug: property.slug || "",
         amenityNames: Array.isArray(property.amenities)
@@ -809,6 +814,56 @@ export default function AdminPropertiesPage() {
 
               Hunde sind in dieser Unterkunft erlaubt
             </label>
+
+            {/* Besondere Angebote */}
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+              <div className="flex items-start gap-3">
+                <span
+                  className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm ring-1 ring-amber-200"
+                  aria-hidden="true"
+                >
+                  <Heart className="h-4 w-4" />
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-950">
+                        Ostsee-Kuschelwochen
+                      </h3>
+
+                      <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">
+                        Ist der Haken gesetzt, nimmt dieses Objekt an den
+                        Ostsee-Kuschelwochen teil und kann über den
+                        entsprechenden Suchfilter gefunden werden.
+                      </p>
+                    </div>
+
+                    <label className="inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 shadow-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.kuschelwochenEnabled}
+                        onChange={(event) =>
+                          setForm((currentForm) => ({
+                            ...currentForm,
+                            kuschelwochenEnabled: event.target.checked,
+                          }))
+                        }
+                        className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                      />
+
+                      Für Kuschelwochen freigeben
+                    </label>
+                  </div>
+
+                  {!editing && form.kuschelwochenEnabled && (
+                    <p className="mt-3 text-[11px] font-medium text-amber-800">
+                      Bei neuen Objekten ist diese Option standardmäßig aktiviert.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
 
             <label className="grid gap-1.5">
               <span className="text-xs font-medium text-slate-600">
@@ -1156,6 +1211,16 @@ export default function AdminPropertiesPage() {
                       ? "erlaubt"
                       : "nicht erlaubt"}
                   </span>
+
+                  {item.kuschelwochenEnabled !== false && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
+                      <Heart
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      Kuschelwochen
+                    </span>
+                  )}
 
                   {item.slug && (
                     <span className="max-w-full truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">

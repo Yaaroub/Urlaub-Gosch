@@ -1,4 +1,5 @@
 // ===== Generator & Datasource ===============================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -26,11 +27,15 @@ model Property {
   lat Float?
   lng Float?
 
-  // Optional (für Filter/SEO, kann später genutzt werden)
+  // Optional (für Filter/SEO)
   region String?
 
-  maxPersons   Int
-  dogsAllowed  Boolean          @default(false)
+  maxPersons  Int
+  dogsAllowed Boolean @default(false)
+
+  // Ostsee-Kuschelwochen
+  kuschelwochenEnabled Boolean @default(true)
+
   amenities    Amenity[]
   pricePeriods PricePeriod[]
   bookings     Booking[]
@@ -60,7 +65,8 @@ model Amenity {
 }
 
 /**
- * Preiszeiten (Ende exklusiv)
+ * Preiszeiten
+ * Ende exklusiv
  */
 model PricePeriod {
   id            Int      @id @default(autoincrement())
@@ -75,7 +81,8 @@ model PricePeriod {
 }
 
 /**
- * Buchung (harte Belegung)
+ * Buchung
+ * Harte Belegung
  */
 model Booking {
   id        Int      @id @default(autoincrement())
@@ -93,7 +100,9 @@ model Booking {
 
 /**
  * Nebenkosten
- * amount in Cent; isDaily = true => pro Nacht, sonst einmalig pro Aufenthalt
+ * amount in Cent
+ * isDaily = true  => pro Nacht
+ * isDaily = false => einmalig pro Aufenthalt
  */
 model ExtraCost {
   id      Int     @id @default(autoincrement())
@@ -109,10 +118,11 @@ model ExtraCost {
  * Bilder der Unterkunft
  */
 model PropertyImage {
-  id         Int      @id @default(autoincrement())
-  url        String
-  alt        String?
-  sort       Int      @default(0)
+  id   Int     @id @default(autoincrement())
+  url  String
+  alt  String?
+  sort Int     @default(0)
+
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId Int
 }
@@ -143,46 +153,65 @@ enum RequestStatus {
   DECLINED
 }
 
+/**
+ * Benutzer
+ */
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  name      String?
-  password  String
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  name     String?
+  password String
+
   favorites Favorite[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+/**
+ * Favoriten
+ */
 model Favorite {
-  id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     Int
+  id Int @id @default(autoincrement())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId Int
 
   @@unique([userId, propertyId])
 }
 
+// ===== Last-Minute ============================================================
+
 enum LastMinuteDiscountType {
   PERCENT
   FIXED
 }
 
+/**
+ * Last-Minute-Angebot
+ */
 model LastMinuteOffer {
-  id         Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId Int
 
   startDate DateTime
   endDate   DateTime
 
-  // Bestehende Angebote bleiben durch den Default automatisch Prozent-Angebote.
+  // Bestehende Angebote bleiben durch den Default
+  // automatisch Prozent-Angebote.
   discountType LastMinuteDiscountType @default(PERCENT)
 
-  // Nur bei PERCENT verwendet, z. B. 20 = 20 % Rabatt.
+  // Nur bei PERCENT verwendet,
+  // z. B. 20 = 20 % Rabatt.
   discount Int @default(0)
 
-  // Nur bei FIXED verwendet, z. B. 25.00 = 25 € Abzug PRO NACHT.
+  // Nur bei FIXED verwendet,
+  // z. B. 25.00 = 25 € Abzug PRO NACHT.
   discountAmount Decimal? @db.Decimal(10, 2)
 
   note      String?
@@ -190,6 +219,8 @@ model LastMinuteOffer {
 
   @@index([propertyId, startDate, endDate])
 }
+
+// ===== Weitere Statuswerte ====================================================
 
 enum BookingStatus {
   PENDING
