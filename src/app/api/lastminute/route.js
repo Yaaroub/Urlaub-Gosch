@@ -1,243 +1,104 @@
-// src/app/api/admin/lastminute/route.js
+// src/app/api/lastminute/route.js
+
 import prisma from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-function toDateOnlyUTC(value) {
-  if (!value) return null;
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate()
-    )
-  );
-}
-
-function normalizeDiscountType(value) {
-  return value === "FIXED" ? "FIXED" : "PERCENT";
-}
-
-function normalizePercent(value) {
-  const percent = Number(value);
-
-  if (
-    !Number.isFinite(percent) ||
-    !Number.isInteger(percent) ||
-    percent < 0 ||
-    percent > 100
-  ) {
-    return null;
-  }
-
-  return percent;
-}
-
-function normalizeFixedAmount(value) {
-  const amount = Number(value);
-
-  if (!Number.isFinite(amount) || amount < 0) {
-    return null;
-  }
-
-  return Math.round(amount * 100) / 100;
-}
-
-async function freshList(propertyId) {
-  return prisma.lastMinuteOffer.findMany({
-    where: { propertyId },
-    orderBy: [{ startDate: "asc" }, { id: "asc" }],
-  });
-}
-
-// GET /api/admin/lastminute?propertyId=123
-export async function GET(req) {
+/**
+ * Öffentliche Last-Minute-API
+ *
+ * Liefert alle noch relevanten Last-Minute-Angebote
+ * inklusive der benötigten Unterkunftsdaten.
+ *
+ * Wird z. B. verwendet von:
+ * - /offers
+ * - LastMinuteTeaser
+ * - PropertyGridClient
+ */
+export async function GET() {
   try {
-    const url = new URL(req.url);
-    const propertyId = Number(url.searchParams.get("propertyId"));
+    const now = new Date();
 
-    if (!propertyId) {
-      return Response.json([], { status: 200 });
-    }
+    const offers = await prisma.lastMinuteOffer.findMany({
+      where: {
+        endDate: {
+          gt: now,
+        },
+      },
 
-    return Response.json(await freshList(propertyId));
-  } catch (error) {
-    console.error("GET /api/admin/lastminute failed:", error);
-    return Response.json(
-      { error: "Fehler beim Laden der Last-Minute-Angebote." },
-      { status: 500 }
-    );
-  }
-}
+      orderBy: [
+        {
+          startDate: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
 
-// POST /api/admin/lastminute
-// Prozent:
-// { propertyId, startDate, endDate, discountType: "PERCENT", discount: 20, note? }
-//
-// Fester Betrag pro Nacht:
-// { propertyId, startDate, endDate, discountType: "FIXED", discountAmount: 25, note? }
-export async function POST(req) {
-  try {
-    const body = await req.json();
+      select: {
+        id: true,
+        propertyId: true,
 
-    const propertyId = Number(body.propertyId);
-    const startDate = toDateOnlyUTC(body.startDate);
-    const endDate = toDateOnlyUTC(body.endDate);
-    const discountType = normalizeDiscountType(body.discountType);
+        startDate: true,
+        endDate: true,
 
-    if (!propertyId || !startDate || !endDate || endDate <= startDate) {
-      return Response.json(
-        { error: "Ungültiger Zeitraum oder ungültiges Objekt." },
-        { status: 400 }
-      );
-    }
+        discountType: true,
+        discount: true,
+        discountAmount: true,
 
-    const data = {
-      propertyId,
-      startDate,
-      endDate,
-      discountType,
-      note: body.note?.trim() || null,
-    };
+        note: true,
 
-    if (discountType === "PERCENT") {
-      const discount = normalizePercent(body.discount);
+        property: {
+          select: {
+            id: true,
+            slug: true,
+            title: true,
 
-      if (discount === null) {
-        return Response.json(
-          { error: "Prozent-Rabatt muss eine ganze Zahl zwischen 0 und 100 sein." },
-          { status: 400 }
-        );
-      }
+            address: true,
+            location: true,
 
-      data.discount = discount;
-      data.discountAmount = null;
-    } else {
-      const discountAmount = normalizeFixedAmount(body.discountAmount);
+            maxPersons: true,
+            dogsAllowed: true,
 
-      if (discountAmount === null) {
-        return Response.json(
-          { error: "Der feste Rabattbetrag muss 0 € oder größer sein." },
-          { status: 400 }
-        );
-      }
+            description: true,
 
-      data.discount = 0;
-      data.discountAmount = discountAmount;
-    }
+            images: {
+              orderBy: {
+                sort: "asc",
+              },
 
-    await prisma.lastMinuteOffer.create({ data });
+              take: 1,
 
-    return Response.json(await freshList(propertyId), { status: 201 });
-  } catch (error) {
-    console.error("POST /api/admin/lastminute failed:", error);
-    return Response.json(
-      { error: "Last-Minute-Angebot konnte nicht angelegt werden." },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT /api/admin/lastminute
-// body: { id, startDate?, endDate?, discountType?, discount?, discountAmount?, note? }
-export async function PUT(req) {
-  try {
-    const body = await req.json();
-    const id = Number(body.id);
-
-    if (!id) {
-      return Response.json({ error: "id fehlt" }, { status: 400 });
-    }
-
-    const existing = await prisma.lastMinuteOffer.findUnique({
-      where: { id },
+              select: {
+                url: true,
+                alt: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    if (!existing) {
-      return Response.json({ error: "Nicht gefunden" }, { status: 404 });
-    }
-
-    const startDate =
-      body.startDate !== undefined
-        ? toDateOnlyUTC(body.startDate)
-        : existing.startDate;
-
-    const endDate =
-      body.endDate !== undefined
-        ? toDateOnlyUTC(body.endDate)
-        : existing.endDate;
-
-    if (!startDate || !endDate || endDate <= startDate) {
-      return Response.json(
-        { error: "Ende muss nach dem Start liegen." },
-        { status: 400 }
-      );
-    }
-
-    const discountType =
-      body.discountType !== undefined
-        ? normalizeDiscountType(body.discountType)
-        : existing.discountType || "PERCENT";
-
-    const data = {
-      startDate,
-      endDate,
-      discountType,
-    };
-
-    if (body.note !== undefined) {
-      data.note = body.note?.trim() || null;
-    }
-
-    if (discountType === "PERCENT") {
-      const rawDiscount =
-        body.discount !== undefined ? body.discount : existing.discount;
-
-      const discount = normalizePercent(rawDiscount);
-
-      if (discount === null) {
-        return Response.json(
-          { error: "Prozent-Rabatt muss eine ganze Zahl zwischen 0 und 100 sein." },
-          { status: 400 }
-        );
-      }
-
-      data.discount = discount;
-      data.discountAmount = null;
-    } else {
-      const rawAmount =
-        body.discountAmount !== undefined
-          ? body.discountAmount
-          : existing.discountAmount;
-
-      const discountAmount = normalizeFixedAmount(rawAmount);
-
-      if (discountAmount === null) {
-        return Response.json(
-          { error: "Der feste Rabattbetrag muss 0 € oder größer sein." },
-          { status: 400 }
-        );
-      }
-
-      data.discount = 0;
-      data.discountAmount = discountAmount;
-    }
-
-    const updated = await prisma.lastMinuteOffer.update({
-      where: { id },
-      data,
+    return Response.json(offers, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
     });
-
-    return Response.json(await freshList(updated.propertyId));
   } catch (error) {
-    console.error("PUT /api/admin/lastminute failed:", error);
+    console.error(
+      "GET /api/lastminute failed:",
+      error
+    );
+
     return Response.json(
-      { error: "Last-Minute-Angebot konnte nicht aktualisiert werden." },
-      { status: 500 }
+      {
+        error:
+          "Last-Minute-Angebote konnten nicht geladen werden.",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
