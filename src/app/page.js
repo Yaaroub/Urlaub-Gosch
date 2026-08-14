@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  ArrowRight,
+  Building2,
+  CalendarCheck2,
+  HeartHandshake,
+  ShieldCheck,
+  Waves,
+} from "lucide-react";
 
 import prisma from "@/lib/db";
 import { buildPropertyWhere } from "@/lib/search-utils";
@@ -12,31 +20,47 @@ import SearchForm from "@/components/SearchForm";
 export const revalidate = 300;
 
 export const metadata = {
-  title: "Ferienwohnungen an der Ostsee",
+  title: "Ferienwohnungen an der Ostsee | Urlaub Gosch",
+
   description:
-    "Ferienwohnungen und Ferienhäuser an der Ostsee finden, Verfügbarkeit prüfen und den Urlaub mit Wetter, Ausflugszielen und regionalen Empfehlungen planen.",
+    "Ferienwohnungen und Ferienhäuser an der Ostsee bei Urlaub Gosch finden. Seit 2004 persönliche Ferienvermietung, Gästebetreuung und über 120 Unterkünfte.",
+
   alternates: {
     canonical: "/",
   },
+
   openGraph: {
-    title: "Ferienwohnungen an der Ostsee | Urlaub-GOSCH",
+    title: "Ferienwohnungen an der Ostsee | Urlaub Gosch",
+
     description:
-      "Freie Ferienunterkünfte an der Ostsee entdecken und den Aufenthalt mit Küstenwetter, Aktivitäten und regionalen Tipps planen.",
+      "Seit 2004 vermittelt und betreut Urlaub Gosch Ferienwohnungen und Ferienhäuser an der Ostsee – persönlich, zuverlässig und mit über 120 Unterkünften.",
+
     type: "website",
     locale: "de_DE",
     url: "/",
+    siteName: "Urlaub Gosch",
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "Ferienwohnungen an der Ostsee | Urlaub-GOSCH",
+
+    title:
+      "Ferienwohnungen an der Ostsee | Urlaub Gosch",
+
     description:
-      "Ferienunterkünfte suchen, Verfügbarkeit prüfen und den Ostseeurlaub mit Wetter und Ausflugszielen planen.",
+      "Ferienunterkünfte an der Ostsee finden – mit persönlicher Gästebetreuung und Erfahrung seit 2004.",
   },
+
   robots: {
     index: true,
     follow: true,
   },
 };
+
+
+/* ============================================================================
+   HELPERS
+============================================================================ */
 
 function getSiteUrl() {
   const value =
@@ -44,52 +68,120 @@ function getSiteUrl() {
     process.env.NEXT_PUBLIC_APP_URL ||
     "";
 
-  return value.trim().replace(/\/$/, "");
+  return value
+    .trim()
+    .replace(/\/$/, "");
 }
 
-function getSingleSearchParam(searchParams, key) {
-  const value = searchParams[key];
-  return Array.isArray(value) ? value[0] : value;
+
+function getSingleSearchParam(
+  searchParams,
+  key,
+) {
+  const value =
+    searchParams[key];
+
+  return Array.isArray(value)
+    ? value[0]
+    : value;
 }
 
-function getSearchParamArray(searchParams, key) {
-  const value = searchParams[key];
 
-  if (!value) return [];
+function getSearchParamArray(
+  searchParams,
+  key,
+) {
+  const value =
+    searchParams[key];
 
-  return Array.isArray(value) ? value : [value];
+  if (!value) {
+    return [];
+  }
+
+  return Array.isArray(value)
+    ? value
+    : [value];
 }
 
-export default async function HomePage(props) {
-  const searchParams = (await props.searchParams) ?? {};
 
-  const arrival = String(
-    getSingleSearchParam(searchParams, "arrival") ?? "",
-  );
+/* ============================================================================
+   HOMEPAGE
+============================================================================ */
 
-  const departure = String(
-    getSingleSearchParam(searchParams, "departure") ?? "",
-  );
+export default async function HomePage(
+  props,
+) {
+  const searchParams =
+    (await props.searchParams) ??
+    {};
 
-  const objectName = String(
-    getSingleSearchParam(searchParams, "objectName") ?? "",
-  ).trim();
 
-  const street = String(
-    getSingleSearchParam(searchParams, "street") ?? "",
-  ).trim();
+  /* --------------------------------------------------------------------------
+     SUCHPARAMETER
+  -------------------------------------------------------------------------- */
 
-  const location = String(
-    getSingleSearchParam(searchParams, "location") ?? "",
-  ).trim();
+  const arrival =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "arrival",
+      ) ?? "",
+    );
 
-  const persons = String(
-    getSingleSearchParam(searchParams, "persons") ?? "",
-  );
 
-  const dogsValue = String(
-    getSingleSearchParam(searchParams, "dogs") ?? "",
-  );
+  const departure =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "departure",
+      ) ?? "",
+    );
+
+
+  const objectName =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "objectName",
+      ) ?? "",
+    ).trim();
+
+
+  const street =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "street",
+      ) ?? "",
+    ).trim();
+
+
+  const location =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "location",
+      ) ?? "",
+    ).trim();
+
+
+  const persons =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "persons",
+      ) ?? "",
+    );
+
+
+  const dogsValue =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "dogs",
+      ) ?? "",
+    );
+
 
   const dogs =
     dogsValue === "true"
@@ -98,29 +190,52 @@ export default async function HomePage(props) {
         ? false
         : undefined;
 
-  const kuschelwochenValue = String(
-    getSingleSearchParam(searchParams, "kuschelwochen") ?? "",
-  );
+
+  const kuschelwochenValue =
+    String(
+      getSingleSearchParam(
+        searchParams,
+        "kuschelwochen",
+      ) ?? "",
+    );
+
 
   const kuschelwochen =
-    kuschelwochenValue === "1" ||
-    kuschelwochenValue === "true";
+    kuschelwochenValue ===
+      "1" ||
+    kuschelwochenValue ===
+      "true";
 
-  const amenitiesSelected = getSearchParamArray(
-    searchParams,
-    "amenity",
-  )
-    .filter(Boolean)
-    .map((amenity) => String(amenity).toLowerCase());
 
-  const baseWhere = buildPropertyWhere({
-    arrival,
-    departure,
-    location,
-    persons,
-    dogs,
-    amenities: amenitiesSelected,
-  });
+  const amenitiesSelected =
+    getSearchParamArray(
+      searchParams,
+      "amenity",
+    )
+      .filter(Boolean)
+      .map((amenity) =>
+        String(
+          amenity,
+        ).toLowerCase(),
+      );
+
+
+  /* --------------------------------------------------------------------------
+     DATENBANKFILTER
+  -------------------------------------------------------------------------- */
+
+  const baseWhere =
+    buildPropertyWhere({
+      arrival,
+      departure,
+      location,
+      persons,
+      dogs,
+
+      amenities:
+        amenitiesSelected,
+    });
+
 
   const where = {
     AND: [
@@ -128,15 +243,19 @@ export default async function HomePage(props) {
 
       kuschelwochen
         ? {
-            kuschelwochenEnabled: true,
+            kuschelwochenEnabled:
+              true,
           }
         : {},
 
       objectName
         ? {
             title: {
-              contains: objectName,
-              mode: "insensitive",
+              contains:
+                objectName,
+
+              mode:
+                "insensitive",
             },
           }
         : {},
@@ -144,154 +263,192 @@ export default async function HomePage(props) {
       street
         ? {
             address: {
-              contains: street,
-              mode: "insensitive",
+              contains:
+                street,
+
+              mode:
+                "insensitive",
             },
           }
         : {},
     ],
   };
 
-  const today = new Date();
+
+  const today =
+    new Date();
+
+
+  /* --------------------------------------------------------------------------
+     DATEN LADEN
+  -------------------------------------------------------------------------- */
 
   const [
     properties,
     allAmenities,
     activeLastMinuteOffers,
     locationRows,
-  ] = await Promise.all([
-    prisma.property.findMany({
-      where,
+  ] =
+    await Promise.all([
+      prisma.property.findMany({
+        where,
 
-      orderBy: {
-        id: "asc",
-      },
-
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-
-        // Straße wird jetzt für jede Objektkarte geladen
-        address: true,
-
-        location: true,
-        maxPersons: true,
-        dogsAllowed: true,
-
-        // Ostsee-Kuschelwochen
-        kuschelwochenEnabled: true,
-
-        amenities: {
-          select: {
-            id: true,
-            name: true,
-          },
-          take: 6,
+        orderBy: {
+          id: "asc",
         },
 
-        images: {
-          orderBy: {
-            sort: "asc",
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+
+          address: true,
+          location: true,
+
+          maxPersons: true,
+          dogsAllowed: true,
+
+          kuschelwochenEnabled:
+            true,
+
+          amenities: {
+            select: {
+              id: true,
+              name: true,
+            },
+
+            take: 6,
           },
-          take: 1,
-          select: {
-            url: true,
-            alt: true,
+
+          images: {
+            orderBy: {
+              sort: "asc",
+            },
+
+            take: 1,
+
+            select: {
+              url: true,
+              alt: true,
+            },
           },
         },
-      },
-    }),
+      }),
 
-    prisma.amenity.findMany({
-      orderBy: {
-        name: "asc",
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    }),
 
-    prisma.lastMinuteOffer.findMany({
-      where: {
-        endDate: {
-          gt: today,
+      prisma.amenity.findMany({
+        orderBy: {
+          name: "asc",
         },
-      },
 
-      select: {
-        propertyId: true,
+        select: {
+          id: true,
+          name: true,
+        },
+      }),
 
-        // Beide Last-Minute-Arten laden
-        discountType: true,
-        discount: true,
-        discountAmount: true,
-      },
-    }),
 
-    // Ortsauswahl unabhängig von den aktiven Filtern laden
-    prisma.property.findMany({
-      select: {
-        location: true,
-      },
-      orderBy: {
-        location: "asc",
-      },
-    }),
-  ]);
+      prisma.lastMinuteOffer.findMany({
+        where: {
+          endDate: {
+            gt: today,
+          },
+        },
 
-  const allLocations = Array.from(
-    new Set(
-      locationRows
-        .map((property) =>
-          String(property.location || "").trim(),
-        )
-        .filter(Boolean),
-    ),
-  ).sort((a, b) =>
-    a.localeCompare(b, "de", {
-      sensitivity: "base",
-    }),
-  );
+        select: {
+          propertyId: true,
 
-  /*
-   * Struktur:
-   *
-   * Prozent:
-   * {
-   *   "21": {
-   *     discountType: "PERCENT",
-   *     discount: 20,
-   *     discountAmount: 0
-   *   }
-   * }
-   *
-   * Fester Betrag:
-   * {
-   *   "21": {
-   *     discountType: "FIXED",
-   *     discount: 0,
-   *     discountAmount: 25
-   *   }
-   * }
-   */
-  const lastMinuteDiscounts = Object.fromEntries(
-    activeLastMinuteOffers.map((offer) => [
-      String(offer.propertyId),
-      {
-        discountType:
-          offer.discountType === "FIXED"
-            ? "FIXED"
-            : "PERCENT",
+          discountType: true,
+          discount: true,
+          discountAmount:
+            true,
+        },
+      }),
 
-        discount: Number(offer.discount) || 0,
 
-        discountAmount:
-          Number(offer.discountAmount) || 0,
-      },
-    ]),
-  );
+      /*
+       * Ortsauswahl immer vollständig laden.
+       * Aktive Suchfilter dürfen die
+       * Ortsauswahl nicht verkleinern.
+       */
+      prisma.property.findMany({
+        select: {
+          location: true,
+        },
+
+        orderBy: {
+          location: "asc",
+        },
+      }),
+    ]);
+
+
+  /* --------------------------------------------------------------------------
+     ORTE
+  -------------------------------------------------------------------------- */
+
+  const allLocations =
+    Array.from(
+      new Set(
+        locationRows
+          .map((property) =>
+            String(
+              property.location ||
+                "",
+            ).trim(),
+          )
+          .filter(Boolean),
+      ),
+    ).sort(
+      (a, b) =>
+        a.localeCompare(
+          b,
+          "de",
+          {
+            sensitivity:
+              "base",
+          },
+        ),
+    );
+
+
+  /* --------------------------------------------------------------------------
+     LAST MINUTE
+  -------------------------------------------------------------------------- */
+
+  const lastMinuteDiscounts =
+    Object.fromEntries(
+      activeLastMinuteOffers.map(
+        (offer) => [
+          String(
+            offer.propertyId,
+          ),
+
+          {
+            discountType:
+              offer.discountType ===
+              "FIXED"
+                ? "FIXED"
+                : "PERCENT",
+
+            discount:
+              Number(
+                offer.discount,
+              ) || 0,
+
+            discountAmount:
+              Number(
+                offer.discountAmount,
+              ) || 0,
+          },
+        ],
+      ),
+    );
+
+
+  /* --------------------------------------------------------------------------
+     SUCHSTATUS
+  -------------------------------------------------------------------------- */
 
   const hasActiveFilters =
     Boolean(
@@ -301,288 +458,1500 @@ export default async function HomePage(props) {
         persons ||
         amenitiesSelected.length ||
         kuschelwochen ||
-        typeof dogs === "boolean",
-    ) || Boolean(arrival && departure);
+        typeof dogs ===
+          "boolean",
+    ) ||
+    Boolean(
+      arrival &&
+        departure,
+    );
 
-  const resultsCount = properties.length;
 
-  const siteUrl = getSiteUrl();
+  const resultsCount =
+    properties.length;
 
-  const structuredData = siteUrl
-    ? {
-        "@context": "https://schema.org",
 
-        "@graph": [
-          {
-            "@type": "WebSite",
-            "@id": `${siteUrl}/#website`,
-            url: `${siteUrl}/`,
-            name: "Urlaub-GOSCH",
-            inLanguage: "de-DE",
+  /* --------------------------------------------------------------------------
+     SEO / GEO / LLM STRUCTURED DATA
+  -------------------------------------------------------------------------- */
 
-            potentialAction: {
-              "@type": "SearchAction",
+  const siteUrl =
+    getSiteUrl();
 
-              target: {
-                "@type": "EntryPoint",
-                urlTemplate:
-                  `${siteUrl}/?location={search_term_string}#unterkuenfte`,
+
+  const structuredData =
+    siteUrl
+      ? {
+          "@context":
+            "https://schema.org",
+
+          "@graph": [
+            {
+              "@type":
+                "Organization",
+
+              "@id":
+                `${siteUrl}/#organization`,
+
+              name:
+                "Urlaub Gosch",
+
+              url:
+                `${siteUrl}/`,
+
+              foundingDate:
+                "2004-04-01",
+
+              description:
+                "Urlaub Gosch ist seit 2004 auf Ferienvermietung, persönliche Gästebetreuung und die Betreuung von Ferienimmobilien an der Ostsee spezialisiert.",
+
+              email:
+                "info@urlaub-gosch.de",
+
+              areaServed: [
+                {
+                  "@type":
+                    "AdministrativeArea",
+
+                  name:
+                    "Schleswig-Holstein",
+                },
+
+                {
+                  "@type":
+                    "Place",
+
+                  name:
+                    "Ostseeküste",
+                },
+              ],
+
+              knowsAbout: [
+                "Ferienvermietung an der Ostsee",
+                "Ferienwohnungen an der Ostsee",
+                "Ferienhäuser an der Ostsee",
+                "Gästebetreuung",
+                "Buchungsmanagement",
+                "Objektbetreuung",
+                "Reinigung und Objektkontrolle",
+                "Wäscheservice",
+                "Hausmeisterservice",
+              ],
+            },
+
+
+            {
+              "@type":
+                "WebSite",
+
+              "@id":
+                `${siteUrl}/#website`,
+
+              url:
+                `${siteUrl}/`,
+
+              name:
+                "Urlaub Gosch",
+
+              inLanguage:
+                "de-DE",
+
+              publisher: {
+                "@id":
+                  `${siteUrl}/#organization`,
               },
 
-              "query-input":
-                "required name=search_term_string",
-            },
-          },
+              potentialAction: {
+                "@type":
+                  "SearchAction",
 
-          {
-            "@type": "CollectionPage",
-            "@id": `${siteUrl}/#ferienunterkuenfte`,
-            url: `${siteUrl}/`,
+                target: {
+                  "@type":
+                    "EntryPoint",
 
-            name:
-              "Ferienwohnungen und Ferienhäuser an der Ostsee",
+                  urlTemplate:
+                    `${siteUrl}/?location={search_term_string}#unterkuenfte`,
+                },
 
-            description:
-              "Ferienunterkünfte an der Ostsee suchen und den Urlaub mit Wetter, Aktivitäten und Informationen zu Küstenregionen planen.",
-
-            inLanguage: "de-DE",
-
-            isPartOf: {
-              "@id": `${siteUrl}/#website`,
+                "query-input":
+                  "required name=search_term_string",
+              },
             },
 
-            mainEntity: {
-              "@type": "ItemList",
 
-              numberOfItems: resultsCount,
+            {
+              "@type":
+                "CollectionPage",
 
-              itemListElement: properties
-                .slice(0, 20)
-                .map((property, index) => ({
-                  "@type": "ListItem",
-                  position: index + 1,
-                  name: property.title,
-                  url:
-                    `${siteUrl}/properties/${property.slug}`,
-                })),
+              "@id":
+                `${siteUrl}/#homepage`,
+
+              url:
+                `${siteUrl}/`,
+
+              name:
+                "Ferienwohnungen und Ferienhäuser an der Ostsee",
+
+              description:
+                "Ferienwohnungen und Ferienhäuser an der Ostsee finden und nach Reisedatum, Ort, Personen, Ausstattung, Hunden und besonderen Angeboten filtern.",
+
+              inLanguage:
+                "de-DE",
+
+              isPartOf: {
+                "@id":
+                  `${siteUrl}/#website`,
+              },
+
+              about: {
+                "@id":
+                  `${siteUrl}/#organization`,
+              },
+
+              publisher: {
+                "@id":
+                  `${siteUrl}/#organization`,
+              },
+
+              mainEntity: {
+                "@type":
+                  "ItemList",
+
+                numberOfItems:
+                  resultsCount,
+
+                itemListElement:
+                  properties
+                    .slice(
+                      0,
+                      20,
+                    )
+                    .map(
+                      (
+                        property,
+                        index,
+                      ) => ({
+                        "@type":
+                          "ListItem",
+
+                        position:
+                          index +
+                          1,
+
+                        name:
+                          property.title,
+
+                        url:
+                          `${siteUrl}/properties/${property.slug}`,
+                      }),
+                    ),
+              },
             },
-          },
-        ],
-      }
-    : null;
+          ],
+        }
+      : null;
+
+
+  /* ==========================================================================
+     RENDER
+  ========================================================================== */
 
   return (
     <>
+      {/* ================================================================
+          STRUCTURED DATA
+      ================================================================ */}
+
       {structuredData ? (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(
-              structuredData,
-            ).replace(/</g, "\\u003c"),
+            __html:
+              JSON.stringify(
+                structuredData,
+              ).replace(
+                /</g,
+                "\\u003c",
+              ),
           }}
         />
       ) : null}
 
-      {/* HERO */}
+
+      {/* ================================================================
+          HERO
+      ================================================================ */}
 
       <HomeHero
-        hasActiveFilters={hasActiveFilters}
-        resultsCount={resultsCount}
+        hasActiveFilters={
+          hasActiveFilters
+        }
+        resultsCount={
+          resultsCount
+        }
       />
 
-      {/* SUCHE */}
+
+      {/* ================================================================
+          SUCHE + SUCHERGEBNISSE
+
+          Bewusst EIN zusammenhängender Bereich.
+          Kein About-, SEO- oder Last-Minute-Inhalt dazwischen.
+      ================================================================ */}
 
       <section
         id="suche"
         aria-labelledby="search-heading"
-        className="bg-[#050e1a]"
+        className="
+          relative
+          overflow-visible
+          bg-[#f7fafc]
+          pb-14
+          md:pb-20
+        "
       >
-        <div className="mx-auto max-w-6xl px-3 py-10 sm:px-4 md:py-12">
-          <div className="rounded-3xl border border-white/10 bg-[#061423]/70 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.55)] backdrop-blur-xl">
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-400/80 to-transparent" />
-
-            <div className="mb-3 flex items-start justify-between gap-3 pt-3">
-              <div>
-                <h2
-                  id="search-heading"
-                  className="text-sm font-semibold text-white"
-                >
-                  Ferienunterkunft finden
-                </h2>
-
-                <p className="text-[11px] text-sky-100/75">
-                  Reisedaten und Wünsche auswählen und
-                  verfügbare Objekte anzeigen.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-sky-500/90 px-3 py-1 text-[11px] font-semibold text-white">
-                DIREKT SUCHEN
-              </span>
-            </div>
-
-            <div className="rounded-2xl bg-white/95 p-3 ring-1 ring-slate-200">
-              <SearchForm
-                initialParams={{
-                  arrival,
-                  departure,
-                  objectName,
-                  street,
-                  location,
-                  persons,
-
-                  kuschelwochen:
-                    kuschelwochen
-                      ? "1"
-                      : "",
-
-                  dogs:
-                    dogs === true
-                      ? "true"
-                      : dogs === false
-                        ? "false"
-                        : "",
-
-                  amenity: amenitiesSelected,
-                }}
-                amenities={allAmenities}
-                locations={allLocations}
-              />
-            </div>
-
-            {hasActiveFilters ? (
-              <p
-                className="mt-3 text-[11px] text-sky-100/70"
-                aria-live="polite"
-              >
-                {resultsCount} passende Unterkunft
-                {resultsCount === 1 ? "" : "en"} gefunden.
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </section>
-
-      {/* UNTERKÜNFTE */}
-
-      <section
-        id="unterkuenfte"
-        aria-labelledby="properties-heading"
-        className="relative overflow-visible bg-[#f7fafc] py-12 md:py-16"
-      >
-        {/* Hintergrund */}
+        {/* weicher Übergang vom Hero */}
 
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
+          className="
+            pointer-events-none
+            absolute
+            inset-0
+            overflow-hidden
+          "
         >
-          <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-sky-100/70 to-transparent" />
+          <div
+            className="
+              absolute
+              inset-x-0
+              top-0
+              h-[420px]
+              bg-gradient-to-b
+              from-[#050e1a]
+              via-[#061423]
+              to-transparent
+            "
+          />
 
-          <div className="absolute left-1/2 top-16 h-[460px] w-[980px] -translate-x-1/2 rounded-full bg-cyan-100/55 blur-3xl" />
+          <div
+            className="
+              absolute
+              left-1/2
+              top-[360px]
+              h-[480px]
+              w-[980px]
+              -translate-x-1/2
+              rounded-full
+              bg-cyan-100/50
+              blur-3xl
+            "
+          />
         </div>
 
-        {/* Überschrift bewusst oberhalb der sticky Rails */}
 
-        <div className="relative mx-auto max-w-[900px] px-4 sm:px-5">
-          <div className="mb-8 md:mb-10">
-            <span className="inline-flex rounded-full border border-sky-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700 shadow-sm">
-              Ostsee-Unterkünfte
-            </span>
+        <div className="relative">
 
-            <h2
-              id="properties-heading"
-              className="mt-4 text-3xl font-bold tracking-tight text-slate-950 md:text-5xl"
+
+          {/* ============================================================
+              SUCHMASKE
+          ============================================================ */}
+
+          <div
+            className="
+              mx-auto
+              max-w-6xl
+              px-3
+              pb-7
+              pt-10
+              sm:px-4
+              md:pb-9
+              md:pt-12
+            "
+          >
+            <div
+              className="
+                overflow-hidden
+                rounded-[1.75rem]
+                border
+                border-white/10
+                bg-[#061423]/95
+                shadow-[0_24px_70px_rgba(0,0,0,0.32)]
+                backdrop-blur-xl
+              "
             >
-              Ferienwohnungen und Ferienhäuser an der Ostsee
-            </h2>
+              {/* obere Akzentlinie */}
 
-            <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-600 md:text-base md:leading-7">
-              Vergleiche verfügbare Ferienunterkünfte in
-              Schleswig-Holstein und finde das passende
-              Ferienhaus oder die passende Ferienwohnung für
-              deinen Ostseeurlaub.
-            </p>
-          </div>
-        </div>
+              <div
+                className="
+                  h-[2px]
+                  w-full
+                  bg-gradient-to-r
+                  from-transparent
+                  via-sky-400/90
+                  to-transparent
+                "
+              />
 
-        {/* Aktivitäten links / Ergebnisse Mitte / Wetter rechts */}
 
-        <HomePlanningRails>
-          <main className="min-w-0">
-            <div className="mb-5 flex flex-col gap-3 rounded-[1.75rem] border border-white bg-white/90 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)] backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700">
-                  Suchergebnisse
-                </p>
+              <div
+                className="
+                  flex
+                  flex-col
+                  gap-4
+                  p-4
+                  sm:p-5
+                  md:p-6
+                "
+              >
+                {/* Überschrift */}
 
-                <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
-                  Passende Ferienobjekte
-                </h3>
-
-                <p
-                  className="mt-2 text-sm text-slate-500"
-                  aria-live="polite"
+                <div
+                  className="
+                    flex
+                    items-start
+                    justify-between
+                    gap-4
+                  "
                 >
-                  {resultsCount} Objekt
-                  {resultsCount === 1 ? "" : "e"}
+                  <div>
+                    <p
+                      className="
+                        text-[10px]
+                        font-bold
+                        uppercase
+                        tracking-[0.2em]
+                        text-sky-300
+                      "
+                    >
+                      Urlaub planen
+                    </p>
 
-                  {hasActiveFilters
-                    ? " entsprechen deiner aktuellen Suche."
-                    : " stehen aktuell zur Auswahl."}
-                </p>
+                    <h2
+                      id="search-heading"
+                      className="
+                        mt-1
+                        text-xl
+                        font-bold
+                        tracking-tight
+                        text-white
+                        sm:text-2xl
+                      "
+                    >
+                      Ferienunterkunft finden
+                    </h2>
+
+                    <p
+                      className="
+                        mt-1
+                        max-w-xl
+                        text-xs
+                        leading-5
+                        text-sky-100/65
+                        sm:text-sm
+                      "
+                    >
+                      Reisedaten und Wünsche
+                      auswählen und direkt die
+                      passenden Ferienwohnungen
+                      und Ferienhäuser anzeigen.
+                    </p>
+                  </div>
+
+
+                  <span
+                    className="
+                      hidden
+                      shrink-0
+                      rounded-full
+                      bg-sky-500/90
+                      px-3
+                      py-1.5
+                      text-[10px]
+                      font-bold
+                      uppercase
+                      tracking-[0.12em]
+                      text-white
+                      sm:inline-flex
+                    "
+                  >
+                    Direkt suchen
+                  </span>
+                </div>
+
+
+                {/* eigentliche Suchmaske */}
+
+                <div
+                  className="
+                    rounded-2xl
+                    bg-white/95
+                    p-3
+                    shadow-inner
+                    ring-1
+                    ring-white
+                    sm:p-4
+                  "
+                >
+                  <SearchForm
+                    initialParams={{
+                      arrival,
+                      departure,
+                      objectName,
+                      street,
+                      location,
+                      persons,
+
+                      kuschelwochen:
+                        kuschelwochen
+                          ? "1"
+                          : "",
+
+                      dogs:
+                        dogs === true
+                          ? "true"
+                          : dogs ===
+                                false
+                            ? "false"
+                            : "",
+
+                      amenity:
+                        amenitiesSelected,
+                    }}
+                    amenities={
+                      allAmenities
+                    }
+                    locations={
+                      allLocations
+                    }
+                  />
+                </div>
+
+
+                {/* aktueller Suchstatus */}
+
+                {hasActiveFilters ? (
+                  <div
+                    className="
+                      flex
+                      flex-wrap
+                      items-center
+                      justify-between
+                      gap-2
+                    "
+                  >
+                    <p
+                      className="
+                        text-xs
+                        text-sky-100/75
+                      "
+                      aria-live="polite"
+                    >
+                      <strong className="font-bold text-white">
+                        {resultsCount}
+                      </strong>{" "}
+                      passende Unterkunft
+                      {resultsCount === 1
+                        ? ""
+                        : "en"}{" "}
+                      gefunden.
+                    </p>
+
+                    <span
+                      className="
+                        rounded-full
+                        bg-white/10
+                        px-2.5
+                        py-1
+                        text-[10px]
+                        font-semibold
+                        text-white/70
+                      "
+                    >
+                      Filter aktiv
+                    </span>
+                  </div>
+                ) : null}
               </div>
+            </div>
+          </div>
 
-              {hasActiveFilters ? (
-                <Link
-                  href="/#unterkuenfte"
-                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-sky-300 hover:text-sky-700"
+
+          {/* ============================================================
+              SUCHERGEBNISSE
+
+              SearchForm scrollt nach Absenden genau hierhin.
+          ============================================================ */}
+
+          <div
+            id="unterkuenfte"
+            className="
+              scroll-mt-24
+              pt-2
+            "
+          >
+            {/* Überschrift */}
+
+            <div
+              className="
+                relative
+                mx-auto
+                max-w-[900px]
+                px-4
+                sm:px-5
+              "
+            >
+              <div className="mb-7 md:mb-9">
+                <div
+                  className="
+                    flex
+                    flex-col
+                    gap-4
+                    sm:flex-row
+                    sm:items-end
+                    sm:justify-between
+                  "
                 >
-                  Filter zurücksetzen
-                </Link>
-              ) : null}
+                  <div>
+                    <span
+                      className="
+                        inline-flex
+                        rounded-full
+                        border
+                        border-sky-200
+                        bg-white
+                        px-3
+                        py-1
+                        text-[10px]
+                        font-bold
+                        uppercase
+                        tracking-[0.18em]
+                        text-sky-700
+                        shadow-sm
+                      "
+                    >
+                      Ostsee-Unterkünfte
+                    </span>
+
+                    <h2
+                      id="properties-heading"
+                      className="
+                        mt-3
+                        text-3xl
+                        font-bold
+                        tracking-tight
+                        text-slate-950
+                        md:text-4xl
+                      "
+                    >
+                      {hasActiveFilters
+                        ? "Passende Ferienobjekte"
+                        : "Ferienwohnungen und Ferienhäuser an der Ostsee"}
+                    </h2>
+
+                    <p
+                      className="
+                        mt-3
+                        max-w-3xl
+                        text-sm
+                        leading-6
+                        text-slate-600
+                        md:text-base
+                        md:leading-7
+                      "
+                    >
+                      {hasActiveFilters
+                        ? `${resultsCount} ${
+                            resultsCount ===
+                            1
+                              ? "Unterkunft entspricht"
+                              : "Unterkünfte entsprechen"
+                          } deiner aktuellen Suche.`
+                        : "Vergleiche unsere Ferienunterkünfte an der Ostsee und finde das passende Ferienhaus oder die passende Ferienwohnung für deinen Urlaub."}
+                    </p>
+                  </div>
+
+
+                  {hasActiveFilters ? (
+                    <Link
+                      href="/#unterkuenfte"
+                      className="
+                        inline-flex
+                        min-h-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-slate-200
+                        bg-white
+                        px-4
+                        py-2.5
+                        text-sm
+                        font-bold
+                        text-slate-700
+                        shadow-sm
+                        transition
+                        hover:border-sky-300
+                        hover:text-sky-700
+                      "
+                    >
+                      Filter zurücksetzen
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
             </div>
 
-            {resultsCount === 0 ? (
-              <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-5 py-10 text-center shadow-sm">
-                <h3 className="text-lg font-bold text-slate-950">
-                  Keine passende Unterkunft gefunden
-                </h3>
 
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
-                  Ändere den Reisezeitraum, den Ort oder einzelne
-                  Ausstattungsmerkmale und starte die Suche
-                  erneut.
-                </p>
+            {/* ========================================================
+                RESULTS + PLANNING RAILS
+            ======================================================== */}
 
-                <Link
-                  href="/#suche"
-                  className="mt-5 inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-sky-700"
+            <HomePlanningRails>
+              <main
+                className="min-w-0"
+                aria-labelledby="properties-heading"
+              >
+                {/* kleine Ergebnisleiste */}
+
+                <div
+                  className="
+                    mb-5
+                    flex
+                    flex-col
+                    gap-3
+                    rounded-[1.5rem]
+                    border
+                    border-white
+                    bg-white/90
+                    p-4
+                    shadow-[0_16px_45px_rgba(15,23,42,0.06)]
+                    backdrop-blur-sm
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                  "
                 >
-                  Suche anpassen
-                </Link>
-              </div>
-            ) : (
-              <PropertyGridClient
-                items={properties}
-                lastMinuteDiscounts={lastMinuteDiscounts}
-                controls={true}
-                initialKuschelwochen={kuschelwochen}
-                desktopColumns={2}
-              />
-            )}
-          </main>
-        </HomePlanningRails>
+                  <div>
+                    <p
+                      className="
+                        text-[10px]
+                        font-bold
+                        uppercase
+                        tracking-[0.18em]
+                        text-sky-700
+                      "
+                    >
+                      Suchergebnisse
+                    </p>
+
+                    <p
+                      className="
+                        mt-1
+                        text-sm
+                        font-semibold
+                        text-slate-800
+                      "
+                      aria-live="polite"
+                    >
+                      {resultsCount} Objekt
+                      {resultsCount === 1
+                        ? ""
+                        : "e"}
+
+                      {hasActiveFilters
+                        ? " entsprechen deiner Auswahl."
+                        : " stehen aktuell zur Auswahl."}
+                    </p>
+                  </div>
+
+
+                  <a
+                    href="#suche"
+                    className="
+                      inline-flex
+                      shrink-0
+                      items-center
+                      text-xs
+                      font-semibold
+                      text-sky-700
+                      transition
+                      hover:text-sky-900
+                    "
+                  >
+                    Suche anpassen
+                  </a>
+                </div>
+
+
+                {/* keine Ergebnisse */}
+
+                {resultsCount ===
+                0 ? (
+                  <div
+                    className="
+                      rounded-[1.75rem]
+                      border
+                      border-dashed
+                      border-slate-300
+                      bg-white
+                      px-5
+                      py-10
+                      text-center
+                      shadow-sm
+                    "
+                  >
+                    <h3
+                      className="
+                        text-lg
+                        font-bold
+                        text-slate-950
+                      "
+                    >
+                      Keine passende
+                      Unterkunft gefunden
+                    </h3>
+
+                    <p
+                      className="
+                        mx-auto
+                        mt-2
+                        max-w-xl
+                        text-sm
+                        leading-6
+                        text-slate-600
+                      "
+                    >
+                      Ändere den
+                      Reisezeitraum, den Ort,
+                      die Personenzahl oder
+                      einzelne
+                      Ausstattungsmerkmale.
+                    </p>
+
+                    <a
+                      href="#suche"
+                      className="
+                        mt-5
+                        inline-flex
+                        min-h-11
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-sky-600
+                        px-5
+                        py-3
+                        text-sm
+                        font-bold
+                        text-white
+                        transition
+                        hover:bg-sky-700
+                      "
+                    >
+                      Suche anpassen
+                    </a>
+                  </div>
+                ) : (
+                  <PropertyGridClient
+                    items={
+                      properties
+                    }
+                    lastMinuteDiscounts={
+                      lastMinuteDiscounts
+                    }
+                    controls={
+                      true
+                    }
+                    initialKuschelwochen={
+                      kuschelwochen
+                    }
+                    desktopColumns={
+                      2
+                    }
+                  />
+                )}
+              </main>
+            </HomePlanningRails>
+          </div>
+        </div>
       </section>
 
-      {/* LAST MINUTE */}
+
+      {/* ================================================================
+          LAST MINUTE
+
+          Erst NACH Suche und Suchergebnissen.
+      ================================================================ */}
 
       <section
         aria-label="Last-Minute-Angebote"
-        className="bg-white"
+        className="
+          border-t
+          border-slate-100
+          bg-white
+        "
       >
-        <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <div
+          className="
+            mx-auto
+            max-w-6xl
+            px-4
+            py-10
+            md:py-14
+          "
+        >
           <LazyLastMinuteTeaser />
+        </div>
+      </section>
+
+
+      {/* ================================================================
+          ÜBER URLAUB GOSCH
+          SEO + GEO + LLM
+
+          Bewusst NACH den Ferienobjekten.
+      ================================================================ */}
+
+      <section
+        aria-labelledby="about-home-heading"
+        className="
+          border-t
+          border-slate-100
+          bg-[#f7fafc]
+        "
+      >
+        <div
+          className="
+            mx-auto
+            max-w-6xl
+            px-4
+            py-14
+            sm:px-5
+            md:py-20
+          "
+        >
+          <div
+            className="
+              grid
+              gap-8
+              lg:grid-cols-[1.1fr_0.9fr]
+              lg:items-center
+              lg:gap-14
+            "
+          >
+            {/* TEXT */}
+
+            <div>
+              <div
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-full
+                  border
+                  border-[#ead7b4]
+                  bg-[#fffaf1]
+                  px-3
+                  py-1.5
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-[0.16em]
+                  text-[#9a6b25]
+                "
+              >
+                <Waves
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5"
+                />
+
+                Seit 2004 an der Ostsee
+              </div>
+
+
+              <h2
+                id="about-home-heading"
+                className="
+                  mt-4
+                  max-w-3xl
+                  text-2xl
+                  font-bold
+                  tracking-tight
+                  text-slate-950
+                  sm:text-3xl
+                  md:text-4xl
+                "
+              >
+                Urlaub Gosch –
+                Ferienvermietung und
+                persönliche
+                Gästebetreuung an der
+                Ostsee
+              </h2>
+
+
+              <p
+                className="
+                  mt-4
+                  max-w-3xl
+                  text-sm
+                  leading-7
+                  text-slate-600
+                  md:text-base
+                  md:leading-8
+                "
+              >
+                Urlaub Gosch ist seit
+                2004 auf
+                Ferienwohnungen und
+                Ferienhäuser an der
+                Ostsee spezialisiert.
+                Wir betreuen mehr als
+                120
+                Ferienunterkünfte und
+                verbinden komfortable
+                digitale
+                Buchungsprozesse mit
+                persönlicher
+                Erreichbarkeit und
+                zuverlässigen Abläufen
+                vor Ort.
+              </p>
+
+
+              <p
+                className="
+                  mt-3
+                  max-w-3xl
+                  text-sm
+                  leading-7
+                  text-slate-600
+                "
+              >
+                Für Gäste begleiten
+                wir Buchung, Anreise
+                und Aufenthalt.
+                Eigentümer
+                unterstützen wir unter
+                anderem bei
+                Buchungsmanagement,
+                Gästekommunikation,
+                Reinigung,
+                Wäscheservice,
+                Objektkontrolle und
+                Hausmeisterservice.
+              </p>
+
+
+              <div
+                className="
+                  mt-6
+                  flex
+                  flex-wrap
+                  items-center
+                  gap-3
+                "
+              >
+                <Link
+                  href="/about"
+                  className="
+                    group
+                    inline-flex
+                    min-h-11
+                    items-center
+                    gap-2
+                    rounded-full
+                    bg-[#07131f]
+                    px-5
+                    py-2.5
+                    text-sm
+                    font-bold
+                    text-white
+                    transition
+                    hover:bg-slate-800
+                  "
+                >
+                  Mehr über Urlaub
+                  Gosch
+
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="
+                      h-4
+                      w-4
+                      transition
+                      group-hover:translate-x-0.5
+                    "
+                  />
+                </Link>
+
+
+                <Link
+                  href="/contact"
+                  className="
+                    inline-flex
+                    min-h-11
+                    items-center
+                    rounded-full
+                    border
+                    border-slate-200
+                    bg-white
+                    px-5
+                    py-2.5
+                    text-sm
+                    font-bold
+                    text-slate-700
+                    transition
+                    hover:border-slate-300
+                    hover:text-slate-950
+                  "
+                >
+                  Kontakt
+                </Link>
+              </div>
+            </div>
+
+
+            {/* TRUST CARDS */}
+
+            <div
+              className="
+                grid
+                gap-3
+                sm:grid-cols-3
+                lg:grid-cols-1
+              "
+            >
+              <article
+                className="
+                  flex
+                  items-start
+                  gap-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  p-4
+                  shadow-sm
+                "
+              >
+                <span
+                  className="
+                    grid
+                    h-10
+                    w-10
+                    shrink-0
+                    place-items-center
+                    rounded-full
+                    bg-[#fff4df]
+                    text-[#9a6b25]
+                  "
+                >
+                  <ShieldCheck
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                  />
+                </span>
+
+                <div>
+                  <p
+                    className="
+                      font-bold
+                      text-slate-950
+                    "
+                  >
+                    Seit 2004
+                  </p>
+
+                  <p
+                    className="
+                      mt-0.5
+                      text-xs
+                      leading-5
+                      text-slate-500
+                    "
+                  >
+                    Mehr als zwei
+                    Jahrzehnte Erfahrung
+                    in der
+                    Ferienvermietung.
+                  </p>
+                </div>
+              </article>
+
+
+              <article
+                className="
+                  flex
+                  items-start
+                  gap-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  p-4
+                  shadow-sm
+                "
+              >
+                <span
+                  className="
+                    grid
+                    h-10
+                    w-10
+                    shrink-0
+                    place-items-center
+                    rounded-full
+                    bg-[#fff4df]
+                    text-[#9a6b25]
+                  "
+                >
+                  <Building2
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                  />
+                </span>
+
+                <div>
+                  <p
+                    className="
+                      font-bold
+                      text-slate-950
+                    "
+                  >
+                    120+ Unterkünfte
+                  </p>
+
+                  <p
+                    className="
+                      mt-0.5
+                      text-xs
+                      leading-5
+                      text-slate-500
+                    "
+                  >
+                    Ferienwohnungen und
+                    Ferienhäuser in
+                    attraktiven
+                    Ostseeregionen.
+                  </p>
+                </div>
+              </article>
+
+
+              <article
+                className="
+                  flex
+                  items-start
+                  gap-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  p-4
+                  shadow-sm
+                "
+              >
+                <span
+                  className="
+                    grid
+                    h-10
+                    w-10
+                    shrink-0
+                    place-items-center
+                    rounded-full
+                    bg-[#fff4df]
+                    text-[#9a6b25]
+                  "
+                >
+                  <HeartHandshake
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                  />
+                </span>
+
+                <div>
+                  <p
+                    className="
+                      font-bold
+                      text-slate-950
+                    "
+                  >
+                    Persönlich betreut
+                  </p>
+
+                  <p
+                    className="
+                      mt-0.5
+                      text-xs
+                      leading-5
+                      text-slate-500
+                    "
+                  >
+                    Persönlicher
+                    Ansprechpartner für
+                    Gäste und
+                    Eigentümer.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* ================================================================
+          SERVICE
+      ================================================================ */}
+
+      <section
+        aria-labelledby="service-home-heading"
+        className="
+          border-t
+          border-slate-100
+          bg-white
+        "
+      >
+        <div
+          className="
+            mx-auto
+            max-w-6xl
+            px-4
+            py-14
+            sm:px-5
+            md:py-18
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              gap-7
+              lg:flex-row
+              lg:items-end
+              lg:justify-between
+            "
+          >
+            <div className="max-w-3xl">
+              <p
+                className="
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                  text-[#9a6b25]
+                "
+              >
+                Persönlicher Service
+              </p>
+
+              <h2
+                id="service-home-heading"
+                className="
+                  mt-3
+                  text-2xl
+                  font-bold
+                  tracking-tight
+                  text-slate-950
+                  md:text-3xl
+                "
+              >
+                Von der Suche bis zur
+                Anreise gut begleitet
+              </h2>
+
+              <p
+                className="
+                  mt-3
+                  max-w-2xl
+                  text-sm
+                  leading-7
+                  text-slate-600
+                  md:text-base
+                "
+              >
+                Urlaub Gosch verbindet
+                digitale Buchungswege
+                mit persönlicher
+                Betreuung rund um
+                Unterkunft, Buchung,
+                Anreise und
+                Aufenthalt.
+              </p>
+            </div>
+
+
+            <Link
+              href="/about"
+              className="
+                group
+                inline-flex
+                min-h-11
+                shrink-0
+                items-center
+                gap-2
+                text-sm
+                font-bold
+                text-slate-950
+              "
+            >
+              Leistungen kennenlernen
+
+              <ArrowRight
+                aria-hidden="true"
+                className="
+                  h-4
+                  w-4
+                  transition
+                  group-hover:translate-x-0.5
+                "
+              />
+            </Link>
+          </div>
+
+
+          <div
+            className="
+              mt-7
+              grid
+              gap-3
+              sm:grid-cols-3
+            "
+          >
+            <article
+              className="
+                rounded-2xl
+                border
+                border-slate-200
+                bg-[#f8fafc]
+                p-5
+              "
+            >
+              <CalendarCheck2
+                aria-hidden="true"
+                className="
+                  h-5
+                  w-5
+                  text-sky-700
+                "
+              />
+
+              <h3
+                className="
+                  mt-4
+                  font-bold
+                  text-slate-950
+                "
+              >
+                Buchung & Anreise
+              </h3>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  leading-6
+                  text-slate-500
+                "
+              >
+                Klare Informationen
+                und flexible Anreise
+                über das
+                Schlüsseltresor-System.
+              </p>
+            </article>
+
+
+            <article
+              className="
+                rounded-2xl
+                border
+                border-slate-200
+                bg-[#f8fafc]
+                p-5
+              "
+            >
+              <HeartHandshake
+                aria-hidden="true"
+                className="
+                  h-5
+                  w-5
+                  text-sky-700
+                "
+              />
+
+              <h3
+                className="
+                  mt-4
+                  font-bold
+                  text-slate-950
+                "
+              >
+                Persönlicher Kontakt
+              </h3>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  leading-6
+                  text-slate-500
+                "
+              >
+                Ansprechpartner vor
+                und während des
+                Aufenthalts für Fragen
+                rund um den Urlaub.
+              </p>
+            </article>
+
+
+            <article
+              className="
+                rounded-2xl
+                border
+                border-slate-200
+                bg-[#f8fafc]
+                p-5
+              "
+            >
+              <ShieldCheck
+                aria-hidden="true"
+                className="
+                  h-5
+                  w-5
+                  text-sky-700
+                "
+              />
+
+              <h3
+                className="
+                  mt-4
+                  font-bold
+                  text-slate-950
+                "
+              >
+                Verlässliche Betreuung
+              </h3>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  leading-6
+                  text-slate-500
+                "
+              >
+                Sorgfältig
+                vorbereitete
+                Unterkünfte und
+                koordinierte Abläufe
+                rund um Reinigung und
+                Objektbetreuung.
+              </p>
+            </article>
+          </div>
         </div>
       </section>
     </>

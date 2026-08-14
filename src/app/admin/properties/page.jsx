@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+
+import MarkdownContent from "@/components/MarkdownContent";
 import {
   Calendar,
   CalendarDays,
@@ -865,24 +867,123 @@ export default function AdminPropertiesPage() {
               </div>
             </div>
 
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-slate-600">
-                Beschreibung
-              </span>
+            {/* Beschreibung / Markdown */}
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Beschreibung
+                  </h3>
 
-              <textarea
-                rows={5}
-                className="min-h-32 w-full resize-y rounded-xl border border-slate-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-400/30"
-                value={form.description}
-                onChange={(event) =>
-                  setForm((currentForm) => ({
-                    ...currentForm,
-                    description: event.target.value,
-                  }))
-                }
-                placeholder="Beschreibung der Unterkunft …"
-              />
-            </label>
+                  <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">
+                    Markdown wird unterstützt. Die Vorschau zeigt direkt,
+                    wie der Text später auf der Objektseite erscheint.
+                  </p>
+                </div>
+
+                <span className="inline-flex w-fit rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 ring-1 ring-slate-200">
+                  Markdown
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5" aria-label="Markdown-Kurzhilfe">
+                <span className="rounded-md bg-white px-2 py-1 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">
+                  **fett**
+                </span>
+
+                <span className="rounded-md bg-white px-2 py-1 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">
+                  *kursiv*
+                </span>
+
+                <span className="rounded-md bg-white px-2 py-1 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">
+                  ## Überschrift
+                </span>
+
+                <span className="rounded-md bg-white px-2 py-1 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">
+                  - Liste
+                </span>
+
+                <span className="rounded-md bg-white px-2 py-1 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">
+                  [Link](URL)
+                </span>
+
+                <span className="rounded-md bg-white px-2 py-1 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">
+                  &gt; Hinweis
+                </span>
+              </div>
+
+              <div
+                className={[
+                  "grid gap-4",
+                  form.description?.trim()
+                    ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+                    : "grid-cols-1",
+                ].join(" ")}
+              >
+                <label className="grid min-w-0 gap-1.5">
+                  <span className="text-xs font-medium text-slate-600">
+                    Markdown bearbeiten
+                  </span>
+
+                  <textarea
+                    rows={12}
+                    className="min-h-64 w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-3 font-mono text-sm leading-6 text-slate-900 shadow-sm outline-none transition placeholder:font-sans placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-400/30"
+                    value={form.description}
+                    onChange={(event) =>
+                      setForm((currentForm) => ({
+                        ...currentForm,
+                        description: event.target.value,
+                      }))
+                    }
+                    placeholder={`Gemütliche Ferienwohnung **direkt an der Ostsee**.
+
+## Das erwartet Sie
+
+- WLAN
+- Balkon
+- Parkplatz
+
+> Ideal für einen entspannten Ostseeurlaub.`}
+                  />
+                </label>
+
+                {form.description?.trim() && (
+                  <section
+                    aria-labelledby="description-preview-title"
+                    className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+                      <div>
+                        <h4
+                          id="description-preview-title"
+                          className="text-xs font-semibold text-slate-800"
+                        >
+                          Live-Vorschau
+                        </h4>
+
+                        <p className="mt-0.5 text-[10px] text-slate-400">
+                          Darstellung auf der öffentlichen Objektseite
+                        </p>
+                      </div>
+
+                      <Eye
+                        className="h-4 w-4 shrink-0 text-slate-400"
+                        aria-hidden="true"
+                      />
+                    </div>
+
+                    <div className="max-h-[34rem] overflow-y-auto p-4 sm:p-5">
+                      <MarkdownContent content={form.description} />
+                    </div>
+                  </section>
+                )}
+              </div>
+
+              <p className="text-[11px] leading-5 text-slate-500">
+                Bestehende Beschreibungen ohne Markdown funktionieren weiterhin
+                als normaler Fließtext. Rohes HTML wird nicht benötigt.
+              </p>
+            </div>
 
             {/* Ausstattung */}
             <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">

@@ -19,10 +19,21 @@ import {
   Wrench,
 } from "lucide-react";
 
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "https://www.urlaub-gosch.de"
+)
+  .trim()
+  .replace(/\/+$/, "");
+
+const ABOUT_PATH = "/about";
+const ABOUT_URL = `${SITE_URL}${ABOUT_PATH}`;
+
 export const metadata = {
-  title: "Über uns | Urlaub Gosch – Ferienvermietung an der Ostsee",
+  title: "Über Urlaub Gosch | Ferienvermietung an der Ostsee seit 2004",
   description:
-    "Urlaub Gosch ist seit 2004 Ihr persönlicher Partner für Ferienwohnungen, Ferienhäuser, Gästebetreuung und professionelle Ferienvermietung an der Ostsee.",
+    "Urlaub Gosch steht seit 2004 für persönliche Ferienvermietung und Objektbetreuung an der Ostsee. Mehr als 120 Ferienwohnungen und Ferienhäuser, Gästebetreuung, Reinigung und Service für Eigentümer.",
 
   keywords: [
     "Urlaub Gosch",
@@ -32,17 +43,18 @@ export const metadata = {
     "Ferienimmobilie vermieten",
     "Objektbetreuung Ostsee",
     "Ferienhausverwaltung Ostsee",
+    "Gästebetreuung Ostsee",
   ],
 
   alternates: {
-    canonical: "/ueber-uns",
+    canonical: ABOUT_PATH,
   },
 
   openGraph: {
-    title: "Über Urlaub Gosch",
+    title: "Über Urlaub Gosch | Ferienvermietung an der Ostsee seit 2004",
     description:
-      "Seit 2004 persönliche Ferienvermietung und professionelle Objektbetreuung an der Ostsee.",
-    url: "/ueber-uns",
+      "Seit 2004 persönliche Ferienvermietung, Gästebetreuung und professionelle Objektbetreuung an der Ostsee – für Gäste und Eigentümer.",
+    url: ABOUT_PATH,
     siteName: "Urlaub Gosch",
     locale: "de_DE",
     type: "website",
@@ -50,14 +62,21 @@ export const metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Über Urlaub Gosch",
+    title: "Über Urlaub Gosch | Seit 2004 an der Ostsee",
     description:
-      "Persönliche Ferienvermietung und professionelle Objektbetreuung an der Ostsee – seit 2004.",
+      "Persönliche Ferienvermietung und professionelle Objektbetreuung an der Ostsee – für Gäste und Eigentümer.",
   },
 
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -163,66 +182,134 @@ const faqs = [
   },
 ];
 
+const serviceOfferCatalog = {
+  "@type": "OfferCatalog",
+  name: "Leistungen von Urlaub Gosch",
+  itemListElement: services.map((service) => ({
+    "@type": "Offer",
+    itemOffered: {
+      "@type": "Service",
+      name: service.title,
+      description: service.text,
+      areaServed: {
+        "@type": "Place",
+        name: "Ostseeküste",
+      },
+    },
+  })),
+};
+
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "@id": "https://www.urlaub-gosch.de/#organization",
+  "@id": `${SITE_URL}/#organization`,
   name: "Urlaub Gosch",
-  url: "https://www.urlaub-gosch.de",
+  alternateName: "Urlaub-GOSCH",
+  url: SITE_URL,
   logo: {
     "@type": "ImageObject",
-    url: "https://www.urlaub-gosch.de/logo.png",
+    url: `${SITE_URL}/urlaub-gosch-logo.png`,
   },
   foundingDate: "2004-04-01",
   description:
     "Urlaub Gosch ist seit 2004 auf Ferienvermietung, Gästebetreuung und die professionelle Betreuung von Ferienimmobilien an der Ostsee spezialisiert.",
   email: "info@urlaub-gosch.de",
-  areaServed: {
-    "@type": "AdministrativeArea",
-    name: "Ostseeküste",
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+    email: "info@urlaub-gosch.de",
+    availableLanguage: ["de"],
   },
+  areaServed: [
+    {
+      "@type": "Place",
+      name: "Ostseeküste",
+    },
+    {
+      "@type": "AdministrativeArea",
+      name: "Schleswig-Holstein",
+    },
+  ],
   knowsAbout: [
     "Ferienvermietung",
     "Ferienwohnungen an der Ostsee",
     "Ferienhäuser an der Ostsee",
-    "Objektbetreuung",
+    "Objektbetreuung von Ferienimmobilien",
     "Gästebetreuung",
     "Buchungsmanagement",
     "Reinigungsservice",
     "Wäscheservice",
     "Hausmeisterservice",
+    "Flexible Anreise",
   ],
+  hasOfferCatalog: serviceOfferCatalog,
   slogan: "Ihr Urlaub. Ihre Immobilie. Unser Service.",
+};
+
+const webSiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  url: SITE_URL,
+  name: "Urlaub Gosch",
+  alternateName: "Urlaub-GOSCH",
+  inLanguage: "de-DE",
+  publisher: {
+    "@id": `${SITE_URL}/#organization`,
+  },
 };
 
 const aboutPageJsonLd = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
-  "@id": "https://www.urlaub-gosch.de/ueber-uns/#webpage",
-  url: "https://www.urlaub-gosch.de/ueber-uns",
+  "@id": `${ABOUT_URL}/#webpage`,
+  url: ABOUT_URL,
   name: "Über Urlaub Gosch",
   headline:
     "Urlaub Gosch – Ferienvermietung und Objektbetreuung an der Ostsee seit 2004",
   description:
-    "Erfahren Sie mehr über Urlaub Gosch, unsere Leistungen, unsere Werte und unsere Betreuung für Gäste und Eigentümer.",
+    "Urlaub Gosch ist seit 2004 in der Ferienvermietung und Objektbetreuung an der Ostsee tätig. Das Unternehmen betreut mehr als 120 Ferienwohnungen und Ferienhäuser und unterstützt Gäste sowie Eigentümer.",
   inLanguage: "de-DE",
   isPartOf: {
-    "@type": "WebSite",
-    "@id": "https://www.urlaub-gosch.de/#website",
-    name: "Urlaub Gosch",
-    url: "https://www.urlaub-gosch.de",
+    "@id": `${SITE_URL}/#website`,
   },
   about: {
-    "@id": "https://www.urlaub-gosch.de/#organization",
+    "@id": `${SITE_URL}/#organization`,
   },
   mainEntity: {
-    "@id": "https://www.urlaub-gosch.de/#organization",
+    "@id": `${SITE_URL}/#organization`,
   },
+  breadcrumb: {
+    "@id": `${ABOUT_URL}/#breadcrumb`,
+  },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": `${ABOUT_URL}/#breadcrumb`,
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Startseite",
+      item: `${SITE_URL}/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Über uns",
+      item: ABOUT_URL,
+    },
+  ],
 };
 
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
+  "@id": `${ABOUT_URL}/#faq`,
+  url: ABOUT_URL,
+  inLanguage: "de-DE",
   mainEntity: faqs.map((faq) => ({
     "@type": "Question",
     name: faq.question,
@@ -243,21 +330,13 @@ export default function AboutPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: safeJsonLd(organizationJsonLd),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: safeJsonLd(aboutPageJsonLd),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: safeJsonLd(faqJsonLd),
+          __html: safeJsonLd([
+            organizationJsonLd,
+            webSiteJsonLd,
+            aboutPageJsonLd,
+            breadcrumbJsonLd,
+            faqJsonLd,
+          ]),
         }}
       />
 
@@ -310,7 +389,7 @@ export default function AboutPage() {
 
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href="/search"
+                    href="/#unterkuenfte"
                     className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#07131f] px-7 py-4 text-sm font-bold text-white shadow-[0_18px_55px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 hover:bg-slate-800"
                   >
                     Unterkunft entdecken
@@ -446,13 +525,17 @@ export default function AboutPage() {
 
             <div>
               <p className="text-xl font-medium leading-9 text-slate-800">
-                Urlaub Gosch ist ein seit 2004 tätiges Unternehmen für
-                Ferienvermietung und Objektbetreuung an der Ostsee.
+                Urlaub Gosch ist eine Ferienvermietung und Objektbetreuung an
+                der Ostsee, gegründet am 1. April 2004. Wir betreuen mehr als
+                120 Ferienwohnungen und Ferienhäuser und sind Ansprechpartner
+                für Gäste und Eigentümer.
               </p>
 
               <p className="mt-5 text-base leading-8 text-slate-600">
-                Wir betreuen mehr als 120 Ferienwohnungen und Ferienhäuser.
-                Dabei verbinden wir digitale Buchungsprozesse mit persönlicher
+                Zu unseren Leistungen gehören Buchungsmanagement,
+                Gästekommunikation, flexible Anreise, Reinigung,
+                Wäscheservice, Objektkontrolle und Hausmeisterservice. Dabei
+                verbinden wir digitale Buchungsprozesse mit persönlicher
                 Erreichbarkeit und zuverlässigen Abläufen vor Ort.
               </p>
 
@@ -646,7 +729,7 @@ export default function AboutPage() {
               </ul>
 
               <Link
-                href="/search"
+                href="/#unterkuenfte"
                 className="group mt-9 inline-flex items-center gap-2 text-sm font-bold text-slate-950"
               >
                 Ferienunterkünfte ansehen
@@ -882,7 +965,7 @@ export default function AboutPage() {
 
               <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link
-                  href="/search"
+                  href="/#unterkuenfte"
                   className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#f4d59d] px-7 py-4 text-sm font-bold text-[#07131f] transition hover:-translate-y-0.5 hover:bg-[#f7dfb3]"
                 >
                   Urlaub finden

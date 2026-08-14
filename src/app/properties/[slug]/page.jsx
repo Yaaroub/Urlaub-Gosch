@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   Dog,
   Euro,
+  Heart,
   Images as ImagesIcon,
   MapPin,
   Users,
@@ -24,6 +25,7 @@ import Gallery from "@/components/Gallery";
 import GoogleMapEmbed from "@/components/GoogleMapEmbed";
 import StickyBookingSidebar from "@/components/StickyBookingSidebar";
 import PropertyPricePeriods from "@/components/PropertyPricePeriods";
+import MarkdownContent from "@/components/MarkdownContent";
 
 // Die Seite wird statisch ausgeliefert
 // und spätestens alle 5 Minuten aktualisiert.
@@ -53,6 +55,293 @@ const compactCurrencyFormatter = new Intl.NumberFormat("de-DE", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
+
+
+/* ============================================================================
+   OSTSEE-KUSCHELWOCHEN
+============================================================================ */
+
+const KUSCHELWOCHEN_PERIODS = [
+  "31.10.2026 – 18.12.2026",
+  "07.01.2027 – 19.03.2027",
+  "30.10.2027 – 17.12.2027",
+];
+
+function NoSmokingIcon({
+  className = "h-4 w-4",
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <path
+        d="M6 15.2H16.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M16.5 13.6V16.8"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M13.5 9.5C13.5 8.3 15 8.1 15 6.9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M5.7 5.7L18.3 18.3"
+        stroke="#f87171"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MobileHeroInfo({
+  ariaLabel,
+  children,
+  content,
+  tone = "default",
+}) {
+  const triggerTone =
+    tone === "rose"
+      ? "bg-rose-600 text-white ring-rose-400/30"
+      : "bg-white/15 text-white ring-white/15";
+
+  return (
+    <details className="group relative sm:hidden">
+      <summary
+        aria-label={ariaLabel}
+        className={`
+          flex
+          h-9
+          min-w-9
+          cursor-pointer
+          list-none
+          items-center
+          justify-center
+          gap-1.5
+          rounded-full
+          px-2.5
+          backdrop-blur-md
+          ring-1
+          transition
+          hover:bg-white/25
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-white
+          [&::-webkit-details-marker]:hidden
+          ${triggerTone}
+        `}
+      >
+        {children}
+      </summary>
+
+      <span
+        role="tooltip"
+        className="
+          pointer-events-none
+          absolute
+          bottom-[calc(100%+9px)]
+          left-1/2
+          z-[80]
+          w-max
+          max-w-[min(280px,calc(100vw-40px))]
+          -translate-x-1/2
+          translate-y-1
+          rounded-xl
+          bg-white
+          px-3
+          py-2
+          text-center
+          text-xs
+          font-semibold
+          leading-5
+          text-slate-800
+          opacity-0
+          shadow-[0_14px_40px_rgba(15,23,42,0.28)]
+          ring-1
+          ring-black/5
+          transition-all
+          duration-150
+          group-hover:translate-y-0
+          group-hover:opacity-100
+          group-focus-within:translate-y-0
+          group-focus-within:opacity-100
+          group-open:translate-y-0
+          group-open:opacity-100
+        "
+      >
+        {content}
+
+        <span
+          aria-hidden="true"
+          className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-white ring-1 ring-black/5"
+        />
+      </span>
+    </details>
+  );
+}
+
+function KuschelwochenHeroBadge() {
+  return (
+    <span className="group/kuschel relative inline-flex basis-full sm:basis-auto">
+      <button
+        type="button"
+        aria-describedby="kuschelwochen-hero-info"
+        className="
+          inline-flex
+          min-h-8
+          items-center
+          gap-1.5
+          rounded-full
+          bg-amber-300
+          px-3
+          py-1.5
+          text-xs
+          font-bold
+          text-amber-950
+          shadow-sm
+          ring-1
+          ring-amber-200/90
+          transition
+          hover:bg-amber-200
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-white
+          focus-visible:ring-offset-2
+          focus-visible:ring-offset-slate-900
+        "
+      >
+        <Heart
+          aria-hidden="true"
+          className="h-3.5 w-3.5 shrink-0"
+          fill="currentColor"
+        />
+
+        Ostsee-Kuschelwochen
+      </button>
+
+      <span
+        id="kuschelwochen-hero-info"
+        role="tooltip"
+        className="
+          pointer-events-none
+          absolute
+          bottom-[calc(100%+10px)]
+          left-0
+          z-[70]
+          w-[min(320px,calc(100vw-48px))]
+          translate-y-1
+          rounded-2xl
+          border
+          border-amber-200
+          bg-white
+          p-3.5
+          text-left
+          text-slate-700
+          opacity-0
+          shadow-[0_20px_60px_rgba(15,23,42,0.28)]
+          transition-all
+          duration-200
+          group-hover/kuschel:pointer-events-auto
+          group-hover/kuschel:translate-y-0
+          group-hover/kuschel:opacity-100
+          group-focus-within/kuschel:pointer-events-auto
+          group-focus-within/kuschel:translate-y-0
+          group-focus-within/kuschel:opacity-100
+        "
+      >
+        <span
+          aria-hidden="true"
+          className="
+            absolute
+            -bottom-2
+            left-7
+            h-4
+            w-4
+            rotate-45
+            border-b
+            border-r
+            border-amber-200
+            bg-white
+          "
+        />
+
+        <span className="relative block">
+          <span className="flex items-center gap-2 text-sm font-bold text-slate-950">
+            <Heart
+              aria-hidden="true"
+              className="h-4 w-4 shrink-0 text-amber-700"
+              fill="currentColor"
+            />
+
+            Ostsee-Kuschelwochen
+          </span>
+
+          <span className="mt-1.5 block text-[11px] leading-[18px] text-slate-600">
+            Genießen Sie unsere attraktiven Ostsee-Kuschelwochen und
+            profitieren Sie von unserem exklusiven Urlaubsangebot.
+          </span>
+
+          <span className="mt-2.5 block rounded-xl bg-amber-50 px-3 py-2 ring-1 ring-amber-100">
+            <strong className="block text-xs leading-5 text-amber-950">
+              7 Nächte buchen – nur 6 Nächte bezahlen
+            </strong>
+
+            <span className="block text-[10px] font-semibold text-amber-700">
+              oder
+            </span>
+
+            <strong className="block text-xs leading-5 text-amber-950">
+              14 Nächte buchen – nur 12 Nächte bezahlen
+            </strong>
+          </span>
+
+          <span className="mt-2.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+            Aktionszeiträume
+          </span>
+
+          <span className="mt-1.5 grid gap-1">
+            {KUSCHELWOCHEN_PERIODS.map((period) => (
+              <span
+                key={period}
+                className="flex items-center gap-2 text-[11px] font-medium leading-4 text-slate-700"
+              >
+                <CalendarDays
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 shrink-0 text-amber-700"
+                />
+
+                {period}
+              </span>
+            ))}
+          </span>
+        </span>
+      </span>
+    </span>
+  );
+}
 
 /* ============================================================================
    LAST-MINUTE
@@ -299,12 +588,47 @@ function getLastMinuteDescription(
 function cleanText(
   value = "",
 ) {
-  return value
+  return String(value || "")
     .replace(
       /\s+/g,
       " ",
     )
     .trim();
+}
+
+/**
+ * Entfernt die wichtigsten Markdown-Zeichen für Meta-Description
+ * und strukturierte Daten. Der sichtbare Inhalt wird weiterhin
+ * vollständig mit MarkdownContent gerendert.
+ */
+function stripMarkdown(
+  value = "",
+) {
+  return cleanText(
+    String(value || "")
+      // Bilder -> Alt-Text
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+      // Links -> sichtbarer Linktext
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      // Überschriften
+      .replace(/^#{1,6}\s+/gm, "")
+      // Blockquotes
+      .replace(/^>\s?/gm, "")
+      // Listenmarker
+      .replace(/^\s*[-*+]\s+/gm, "")
+      .replace(/^\s*\d+[.)]\s+/gm, "")
+      // Fett, kursiv, durchgestrichen, Inline-Code
+      .replace(/(\*\*|__)(.*?)\1/g, "$2")
+      .replace(/(\*|_)(.*?)\1/g, "$2")
+      .replace(/~~(.*?)~~/g, "$1")
+      .replace(/`{1,3}([^`]*)`{1,3}/g, "$1")
+      // Horizontale Linien
+      .replace(/^\s*([-*_])(?:\s*\1){2,}\s*$/gm, "")
+      // Tabellen-Trennzeilen
+      .replace(/^\s*\|?\s*:?-{3,}.*$/gm, "")
+      // Übrig gebliebene Tabellen-Pipes als Leerzeichen
+      .replace(/\|/g, " "),
+  );
 }
 
 function createMetaDescription(
@@ -315,16 +639,69 @@ function createMetaDescription(
     `Ferienunterkunft für bis zu ${property.maxPersons} Personen. ` +
     `Ausstattung, Preise, Verfügbarkeit und Buchungsanfrage ansehen.`;
 
-  const source =
-    cleanText(
+  const description =
+    stripMarkdown(
       property.description,
     ) || fallback;
+
+  const source =
+    property.kuschelwochenEnabled
+      ? `Ostsee-Kuschelwochen: ${description}`
+      : description;
 
   return source.length > 157
     ? `${source
         .slice(0, 157)
         .trimEnd()}…`
     : source;
+}
+
+function containsLocation(
+  value,
+  location,
+) {
+  const haystack =
+    cleanText(value).toLocaleLowerCase(
+      "de-DE",
+    );
+
+  const needle =
+    cleanText(location).toLocaleLowerCase(
+      "de-DE",
+    );
+
+  if (!haystack || !needle) {
+    return false;
+  }
+
+  return haystack.includes(needle);
+}
+
+function getDisplayAddress(
+  address,
+  location,
+) {
+  const cleanAddress =
+    cleanText(address);
+
+  const cleanLocation =
+    cleanText(location);
+
+  if (!cleanAddress) {
+    return cleanLocation;
+  }
+
+  if (
+    !cleanLocation ||
+    containsLocation(
+      cleanAddress,
+      cleanLocation,
+    )
+  ) {
+    return cleanAddress;
+  }
+
+  return `${cleanAddress}, ${cleanLocation}`;
 }
 
 function getSiteUrl() {
@@ -608,6 +985,12 @@ export default async function PropertyPage({
     notFound();
   }
 
+  const displayAddress =
+    getDisplayAddress(
+      property.address,
+      property.location,
+    );
+
   /* --------------------------------------------------------------------------
      PREISZEITEN
   -------------------------------------------------------------------------- */
@@ -886,7 +1269,7 @@ export default async function PropertyPage({
         aria-labelledby="property-title"
         className="relative mx-4 mt-3 overflow-hidden rounded-3xl bg-slate-900 shadow-xl ring-1 ring-black/10"
       >
-        <div className="relative h-80 md:h-[440px]">
+        <div className="relative h-[440px] sm:h-[400px] md:h-[440px]">
           {property.images[0]
             ?.url ? (
             <Image
@@ -914,64 +1297,134 @@ export default async function PropertyPage({
 
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-slate-950/5" />
 
-          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-5 p-6 text-white md:flex-row md:items-end md:justify-between md:p-10">
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-5 p-5 text-white sm:p-6 md:flex-row md:items-end md:justify-between md:p-10">
             <div className="max-w-3xl">
               <p className="mb-2 text-sm font-medium text-white/80">
-                Ferienunterkunft
-                in{" "}
-                {
-                  property.location
-                }
+                Ferienunterkunft an der Ostsee
               </p>
 
               <h1
                 id="property-title"
-                className="text-3xl font-semibold leading-tight tracking-tight drop-shadow-sm md:text-5xl"
+                className="text-3xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:text-4xl md:text-5xl"
               >
                 {
                   property.title
                 }
               </h1>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                {/* STRASSE + ORT */}
+              {/* ============================================================
+                  HERO-INFOS
+                  Mobile: kompakte Icons + Tap/Hover-Tooltip
+                  Desktop: bisherige ausführliche Badges
+              ============================================================ */}
 
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md ring-1 ring-white/15">
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+                {/* ---------------- MOBILE ---------------- */}
+
+                <MobileHeroInfo
+                  ariaLabel="Adresse anzeigen"
+                  content={
+                    displayAddress ||
+                    property.location
+                  }
+                >
+                  <MapPin
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  />
+                </MobileHeroInfo>
+
+                <MobileHeroInfo
+                  ariaLabel={`${property.maxPersons} Personen`}
+                  content={`Bis zu ${property.maxPersons} Personen`}
+                >
+                  <Users
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  />
+
+                  <strong className="text-xs leading-none">
+                    {property.maxPersons}
+                  </strong>
+                </MobileHeroInfo>
+
+                <MobileHeroInfo
+                  ariaLabel={
+                    property.dogsAllowed
+                      ? "Hunde erlaubt"
+                      : "Hunde nicht erlaubt"
+                  }
+                  content={
+                    property.dogsAllowed
+                      ? "Hunde erlaubt"
+                      : "Hunde nicht erlaubt"
+                  }
+                >
+                  <Dog
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  />
+                </MobileHeroInfo>
+
+                <MobileHeroInfo
+                  ariaLabel="Nichtraucher-Unterkunft"
+                  content="Nichtraucher – Rauchen ist in dieser Unterkunft nicht gestattet"
+                >
+                  <NoSmokingIcon className="h-4 w-4" />
+                </MobileHeroInfo>
+
+                {property.kuschelwochenEnabled && (
+                  <MobileHeroInfo
+                    ariaLabel="Ostsee-Kuschelwochen"
+                    content="Ostsee-Kuschelwochen – 7 Nächte buchen, nur 6 bezahlen oder 14 Nächte buchen, nur 12 bezahlen"
+                  >
+                    <Heart
+                      aria-hidden="true"
+                      className="h-4 w-4"
+                      fill="currentColor"
+                    />
+                  </MobileHeroInfo>
+                )}
+
+                {activeLm && (
+                  <MobileHeroInfo
+                    ariaLabel="Last-Minute-Angebot"
+                    content={`Last-Minute: ${getLastMinuteDescription(
+                      activeLm,
+                    )}`}
+                    tone="rose"
+                  >
+                    <span className="text-[11px] font-extrabold leading-none">
+                      {getLastMinuteValueLabel(
+                        activeLm,
+                      )}
+                    </span>
+                  </MobileHeroInfo>
+                )}
+
+                {/* ---------------- DESKTOP / TABLET ---------------- */}
+
+                <span className="hidden items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md ring-1 ring-white/15 sm:inline-flex">
                   <MapPin
                     aria-hidden="true"
                     className="h-4 w-4"
                   />
 
-                  {[
-                    property.address,
-                    property.location,
-                  ]
-                    .filter(
-                      Boolean,
-                    )
-                    .join(
-                      ", ",
-                    )}
+                  {displayAddress}
                 </span>
 
-                {/* PERSONEN */}
-
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md ring-1 ring-white/15">
+                <span className="hidden items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md ring-1 ring-white/15 sm:inline-flex">
                   <Users
                     aria-hidden="true"
                     className="h-4 w-4"
                   />
 
                   Bis{" "}
-                  {
-                    property.maxPersons
-                  }{" "}
+                  {property.maxPersons}{" "}
                   Personen
                 </span>
 
-                {/* HUNDE */}
-
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md ring-1 ring-white/15">
+                <span className="hidden items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md ring-1 ring-white/15 sm:inline-flex">
                   <Dog
                     aria-hidden="true"
                     className="h-4 w-4"
@@ -983,10 +1436,23 @@ export default async function PropertyPage({
                     : "nicht erlaubt"}
                 </span>
 
-                {/* LAST MINUTE */}
+                <span
+                  className="hidden items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md ring-1 ring-white/15 sm:inline-flex"
+                  title="Rauchen ist in dieser Unterkunft nicht gestattet"
+                >
+                  <NoSmokingIcon />
+
+                  Nichtraucher
+                </span>
+
+                {property.kuschelwochenEnabled && (
+                  <span className="hidden sm:inline-flex">
+                    <KuschelwochenHeroBadge />
+                  </span>
+                )}
 
                 {activeLm && (
-                  <span className="inline-flex items-center rounded-full bg-rose-600 px-3 py-1.5 text-xs font-bold shadow-lg">
+                  <span className="hidden items-center rounded-full bg-rose-600 px-3 py-1.5 text-xs font-bold shadow-lg sm:inline-flex">
                     {getLastMinuteValueLabel(
                       activeLm,
                     )}{" "}
@@ -996,7 +1462,7 @@ export default async function PropertyPage({
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex w-full shrink-0 items-center justify-between gap-3 md:w-auto md:justify-end">
               <a
                 href="#galerie"
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
@@ -1038,7 +1504,7 @@ export default async function PropertyPage({
 
       <section
         aria-labelledby="overview-title"
-        className="mx-4 mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-7"
+        className="mx-4 mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
       >
         <h2
           id="overview-title"
@@ -1068,7 +1534,7 @@ export default async function PropertyPage({
           einem Ort.
         </p>
 
-        <dl className="mt-5 grid gap-3 sm:grid-cols-3">
+        <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Kapazität
@@ -1096,7 +1562,7 @@ export default async function PropertyPage({
             </dd>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div className="col-span-2 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100 sm:col-span-1">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Ausstattung
             </dt>
@@ -1150,21 +1616,19 @@ export default async function PropertyPage({
           {property.description && (
             <section
               aria-labelledby="description-title"
-              className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-7"
+              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
             >
               <h2
                 id="description-title"
                 className="text-xl font-semibold text-slate-950"
               >
-                Über diese
-                Unterkunft
+                Über diese Unterkunft
               </h2>
 
-              <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-slate-700">
-                {
-                  property.description
-                }
-              </p>
+              <MarkdownContent
+                content={property.description}
+                className="mt-4"
+              />
             </section>
           )}
 
@@ -1295,46 +1759,25 @@ export default async function PropertyPage({
                 id="location-title"
                 className="text-xl font-semibold text-slate-950"
               >
-                Lage in{" "}
-                {
-                  property.location
-                }
+                Lage & Umgebung
               </h2>
 
-              {property.address ? (
+              {displayAddress ? (
                 <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700">
                   <MapPin className="h-4 w-4 shrink-0 text-sky-600" />
 
-                  {
-                    property.address
-                  }
-                  ,{" "}
-                  {
-                    property.location
-                  }
+                  {displayAddress}
                 </p>
               ) : (
                 <p className="mt-1 text-sm text-slate-600">
-                  Die Karte zeigt
-                  die hinterlegte
-                  Lage der
-                  Unterkunft.
+                  Die Karte zeigt die hinterlegte Lage der Unterkunft.
                 </p>
               )}
             </div>
 
             <GoogleMapEmbed
               query={
-                [
-                  property.address,
-                  property.location,
-                ]
-                  .filter(
-                    Boolean,
-                  )
-                  .join(
-                    ", ",
-                  ) ||
+                displayAddress ||
                 property.location
               }
               title={`Lage von ${property.title} auf Google Maps`}
