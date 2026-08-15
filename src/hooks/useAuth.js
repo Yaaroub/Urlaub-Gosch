@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 
 export default function useAuth() {
@@ -6,26 +7,80 @@ export default function useAuth() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    async function loadUser() {
       try {
-        const r = await fetch("/api/favorites", { cache: "no-store" });
-        if (r.ok) {
-          setUser({ ok: true }); // minimal: wir wissen nur "eingeloggt"
-        } else {
-          setUser(null);
+        const response = await fetch("/api/auth/me", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          if (!cancelled) {
+            setUser(null);
+          }
+
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!cancelled) {
+          setUser(data?.user ?? null);
         }
       } catch {
-        setUser(null);
+        if (!cancelled) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setReady(true);
+        }
       }
-      setReady(true);
-    })();
+    }
+
+    loadUser();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-    window.location.href = "/"; // refresh → raus
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+    } catch {
+      // Auch bei Netzwerkfehler lokal abmelden
+    } finally {
+      setUser(null);
+      window.location.href = "/";
+    }
   }
 
-  return { ready, user, logout };
+  const isLoggedIn = Boolean(user);
+
+  const isStaff =
+    user?.role === "EDITOR" ||
+    user?.role === "ADMIN" ||
+    user?.role === "SUPERADMIN";
+
+  const isAdmin =
+    user?.role === "ADMIN" ||
+    user?.role === "SUPERADMIN";
+
+  const isSuperAdmin =
+    user?.role === "SUPERADMIN";
+
+  return {
+    ready,
+    user,
+    logout,
+
+    isLoggedIn,
+    isStaff,
+    isAdmin,
+    isSuperAdmin,
+  };
 }
