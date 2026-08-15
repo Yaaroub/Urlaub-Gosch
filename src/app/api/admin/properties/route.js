@@ -1,5 +1,10 @@
 import prisma from "@/lib/db";
 
+import {
+  ADMIN_PERMISSIONS,
+  requireAdminPermission,
+} from "@/lib/admin-permissions";
+
 /**
  * Erstellt einen einfachen URL-Slug und sorgt dafür,
  * dass er unter den Properties eindeutig ist.
@@ -18,8 +23,12 @@ async function uniqueSlug(base) {
 
   while (true) {
     const hit = await prisma.property.findUnique({
-      where: { slug },
-      select: { id: true },
+      where: {
+        slug,
+      },
+      select: {
+        id: true,
+      },
     });
 
     if (!hit) {
@@ -32,12 +41,56 @@ async function uniqueSlug(base) {
 }
 
 /**
+ * Einheitliche Antwort bei fehlender Berechtigung.
+ */
+function deny(auth) {
+  return Response.json(
+    {
+      error: auth.error,
+    },
+    {
+      status: auth.status,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    }
+  );
+}
+
+/**
  * GET /api/admin/properties
  *
- * Liefert alle Objekte für die Admin-Übersicht.
+ * Benötigt:
+ * PROPERTIES_VIEW
+ *
+ * Gibt zusätzlich über Header zurück,
+ * ob der Benutzer bearbeiten oder löschen darf.
  */
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = await requireAdminPermission(
+      ADMIN_PERMISSIONS.PROPERTIES_VIEW,
+      request
+    );
+
+    if (!auth.ok) {
+      return deny(auth);
+    }
+
+    const user = auth.user;
+
+    const canEdit =
+      user.role === "SUPERADMIN" ||
+      user.permissions.includes(
+        ADMIN_PERMISSIONS.PROPERTIES_EDIT
+      );
+
+    const canDelete =
+      user.role === "SUPERADMIN" ||
+      user.permissions.includes(
+        ADMIN_PERMISSIONS.PROPERTIES_DELETE
+      );
+
     const items = await prisma.property.findMany({
       orderBy: {
         id: "asc",
@@ -50,13 +103,21 @@ export async function GET() {
         location: true,
         maxPersons: true,
         dogsAllowed: true,
-
-        // Ostsee-Kuschelwochen
         kuschelwochenEnabled: true,
       },
     });
 
-    return Response.json(items);
+    return Response.json(items, {
+      headers: {
+        "Cache-Control": "no-store",
+
+        "X-Admin-Can-Edit":
+          canEdit ? "1" : "0",
+
+        "X-Admin-Can-Delete":
+          canDelete ? "1" : "0",
+      },
+    });
   } catch (error) {
     console.error(
       "GET /api/admin/properties failed:",
@@ -65,7 +126,8 @@ export async function GET() {
 
     return Response.json(
       {
-        error: "Objekte konnten nicht geladen werden.",
+        error:
+          "Objekte konnten nicht geladen werden.",
       },
       {
         status: 500,
@@ -77,26 +139,38 @@ export async function GET() {
 /**
  * POST /api/admin/properties
  *
- * Legt eine neue Unterkunft an.
+ * Benötigt:
+ * PROPERTIES_EDIT
  *
- * Neue Objekte nehmen standardmäßig an den
- * Ostsee-Kuschelwochen teil.
+ * Legt ein neues Objekt an.
  */
-export async function POST(req) {
+export async function POST(request) {
   try {
-    const body = await req.json();
+    const auth = await requireAdminPermission(
+      ADMIN_PERMISSIONS.PROPERTIES_EDIT,
+      request
+    );
+
+    if (!auth.ok) {
+      return deny(auth);
+    }
+
+    const body = await request.json();
 
     const {
       title,
       location,
+
       maxPersons = 2,
+
       dogsAllowed = false,
 
-      // Standardmäßig aktiviert
       kuschelwochenEnabled = true,
 
       description = "",
+
       amenities = [],
+
       slug,
     } = body;
 
@@ -140,64 +214,78 @@ export async function POST(req) {
       );
     }
 
-    const cleanAmenities = Array.isArray(
-      amenities
-    )
-      ? [
-          ...new Set(
-            amenities
-              .map((name) =>
-                String(name || "").trim()
-              )
-              .filter(Boolean)
-          ),
-        ]
-      : [];
+    const cleanAmenities =
+      Array.isArray(amenities)
+        ? [
+            ...new Set(
+              amenities
+                .map((name) =>
+                  String(
+                    name || ""
+                  ).trim()
+                )
+                .filter(Boolean)
+            ),
+          ]
+        : [];
 
     const requestedSlug =
       typeof slug === "string"
         ? slug.trim()
         : "";
 
-    const finalSlug = requestedSlug
-      ? await uniqueSlug(requestedSlug)
-      : await uniqueSlug(cleanTitle);
+    const finalSlug =
+      requestedSlug
+        ? await uniqueSlug(
+            requestedSlug
+          )
+        : await uniqueSlug(
+            cleanTitle
+          );
 
     const created =
       await prisma.property.create({
         data: {
-          title: cleanTitle,
-          location: cleanLocation,
+          title:
+            cleanTitle,
 
-          maxPersons: Math.floor(
-            parsedMaxPersons
-          ),
+          location:
+            cleanLocation,
+
+          maxPersons:
+            Math.floor(
+              parsedMaxPersons
+            ),
 
           dogsAllowed:
             dogsAllowed === true,
 
-          // Ostsee-Kuschelwochen
           kuschelwochenEnabled:
             kuschelwochenEnabled !== false,
 
           description:
-            typeof description === "string" &&
+            typeof description ===
+              "string" &&
             description.trim()
               ? description.trim()
               : null,
 
-          slug: finalSlug,
+          slug:
+            finalSlug,
 
           amenities: {
             connectOrCreate:
-              cleanAmenities.map((name) => ({
-                where: {
-                  name,
-                },
-                create: {
-                  name,
-                },
-              })),
+              cleanAmenities.map(
+                (name) => ({
+                  where: {
+                    name,
+                  },
+
+                  create: {
+                    name,
+                  },
+                })
+              ),
           },
         },
 
@@ -207,10 +295,7 @@ export async function POST(req) {
           location: true,
           maxPersons: true,
           dogsAllowed: true,
-
-          // Wichtig für Admin-UI
           kuschelwochenEnabled: true,
-
           slug: true,
 
           amenities: {
@@ -222,9 +307,17 @@ export async function POST(req) {
         },
       });
 
-    return Response.json(created, {
-      status: 201,
-    });
+    return Response.json(
+      created,
+      {
+        status: 201,
+
+        headers: {
+          "Cache-Control":
+            "no-store",
+        },
+      }
+    );
   } catch (error) {
     console.error(
       "POST /api/admin/properties failed:",
@@ -233,7 +326,8 @@ export async function POST(req) {
 
     return Response.json(
       {
-        error: "Anlegen fehlgeschlagen.",
+        error:
+          "Anlegen fehlgeschlagen.",
       },
       {
         status: 500,

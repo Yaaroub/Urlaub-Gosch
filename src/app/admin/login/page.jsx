@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import {
   LockKeyhole,
   Mail,
@@ -20,38 +21,58 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] =
     useState(false);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("/api/admin/login", {
-        method: "POST",
+      const response = await fetch(
+        "/api/admin/login",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         setError(
           data?.error ||
             "Anmeldung konnte nicht durchgeführt werden."
         );
+
+        return;
+      }
+
+      if (data?.mustChangePassword) {
+        router.replace(
+          "/admin/passwort-aendern"
+        );
+
+        router.refresh();
 
         return;
       }
@@ -70,11 +91,9 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-30">
       <div className="mx-auto flex min-h-[70vh] max-w-md items-center">
-
         <div className="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
 
           <div className="border-b border-slate-100 bg-gradient-to-br from-sky-50 to-white px-7 py-8">
-
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-600/20">
               <ShieldCheck className="h-6 w-6" />
             </div>
@@ -115,7 +134,9 @@ export default function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(event) =>
-                    setEmail(event.target.value)
+                    setEmail(
+                      event.target.value
+                    )
                   }
                   placeholder="name@urlaub-gosch.de"
                   className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
@@ -145,7 +166,9 @@ export default function AdminLoginPage() {
                   required
                   value={password}
                   onChange={(event) =>
-                    setPassword(event.target.value)
+                    setPassword(
+                      event.target.value
+                    )
                   }
                   className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-12 text-sm text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 />
@@ -153,7 +176,9 @@ export default function AdminLoginPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setShowPassword((value) => !value)
+                    setShowPassword(
+                      (value) => !value
+                    )
                   }
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                   aria-label={
@@ -202,7 +227,6 @@ export default function AdminLoginPage() {
           <div className="border-t border-slate-100 bg-slate-50 px-7 py-4 text-center text-xs text-slate-500">
             Geschützter Verwaltungsbereich
           </div>
-
         </div>
       </div>
     </main>

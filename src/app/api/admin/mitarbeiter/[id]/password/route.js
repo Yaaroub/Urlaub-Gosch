@@ -2,82 +2,277 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 
 import prisma from "@/lib/db";
-import { getSuperAdmin } from "@/lib/admin-auth";
 
-function generatePassword() {
-  return crypto.randomBytes(12).toString("base64url");
-}
+import {
+  createSession,
+  sessionCookie,
+} from "@/lib/auth";
 
-export async function POST(request, context) {
-  const admin = await getSuperAdmin(request);
+import {
+  getSuperAdmin,
+} from "@/lib/admin-auth";
 
-  if (!admin) {
-    return Response.json(
-      { error: "Keine Berechtigung." },
-      { status: 403 }
+export async function POST(
+  request,
+  context
+) {
+  const currentUser =
+    await getSuperAdmin(
+      request
     );
-  }
 
-  const params = await context.params;
-  const id = Number(params.id);
-
-  if (!Number.isInteger(id) || id <= 0) {
-    return Response.json(
-      { error: "Ungültige Benutzer-ID." },
-      { status: 400 }
-    );
-  }
-
-  if (id === admin.id) {
+  if (!currentUser) {
     return Response.json(
       {
-        error: "Dein eigenes Passwort änderst du über dein Konto.",
+        error:
+          "Keine Berechtigung.",
       },
-      { status: 400 }
+      {
+        status: 403,
+      }
     );
   }
 
-  const target = await prisma.user.findUnique({
-    where: { id },
-  });
+  const params =
+    await context.params;
+
+  const id =
+    Number(params.id);
+
+  if (
+    !id ||
+    Number.isNaN(id)
+  ) {
+    return Response.json(
+      {
+        error:
+          "Ungültige Benutzer-ID.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  const target =
+    await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
 
   if (!target) {
     return Response.json(
-      { error: "Mitarbeiter wurde nicht gefunden." },
-      { status: 404 }
+      {
+        error:
+          "Mitarbeiter wurde nicht gefunden.",
+      },
+      {
+        status: 404,
+      }
     );
   }
 
-  if (target.role === "SUPERADMIN") {
+  let body = {};
+
+  try {
+    body =
+      await request.json();
+  } catch {
+    body = {};
+  }
+
+  const isSelf =
+    id === currentUser.id;
+
+  let newPassword =
+    String(
+      body?.newPassword || ""
+    );
+
+  let generatedPassword =
+    null;
+
+  // ------------------------------------------------------------
+  // Eigenes Passwort:
+  // aktuelles Passwort erforderlich
+  // ------------------------------------------------------------
+
+  if (isSelf) {
+    const currentPassword =
+      String(
+        body?.currentPassword ||
+          ""
+      );
+
+    if (!currentPassword) {
+      return Response.json(
+        {
+          error:
+            "Bitte dein aktuelles Passwort eingeben.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const valid =
+      await bcrypt.compare(
+        currentPassword,
+        target.password
+      );
+
+    if (!valid) {
+      return Response.json(
+        {
+          error:
+            "Das aktuelle Passwort ist nicht korrekt.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (!newPassword) {
+      return Response.json(
+        {
+          error:
+            "Bitte ein neues Passwort eingeben.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+  }
+
+  // ------------------------------------------------------------
+  // Fremdes Konto:
+  // Passwort kann automatisch generiert werden.
+  // ------------------------------------------------------------
+
+  if (
+    !isSelf &&
+    !newPassword
+  ) {
+    generatedPassword =
+      crypto
+        .randomBytes(15)
+        .toString(
+          "base64url"
+        );
+
+    newPassword =
+      generatedPassword;
+  }
+
+  if (
+    newPassword.length < 10
+  ) {
     return Response.json(
       {
-        error: "Das Passwort eines anderen Superadmins kann hier nicht geändert werden.",
+        error:
+          "Das neue Passwort muss mindestens 10 Zeichen lang sein.",
       },
-      { status: 403 }
+      {
+        status: 400,
+      }
     );
   }
 
-  const password = generatePassword();
+  const passwordHash =
+    await bcrypt.hash(
+      newPassword,
+      12
+    );
 
-  const passwordHash = await bcrypt.hash(
-    password,
-    12
-  );
-
-  await prisma.user.update({
-    where: { id },
-
-    data: {
-      password: passwordHash,
-
-      sessionVersion: {
-        increment: 1,
+  const updated =
+    await prisma.user.update({
+      where: {
+        id,
       },
-    },
-  });
 
-  return Response.json({
-    success: true,
-    password,
-  });
+      data: {
+        password:
+          passwordHash,
+
+        passwordChangedAt:
+          new Date(),
+
+        mustChangePassword:
+          isSelf
+            ? false
+            : body?.mustChangePassword ??
+              true,
+
+        sessionVersion: {
+          increment: 1,
+        },
+      },
+
+      select: {
+        id: true,
+        name: true,
+        email: true,
+
+        role: true,
+        isActive: true,
+
+        sessionVersion:
+          true,
+
+        sessionTimeoutMinutes:
+          true,
+
+        mustChangePassword:
+          true,
+
+        passwordChangedAt:
+          true,
+      },
+    });
+
+  // Eigenes Passwort:
+  // aktuellen Browser wieder anmelden,
+  // andere Sessions bleiben ungültig.
+  if (isSelf) {
+    const token =
+      await createSession(
+        updated
+      );
+
+    return Response.json(
+      {
+        success: true,
+        self: true,
+      },
+      {
+        headers: {
+          "Set-Cookie":
+            sessionCookie(
+              token
+            ),
+
+          "Cache-Control":
+            "no-store",
+        },
+      }
+    );
+  }
+
+  return Response.json(
+    {
+      success: true,
+
+      generatedPassword,
+    },
+    {
+      headers: {
+        "Cache-Control":
+          "no-store",
+      },
+    }
+  );
 }

@@ -50,6 +50,7 @@ export default function AvailabilityPage() {
   const [isLoadingBookings, setIsLoadingBookings] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
 
   function showError(message) {
     setErrorMsg(message);
@@ -84,7 +85,16 @@ export default function AvailabilityPage() {
         });
 
         if (res.status === 401) {
-          window.location.href = "/admin";
+          window.location.href = "/admin/login";
+          return;
+        }
+
+        if (res.status === 403) {
+          if (!cancelled) {
+            setBookings([]);
+            setCanEdit(false);
+            showError("Dir fehlt die Berechtigung, Verfügbarkeiten anzusehen.");
+          }
           return;
         }
 
@@ -132,6 +142,7 @@ export default function AvailabilityPage() {
     if (!propertyId) {
       setBookings([]);
       setRange(emptyRange());
+      setCanEdit(false);
       return;
     }
 
@@ -142,7 +153,7 @@ export default function AvailabilityPage() {
         setIsLoadingBookings(true);
 
         const res = await fetch(
-          `/api/bookings?propertyId=${encodeURIComponent(propertyId)}`,
+          `/api/admin/booking?propertyId=${encodeURIComponent(propertyId)}`,
           { cache: "no-store" }
         );
 
@@ -161,6 +172,7 @@ export default function AvailabilityPage() {
 
         if (!cancelled) {
           setBookings(Array.isArray(data) ? data : []);
+          setCanEdit(res.headers.get("x-admin-can-edit") === "1");
         }
       } catch {
         if (!cancelled) {
@@ -246,13 +258,19 @@ export default function AvailabilityPage() {
     if (!propertyId) return;
 
     const res = await fetch(
-      `/api/bookings?propertyId=${encodeURIComponent(propertyId)}`,
+      `/api/admin/booking?propertyId=${encodeURIComponent(propertyId)}`,
       { cache: "no-store" }
     );
 
     if (res.status === 401) {
-      window.location.href = "/admin";
+      window.location.href = "/admin/login";
       return;
+    }
+
+    if (res.status === 403) {
+      setBookings([]);
+      setCanEdit(false);
+      throw new Error("Dir fehlt die Berechtigung, Verfügbarkeiten anzusehen.");
     }
 
     const data = await res.json().catch(() => []);
@@ -264,9 +282,15 @@ export default function AvailabilityPage() {
     }
 
     setBookings(Array.isArray(data) ? data : []);
+    setCanEdit(res.headers.get("x-admin-can-edit") === "1");
   }
 
   async function add() {
+    if (!canEdit) {
+      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+      return;
+    }
+
     if (!range?.from || !range?.to || !propertyId || isSaving) return;
 
     const arrival = formatDate(range.from);
@@ -277,15 +301,15 @@ export default function AvailabilityPage() {
     setIsSaving(true);
 
     try {
-      const res = await fetch("/api/bookings", {
+      const res = await fetch("/api/admin/booking", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           propertyId: Number(propertyId),
-          arrival,
-          departure,
+          startDate: arrival,
+          endDate: departure,
           guestName: guestName.trim() || "(Admin)",
         }),
       });
@@ -293,7 +317,13 @@ export default function AvailabilityPage() {
       const data = await res.json().catch(() => null);
 
       if (res.status === 401) {
-        window.location.href = "/admin";
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      if (res.status === 403) {
+        setCanEdit(false);
+        showError(data?.error || "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
         return;
       }
 
@@ -316,6 +346,11 @@ export default function AvailabilityPage() {
   }
 
   function openEditDialog(booking) {
+    if (!canEdit) {
+      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+      return;
+    }
+
     setEditingBooking(booking);
     setEditStartDate(formatDate(booking.startDate));
     setEditEndDate(formatDate(booking.endDate));
@@ -323,6 +358,11 @@ export default function AvailabilityPage() {
   }
 
   async function updateBooking() {
+    if (!canEdit) {
+      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+      return;
+    }
+
     if (!editingBooking || !editStartDate || !editEndDate || isUpdating) return;
 
     if (new Date(editStartDate) >= new Date(editEndDate)) {
@@ -350,7 +390,14 @@ export default function AvailabilityPage() {
       const data = await res.json().catch(() => null);
 
       if (res.status === 401) {
-        window.location.href = "/admin";
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      if (res.status === 403) {
+        setCanEdit(false);
+        setEditingBooking(null);
+        showError(data?.error || "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
         return;
       }
 
@@ -373,6 +420,12 @@ export default function AvailabilityPage() {
   }
 
   async function confirmDelete() {
+    if (!canEdit) {
+      setPendingDelete(null);
+      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+      return;
+    }
+
     if (!pendingDelete) return;
 
     const id = pendingDelete.id;
@@ -383,7 +436,14 @@ export default function AvailabilityPage() {
       });
 
       if (res.status === 401) {
-        window.location.href = "/admin";
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      if (res.status === 403) {
+        setCanEdit(false);
+        showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+        setPendingDelete(null);
         return;
       }
 
@@ -446,6 +506,12 @@ export default function AvailabilityPage() {
             Zeiträume blockieren, Bezeichnungen hinterlegen und bestehende
             Einträge bearbeiten.
           </p>
+
+          {propertyId && !isLoadingBookings && !canEdit && (
+            <span className="mt-3 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
+              Nur Leserechte
+            </span>
+          )}
         </div>
 
         <div className="w-full max-w-xs">
@@ -524,13 +590,14 @@ export default function AvailabilityPage() {
   mode="range"
   selected={range}
   onSelect={(selectedRange) => {
+    if (!canEdit) return;
     setRange(selectedRange ?? emptyRange());
   }}
   numberOfMonths={2}
   showOutsideDays
   modifiers={modifiers}
   modifiersClassNames={modifiersClassNames}
-  disabled={bookedRanges}
+  disabled={canEdit ? bookedRanges : true}
   classNames={{
     root: "relative m-0 w-full",
     months:
@@ -590,7 +657,7 @@ export default function AvailabilityPage() {
               <button
                 type="button"
                 onClick={add}
-                disabled={!range?.from || !range?.to || isSaving}
+                disabled={!canEdit || !range?.from || !range?.to || isSaving}
                 className="inline-flex items-center rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/70 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSaving ? "Speichert..." : "Zeitraum speichern"}
@@ -636,23 +703,25 @@ export default function AvailabilityPage() {
                         </p>
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openEditDialog(booking)}
-                          className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
-                        >
-                          Ändern
-                        </button>
+                      {canEdit && (
+                        <div className="flex shrink-0 items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditDialog(booking)}
+                            className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                          >
+                            Ändern
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() => setPendingDelete(booking)}
-                          className="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
-                        >
-                          Löschen
-                        </button>
-                      </div>
+                          <button
+                            type="button"
+                            onClick={() => setPendingDelete(booking)}
+                            className="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
+                          >
+                            Löschen
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {booking.guestName && (
@@ -677,8 +746,8 @@ export default function AvailabilityPage() {
         </p>
       )}
 
-      {editingBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      {editingBooking && canEdit && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl">
             <div className="mb-4">
               <h4 className="text-sm font-semibold text-slate-900">
@@ -749,8 +818,8 @@ export default function AvailabilityPage() {
         </div>
       )}
 
-      {pendingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      {pendingDelete && canEdit && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
             <h4 className="text-sm font-semibold text-slate-900">
               Buchung / Block löschen?

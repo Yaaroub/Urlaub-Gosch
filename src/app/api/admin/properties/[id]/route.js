@@ -1,26 +1,143 @@
 import prisma from "@/lib/db";
 
-/**
- * GET /api/admin/properties/[id]
- *
- * Holt ein einzelnes Objekt inklusive Amenities.
- */
-export async function GET(_req, ctx) {
-  try {
-    // Next.js 15: params asynchron auflösen
-    const params = ctx?.params
-      ? await ctx.params
-      : {};
+import {
+  ADMIN_PERMISSIONS,
+  requireAdminPermission,
+} from "@/lib/admin-permissions";
 
-    const idNum = Number(params.id);
+/**
+ * Einheitliche Antwort bei fehlender Berechtigung.
+ */
+function deny(auth) {
+  return Response.json(
+    {
+      error: auth.error,
+    },
+    {
+      status: auth.status,
+
+      headers: {
+        "Cache-Control":
+          "no-store",
+      },
+    }
+  );
+}
+
+/**
+ * Property-ID aus Next.js Context lesen.
+ *
+ * Next.js 15:
+ * context.params muss awaited werden.
+ */
+async function getPropertyId(
+  context
+) {
+  const params =
+    await context.params;
+
+  const id =
+    Number(params.id);
+
+  if (
+    !id ||
+    Number.isNaN(id)
+  ) {
+    return null;
+  }
+
+  return id;
+}
+
+/**
+ * Eindeutigen Slug erzeugen.
+ *
+ * excludeId:
+ * Beim Bearbeiten darf das aktuelle
+ * Objekt seinen bestehenden Slug behalten.
+ */
+async function uniqueSlug(
+  base,
+  excludeId = null
+) {
+  const raw =
+    (base || "")
+      .toLowerCase()
+      .trim()
+      .replace(
+        /[^\p{Letter}\p{Number}]+/gu,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        ""
+      )
+      .slice(0, 80) ||
+    "objekt";
+
+  let slug =
+    raw;
+
+  let n =
+    1;
+
+  while (true) {
+    const hit =
+      await prisma.property.findUnique({
+        where: {
+          slug,
+        },
+
+        select: {
+          id: true,
+        },
+      });
 
     if (
-      !Number.isInteger(idNum) ||
-      idNum <= 0
+      !hit ||
+      hit.id === excludeId
     ) {
+      return slug;
+    }
+
+    n += 1;
+
+    slug =
+      `${raw}-${n}`;
+  }
+}
+
+/**
+ * GET /api/admin/properties/:id
+ *
+ * Benötigt:
+ * PROPERTIES_VIEW
+ */
+export async function GET(
+  request,
+  context
+) {
+  try {
+    const auth =
+      await requireAdminPermission(
+        ADMIN_PERMISSIONS.PROPERTIES_VIEW,
+        request
+      );
+
+    if (!auth.ok) {
+      return deny(auth);
+    }
+
+    const id =
+      await getPropertyId(
+        context
+      );
+
+    if (!id) {
       return Response.json(
         {
-          error: "Ungültige ID",
+          error:
+            "Ungültige Objekt-ID.",
         },
         {
           status: 400,
@@ -31,18 +148,47 @@ export async function GET(_req, ctx) {
     const property =
       await prisma.property.findUnique({
         where: {
-          id: idNum,
+          id,
         },
 
-        include: {
-          amenities: true,
+        select: {
+          id: true,
+          slug: true,
+
+          title: true,
+          description: true,
+
+          location: true,
+          address: true,
+
+          maxPersons: true,
+          dogsAllowed: true,
+
+          kuschelwochenEnabled:
+            true,
+
+          lat: true,
+          lng: true,
+          region: true,
+
+          amenities: {
+            select: {
+              id: true,
+              name: true,
+            },
+
+            orderBy: {
+              name: "asc",
+            },
+          },
         },
       });
 
     if (!property) {
       return Response.json(
         {
-          error: "Nicht gefunden",
+          error:
+            "Objekt wurde nicht gefunden.",
         },
         {
           status: 404,
@@ -50,14 +196,15 @@ export async function GET(_req, ctx) {
       );
     }
 
-    /*
-     * Da wir kein select benutzen, wird
-     * kuschelwochenEnabled automatisch
-     * mit zurückgegeben.
-     */
-    return Response.json(property, {
-      status: 200,
-    });
+    return Response.json(
+      property,
+      {
+        headers: {
+          "Cache-Control":
+            "no-store",
+        },
+      }
+    );
   } catch (error) {
     console.error(
       "GET /api/admin/properties/[id] failed:",
@@ -77,41 +224,36 @@ export async function GET(_req, ctx) {
 }
 
 /**
- * PUT /api/admin/properties/[id]
+ * PUT /api/admin/properties/:id
  *
- * Aktualisiert:
- * - Stammdaten
- * - Ostsee-Kuschelwochen
- * - Amenities
- *
- * Erwarteter Body:
- *
- * {
- *   title,
- *   location,
- *   maxPersons,
- *   dogsAllowed,
- *   kuschelwochenEnabled,
- *   description,
- *   amenities: ["WLAN", "Sauna"],
- *   slug
- * }
+ * Benötigt:
+ * PROPERTIES_EDIT
  */
-export async function PUT(req, ctx) {
+export async function PUT(
+  request,
+  context
+) {
   try {
-    const params = ctx?.params
-      ? await ctx.params
-      : {};
+    const auth =
+      await requireAdminPermission(
+        ADMIN_PERMISSIONS.PROPERTIES_EDIT,
+        request
+      );
 
-    const idNum = Number(params.id);
+    if (!auth.ok) {
+      return deny(auth);
+    }
 
-    if (
-      !Number.isInteger(idNum) ||
-      idNum <= 0
-    ) {
+    const id =
+      await getPropertyId(
+        context
+      );
+
+    if (!id) {
       return Response.json(
         {
-          error: "Ungültige ID",
+          error:
+            "Ungültige Objekt-ID.",
         },
         {
           status: 400,
@@ -122,7 +264,7 @@ export async function PUT(req, ctx) {
     const existing =
       await prisma.property.findUnique({
         where: {
-          id: idNum,
+          id,
         },
 
         select: {
@@ -134,7 +276,8 @@ export async function PUT(req, ctx) {
     if (!existing) {
       return Response.json(
         {
-          error: "Objekt nicht gefunden.",
+          error:
+            "Objekt wurde nicht gefunden.",
         },
         {
           status: 404,
@@ -142,225 +285,66 @@ export async function PUT(req, ctx) {
       );
     }
 
-    const body = await req.json();
+    const body =
+      await request.json();
 
-    const {
-      title,
-      location,
-      maxPersons,
-      dogsAllowed,
+    const cleanTitle =
+      typeof body?.title ===
+      "string"
+        ? body.title.trim()
+        : "";
 
-      // Ostsee-Kuschelwochen
-      kuschelwochenEnabled,
+    const cleanLocation =
+      typeof body?.location ===
+      "string"
+        ? body.location.trim()
+        : "";
 
-      description,
-      amenities,
-      slug,
-    } = body;
-
-    const updates = {};
-
-    /*
-     * Titel
-     */
-    if (title !== undefined) {
-      const cleanTitle =
-        typeof title === "string"
-          ? title.trim()
-          : "";
-
-      if (!cleanTitle) {
-        return Response.json(
-          {
-            error:
-              "Titel darf nicht leer sein.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      updates.title = cleanTitle;
-    }
-
-    /*
-     * Ort
-     */
-    if (location !== undefined) {
-      const cleanLocation =
-        typeof location === "string"
-          ? location.trim()
-          : "";
-
-      if (!cleanLocation) {
-        return Response.json(
-          {
-            error:
-              "Ort darf nicht leer sein.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      updates.location = cleanLocation;
-    }
-
-    /*
-     * Personen
-     */
-    if (maxPersons !== undefined) {
-      const parsedMaxPersons =
-        Number(maxPersons);
-
-      if (
-        !Number.isFinite(
-          parsedMaxPersons
-        ) ||
-        parsedMaxPersons < 1
-      ) {
-        return Response.json(
-          {
-            error:
-              "Die maximale Personenzahl muss mindestens 1 sein.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      updates.maxPersons =
-        Math.floor(parsedMaxPersons);
-    }
-
-    /*
-     * Hunde erlaubt
-     */
-    if (dogsAllowed !== undefined) {
-      if (
-        typeof dogsAllowed !==
-        "boolean"
-      ) {
-        return Response.json(
-          {
-            error:
-              "Ungültiger Wert für Hunde erlaubt.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      updates.dogsAllowed =
-        dogsAllowed;
-    }
-
-    /*
-     * OSTSEE-KUSCHELWOCHEN
-     *
-     * WICHTIG:
-     * false darf NICHT durch || true
-     * überschrieben werden.
-     */
     if (
-      kuschelwochenEnabled !==
-      undefined
+      !cleanTitle ||
+      !cleanLocation
     ) {
-      if (
-        typeof kuschelwochenEnabled !==
-        "boolean"
-      ) {
-        return Response.json(
-          {
-            error:
-              "Ungültiger Wert für Ostsee-Kuschelwochen.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      updates.kuschelwochenEnabled =
-        kuschelwochenEnabled;
-    }
-
-    /*
-     * Beschreibung
-     */
-    if (description !== undefined) {
-      updates.description =
-        typeof description === "string" &&
-        description.trim()
-          ? description.trim()
-          : null;
-    }
-
-    /*
-     * Slug
-     */
-    if (slug !== undefined) {
-      const cleanSlug =
-        typeof slug === "string"
-          ? slug
-              .toLowerCase()
-              .trim()
-              .replace(
-                /[^\p{Letter}\p{Number}]+/gu,
-                "-"
-              )
-              .replace(
-                /^-+|-+$/g,
-                ""
-              )
-              .slice(0, 80)
-          : "";
-
-      if (cleanSlug) {
-        const slugOwner =
-          await prisma.property.findUnique(
-            {
-              where: {
-                slug: cleanSlug,
-              },
-
-              select: {
-                id: true,
-              },
-            }
-          );
-
-        if (
-          slugOwner &&
-          slugOwner.id !== idNum
-        ) {
-          return Response.json(
-            {
-              error:
-                "Dieser Slug wird bereits von einem anderen Objekt verwendet.",
-            },
-            {
-              status: 409,
-            }
-          );
+      return Response.json(
+        {
+          error:
+            "Titel und Ort sind erforderlich.",
+        },
+        {
+          status: 400,
         }
-
-        updates.slug = cleanSlug;
-      }
+      );
     }
 
-    /*
-     * Amenities vorbereiten.
-     */
+    const maxPersons =
+      Number(
+        body?.maxPersons ??
+          2
+      );
+
+    if (
+      !Number.isFinite(
+        maxPersons
+      ) ||
+      maxPersons < 1
+    ) {
+      return Response.json(
+        {
+          error:
+            "Die maximale Personenzahl muss mindestens 1 sein.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
     const cleanAmenities =
-      Array.isArray(amenities)
+      Array.isArray(
+        body?.amenities
+      )
         ? [
             ...new Set(
-              amenities
+              body.amenities
                 .map((name) =>
                   String(
                     name || ""
@@ -369,76 +353,126 @@ export async function PUT(req, ctx) {
                 .filter(Boolean)
             ),
           ]
-        : null;
+        : [];
+
+    const requestedSlug =
+      typeof body?.slug ===
+      "string"
+        ? body.slug.trim()
+        : "";
+
+    let finalSlug =
+      existing.slug;
+
+    if (
+      requestedSlug &&
+      requestedSlug !==
+        existing.slug
+    ) {
+      finalSlug =
+        await uniqueSlug(
+          requestedSlug,
+          id
+        );
+    }
+
+    if (!requestedSlug) {
+      finalSlug =
+        existing.slug ||
+        (await uniqueSlug(
+          cleanTitle,
+          id
+        ));
+    }
 
     const updated =
       await prisma.property.update({
         where: {
-          id: idNum,
+          id,
         },
 
         data: {
-          ...updates,
+          title:
+            cleanTitle,
 
-          ...(cleanAmenities !== null
-            ? {
-                amenities: {
-                  /*
-                   * Alte Verbindungen
-                   * vollständig lösen.
-                   */
-                  set: [],
+          location:
+            cleanLocation,
 
-                  /*
-                   * Gewünschte Amenities
-                   * wieder verbinden.
-                   */
-                  connectOrCreate:
-                    cleanAmenities.map(
-                      (name) => ({
-                        where: {
-                          name,
-                        },
+          maxPersons:
+            Math.floor(
+              maxPersons
+            ),
 
-                        create: {
-                          name,
-                        },
-                      })
-                    ),
-                },
-              }
-            : {}),
+          dogsAllowed:
+            body?.dogsAllowed ===
+            true,
+
+          kuschelwochenEnabled:
+            body
+              ?.kuschelwochenEnabled !==
+            false,
+
+          description:
+            typeof body?.description ===
+              "string" &&
+            body.description.trim()
+              ? body.description.trim()
+              : null,
+
+          slug:
+            finalSlug,
+
+          amenities: {
+            set: [],
+
+            connectOrCreate:
+              cleanAmenities.map(
+                (name) => ({
+                  where: {
+                    name,
+                  },
+
+                  create: {
+                    name,
+                  },
+                })
+              ),
+          },
         },
 
-        include: {
-          amenities: true,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          location: true,
+          maxPersons: true,
+          dogsAllowed: true,
+          kuschelwochenEnabled:
+            true,
+
+          amenities: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
 
-    return Response.json(updated, {
-      status: 200,
-    });
+    return Response.json(
+      updated,
+      {
+        headers: {
+          "Cache-Control":
+            "no-store",
+        },
+      }
+    );
   } catch (error) {
     console.error(
       "PUT /api/admin/properties/[id] failed:",
       error
     );
-
-    /*
-     * Prisma Unique-Constraint,
-     * beispielsweise Slug.
-     */
-    if (error?.code === "P2002") {
-      return Response.json(
-        {
-          error:
-            "Ein eindeutiger Wert wird bereits verwendet. Bitte prüfe insbesondere den Slug.",
-        },
-        {
-          status: 409,
-        }
-      );
-    }
 
     return Response.json(
       {
@@ -453,28 +487,36 @@ export async function PUT(req, ctx) {
 }
 
 /**
- * DELETE /api/admin/properties/[id]
+ * DELETE /api/admin/properties/:id
  *
- * Löscht eine Unterkunft.
+ * Benötigt:
+ * PROPERTIES_DELETE
  */
 export async function DELETE(
-  _req,
-  ctx
+  request,
+  context
 ) {
   try {
-    const params = ctx?.params
-      ? await ctx.params
-      : {};
+    const auth =
+      await requireAdminPermission(
+        ADMIN_PERMISSIONS.PROPERTIES_DELETE,
+        request
+      );
 
-    const idNum = Number(params.id);
+    if (!auth.ok) {
+      return deny(auth);
+    }
 
-    if (
-      !Number.isInteger(idNum) ||
-      idNum <= 0
-    ) {
+    const id =
+      await getPropertyId(
+        context
+      );
+
+    if (!id) {
       return Response.json(
         {
-          error: "Ungültige ID",
+          error:
+            "Ungültige Objekt-ID.",
         },
         {
           status: 400,
@@ -485,11 +527,12 @@ export async function DELETE(
     const existing =
       await prisma.property.findUnique({
         where: {
-          id: idNum,
+          id,
         },
 
         select: {
           id: true,
+          title: true,
         },
       });
 
@@ -497,7 +540,7 @@ export async function DELETE(
       return Response.json(
         {
           error:
-            "Objekt nicht gefunden.",
+            "Objekt wurde nicht gefunden.",
         },
         {
           status: 404,
@@ -505,24 +548,22 @@ export async function DELETE(
       );
     }
 
-    /*
-     * Durch onDelete: Cascade werden
-     * abhängige Datensätze wie Bilder,
-     * Preiszeiten, Extras usw.
-     * entsprechend gelöscht.
-     */
     await prisma.property.delete({
       where: {
-        id: idNum,
+        id,
       },
     });
 
     return Response.json(
       {
-        ok: true,
+        success: true,
+        id,
       },
       {
-        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store",
+        },
       }
     );
   } catch (error) {
@@ -533,7 +574,8 @@ export async function DELETE(
 
     return Response.json(
       {
-        error: "Löschen fehlgeschlagen.",
+        error:
+          "Löschen fehlgeschlagen.",
       },
       {
         status: 500,

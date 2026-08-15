@@ -8,121 +8,149 @@ datasource db {
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
-/// *
-///  * Unterkunft
+// ============================================================================
+// UNTERKÜNFTE
+// ============================================================================
+
 model Property {
-  id                   Int               @id @default(autoincrement())
-  slug                 String            @unique
-  title                String
-  description          String?
-  location             String
-  address              String?
-  maxPersons           Int
-  dogsAllowed          Boolean           @default(false)
-  icalUrl              String?
-  icalUpdatedAt        DateTime?
-  icalLastRunAt        DateTime?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  lat                  Float?
-  lng                  Float?
-  region               String?
-  kuschelwochenEnabled Boolean           @default(true)
-  bookings             Booking[]
-  requests             BookingRequest[]
-  extras               ExtraCost[]
-  favorites            Favorite[]
-  lastMinuteOffers     LastMinuteOffer[]
-  pricePeriods         PricePeriod[]
-  images               PropertyImage[]
-  amenities            Amenity[]         @relation("AmenityToProperty")
+  id          Int     @id @default(autoincrement())
+  slug        String  @unique
+  title       String
+  description String?
+  location    String
+  address     String?
+  maxPersons  Int
+  dogsAllowed Boolean @default(false)
+
+  icalUrl       String?
+  icalUpdatedAt DateTime?
+  icalLastRunAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lat    Float?
+  lng    Float?
+  region String?
+
+  kuschelwochenEnabled Boolean @default(true)
+
+  bookings         Booking[]
+  requests         BookingRequest[]
+  extras           ExtraCost[]
+  favorites        Favorite[]
+  lastMinuteOffers LastMinuteOffer[]
+  pricePeriods     PricePeriod[]
+  images           PropertyImage[]
+
+  amenities Amenity[] @relation("AmenityToProperty")
 }
 
-/// *
-///  * Ausstattung (M:N)
+// ============================================================================
+// AUSSTATTUNG
+// ============================================================================
+
 model Amenity {
-  id         Int        @id @default(autoincrement())
-  name       String     @unique
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
   properties Property[] @relation("AmenityToProperty")
 }
 
-/// *
-///  * Preiszeiten
-///  * Ende exklusiv
+// ============================================================================
+// PREISZEITEN
+// ============================================================================
+
 model PricePeriod {
   id            Int      @id @default(autoincrement())
   startDate     DateTime
   endDate       DateTime
   pricePerNight Decimal  @db.Decimal(10, 2)
-  propertyId    Int
-  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@index([propertyId, startDate, endDate])
 }
 
-/// *
-///  * Buchung
-///  * Harte Belegung
+// ============================================================================
+// BUCHUNGEN
+// ============================================================================
+
 model Booking {
-  id         Int      @id @default(autoincrement())
-  startDate  DateTime
-  endDate    DateTime
-  guestName  String?
+  id        Int      @id @default(autoincrement())
+  startDate DateTime
+  endDate   DateTime
+  guestName String?
+
   propertyId Int
-  createdAt  DateTime @default(now())
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 
   @@index([propertyId, startDate, endDate])
 }
 
-/// *
-///  * Nebenkosten
-///  * amount in Cent
-///  * isDaily = true
-///  * => pro Nacht
-///  * isDaily = false
-///  * => einmalig pro Aufenthalt
+// ============================================================================
+// NEBENKOSTEN
+// ============================================================================
+
 model ExtraCost {
-  id         Int      @id @default(autoincrement())
-  title      String
-  amount     Int
-  isDaily    Boolean  @default(false)
+  id    Int    @id @default(autoincrement())
+  title String
+
+  // Betrag in Cent
+  amount Int
+
+  // true = pro Nacht
+  // false = einmalig
+  isDaily Boolean @default(false)
+
   propertyId Int
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
-/// *
-///  * Bilder der Unterkunft
+// ============================================================================
+// BILDER
+// ============================================================================
+
 model PropertyImage {
-  id         Int      @id @default(autoincrement())
-  url        String
-  alt        String?
-  sort       Int      @default(0)
+  id   Int     @id @default(autoincrement())
+  url  String
+  alt  String?
+  sort Int     @default(0)
+
   propertyId Int
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
-/// *
-///  * Unverbindliche Anfrage
+// ============================================================================
+// BUCHUNGSANFRAGEN
+// ============================================================================
+
 model BookingRequest {
-  id         Int           @id @default(autoincrement())
-  startDate  DateTime
-  endDate    DateTime
+  id        Int      @id @default(autoincrement())
+  startDate DateTime
+  endDate   DateTime
+
   guestName  String?
   guestEmail String?
   message    String?
-  status     RequestStatus @default(PENDING)
-  createdAt  DateTime      @default(now())
+
+  status RequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
   propertyId Int
-  property   Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@index([propertyId, startDate, endDate])
 }
 
-/// *
-///  * Benutzer
-///  * Wird sowohl für normale Kundenkonten
-///  * als auch für Mitarbeiter/Admins verwendet.
+// ============================================================================
+// BENUTZERROLLEN
+// ============================================================================
+
 enum UserRole {
   USER
   EDITOR
@@ -130,25 +158,87 @@ enum UserRole {
   SUPERADMIN
 }
 
+// ============================================================================
+// ADMIN-BERECHTIGUNGEN
+// ============================================================================
+
+enum AdminPermission {
+  // Objekte
+  PROPERTIES_VIEW
+  PROPERTIES_EDIT
+  PROPERTIES_DELETE
+
+  // Preiszeiten
+  PRICES_VIEW
+  PRICES_EDIT
+
+  // Nebenkosten
+  FEES_VIEW
+  FEES_EDIT
+
+  // Bilder
+  IMAGES_VIEW
+  IMAGES_EDIT
+  IMAGES_DELETE
+
+  // Verfügbarkeiten
+  AVAILABILITY_VIEW
+  AVAILABILITY_EDIT
+
+  // iCal
+  ICAL_VIEW
+  ICAL_EDIT
+
+  // Last-Minute
+  LASTMINUTE_VIEW
+  LASTMINUTE_EDIT
+  LASTMINUTE_DELETE
+
+  // Mitarbeiter
+  STAFF_VIEW
+  STAFF_CREATE
+  STAFF_EDIT
+  STAFF_LOCK
+  STAFF_PASSWORD_RESET
+  STAFF_PERMISSIONS_EDIT
+  STAFF_DELETE
+}
+
+// ============================================================================
+// BENUTZER
+// ============================================================================
+
 model User {
   id       Int     @id @default(autoincrement())
   email    String  @unique
   name     String?
   password String
 
-  // Benutzerrolle
+  // Rolle
   role UserRole @default(USER)
 
-  // Konto aktiv / gesperrt
+  // Aktiv / gesperrt
   isActive Boolean @default(true)
 
-  // Sessions ungültig machen
+  // Wird erhöht, um bestehende Sessions ungültig zu machen
   sessionVersion Int @default(0)
+
+  // Automatische Abmeldung im Adminbereich
+  sessionTimeoutMinutes Int @default(30)
+
+  // Passwort muss beim nächsten Login geändert werden
+  mustChangePassword Boolean @default(false)
 
   // Letzter erfolgreicher Login
   lastLoginAt DateTime?
 
+  // Letzte Passwortänderung
+  passwordChangedAt DateTime?
+
   favorites Favorite[]
+
+  // Individuelle Adminrechte
+  adminPermissions UserAdminPermission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -157,34 +247,66 @@ model User {
   @@index([isActive])
 }
 
-/// *
-///  * Favoriten
+// ============================================================================
+// USER ↔ ADMIN-BERECHTIGUNG
+// ============================================================================
+
+model UserAdminPermission {
+  id         Int             @id @default(autoincrement())
+  userId     Int
+  permission AdminPermission
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, permission])
+  @@index([userId])
+}
+
+// ============================================================================
+// FAVORITEN
+// ============================================================================
+
 model Favorite {
-  id         Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   userId     Int
   propertyId Int
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, propertyId])
 }
 
-/// *
-///  * Last-Minute-Angebot
+// ============================================================================
+// LAST-MINUTE
+// ============================================================================
+
 model LastMinuteOffer {
-  id             Int                    @id @default(autoincrement())
-  propertyId     Int
-  startDate      DateTime
-  endDate        DateTime
+  id Int @id @default(autoincrement())
+
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  startDate DateTime
+  endDate   DateTime
+
   discount       Int                    @default(0)
-  note           String?
-  createdAt      DateTime               @default(now())
   discountAmount Decimal?               @db.Decimal(10, 2)
   discountType   LastMinuteDiscountType @default(PERCENT)
-  property       Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  note String?
+
+  createdAt DateTime @default(now())
 
   @@index([propertyId, startDate, endDate])
 }
+
+// ============================================================================
+// ENUMS
+// ============================================================================
 
 enum RequestStatus {
   PENDING

@@ -6,12 +6,15 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { getAdminUser } from "@/lib/admin-auth";
+import {
+  getAdminUser,
+} from "@/lib/admin-auth";
 
 import AdminLogoutButton from "./AdminLogoutButton";
 import AdminIdleTimeout from "./AdminIdleTimeout";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 const ROLE_LABELS = {
   EDITOR: "Editor",
@@ -22,20 +25,52 @@ const ROLE_LABELS = {
 export default async function ProtectedAdminLayout({
   children,
 }) {
-  const user = await getAdminUser();
+  const user =
+    await getAdminUser();
 
+  // Nicht angemeldet
   if (!user) {
-    redirect("/admin/login");
+    redirect(
+      "/admin/login"
+    );
+  }
+
+  // ============================================================
+  // PASSWORTWECHSEL ERZWINGEN
+  //
+  // Solange mustChangePassword = true ist,
+  // darf der Benutzer keine geschützte Admin-Seite öffnen.
+  //
+  // WICHTIG:
+  // /admin/passwort-aendern darf deshalb NICHT innerhalb
+  // des (protected)-Ordners liegen.
+  // ============================================================
+
+  if (
+    user.mustChangePassword
+  ) {
+    redirect(
+      "/admin/passwort-aendern"
+    );
   }
 
   const displayName =
     user.name?.trim() ||
-    user.email?.split("@")?.[0] ||
+    user.email
+      ?.split("@")
+      ?.[0] ||
     "Mitarbeiter";
 
   const roleLabel =
-    ROLE_LABELS[user.role] ||
+    ROLE_LABELS[
+      user.role
+    ] ||
     user.role;
+
+  const timeoutMinutes =
+    Number(
+      user.sessionTimeoutMinutes
+    ) || 30;
 
   return (
     <>
@@ -43,15 +78,23 @@ export default async function ProtectedAdminLayout({
         {children}
       </div>
 
-      {/* Admin-Dock */}
+      {/* ======================================================
+          ADMIN-DOCK
+         ====================================================== */}
+
       <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[90] px-3 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:px-0">
         <div
           className="
             pointer-events-auto
-            mx-auto flex w-full max-w-2xl
-            items-center gap-2
+            mx-auto
+            flex
+            w-full
+            max-w-2xl
+            items-center
+            gap-2
             rounded-[20px]
-            border border-slate-200/80
+            border
+            border-slate-200/80
             bg-white/95
             p-2
             shadow-[0_20px_60px_rgba(15,23,42,0.16)]
@@ -60,12 +103,15 @@ export default async function ProtectedAdminLayout({
           "
         >
           {/* Dashboard */}
+
           <Link
             href="/admin"
             title="Admin Dashboard"
             className="
-              flex h-11 w-11 shrink-0
-              items-center justify-center
+              flex h-11 w-11
+              shrink-0
+              items-center
+              justify-center
               rounded-xl
               bg-sky-600
               text-white
@@ -78,6 +124,7 @@ export default async function ProtectedAdminLayout({
           </Link>
 
           {/* Benutzer */}
+
           <div className="flex min-w-0 flex-1 items-center gap-3 px-2 sm:min-w-[230px]">
             <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700 sm:flex">
               <ShieldCheck className="h-4 w-4" />
@@ -101,15 +148,23 @@ export default async function ProtectedAdminLayout({
           </div>
 
           {/* Trennlinie */}
+
           <div className="hidden h-8 w-px bg-slate-200 sm:block" />
 
           {/* Sitzung */}
-          <AdminIdleTimeout />
+
+          <AdminIdleTimeout
+            timeoutMinutes={
+              timeoutMinutes
+            }
+          />
 
           {/* Trennlinie */}
+
           <div className="h-8 w-px bg-slate-200" />
 
           {/* Logout */}
+
           <AdminLogoutButton />
         </div>
       </div>

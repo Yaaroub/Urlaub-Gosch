@@ -105,6 +105,11 @@ export default function AdminPropertiesPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
 
+  // Rechte werden vom geschützten GET /api/admin/properties
+  // über Response-Header geliefert.
+  const [canEdit, setCanEdit] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
+
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const [showAmenityInput, setShowAmenityInput] = useState(false);
@@ -163,6 +168,22 @@ export default function AdminPropertiesPage() {
         window.location.href = "/admin";
         return;
       }
+
+      if (
+        propertiesResponse.status === 403 ||
+        amenitiesResponse.status === 403
+      ) {
+        window.location.href = "/admin";
+        return;
+      }
+
+      setCanEdit(
+        propertiesResponse.headers.get("x-admin-can-edit") === "1"
+      );
+
+      setCanDelete(
+        propertiesResponse.headers.get("x-admin-can-delete") === "1"
+      );
 
       const propertiesData = await propertiesResponse
         .json()
@@ -227,6 +248,14 @@ export default function AdminPropertiesPage() {
   }
 
   function openCreateForm() {
+    if (!canEdit) {
+      setMsg({
+        t: "error",
+        m: "Du hast nur Leserechte für Objekte.",
+      });
+      return;
+    }
+
     setMsg(null);
     setForm(EMPTY_FORM);
     setNewAmenityName("");
@@ -245,6 +274,8 @@ export default function AdminPropertiesPage() {
   }
 
   function toggleAmenity(name) {
+    if (!canEdit) return;
+
     setForm((currentForm) => {
       const selected =
         currentForm.amenityNames.includes(name);
@@ -262,6 +293,14 @@ export default function AdminPropertiesPage() {
 
   async function addAmenityInline(event) {
     event?.preventDefault?.();
+
+    if (!canEdit) {
+      setMsg({
+        t: "error",
+        m: "Dir fehlt die Berechtigung zum Bearbeiten von Objekten.",
+      });
+      return;
+    }
 
     const name = newAmenityName.trim();
 
@@ -378,6 +417,15 @@ export default function AdminPropertiesPage() {
 
   async function save(event) {
     event.preventDefault();
+
+    if (!canEdit) {
+      setMsg({
+        t: "error",
+        m: "Dir fehlt die Berechtigung zum Bearbeiten von Objekten.",
+      });
+      return;
+    }
+
     setMsg(null);
 
     const payload = {
@@ -483,6 +531,14 @@ export default function AdminPropertiesPage() {
   }
 
   async function editRow(id) {
+    if (!canEdit) {
+      setMsg({
+        t: "error",
+        m: "Du hast nur Leserechte für Objekte.",
+      });
+      return;
+    }
+
     setMsg(null);
     setBusy(true);
 
@@ -544,6 +600,14 @@ export default function AdminPropertiesPage() {
   }
 
   function askRemoveRow(property) {
+    if (!canDelete) {
+      setMsg({
+        t: "error",
+        m: "Dir fehlt die Berechtigung zum Löschen von Objekten.",
+      });
+      return;
+    }
+
     setMsg(null);
     setPendingDelete(property);
   }
@@ -656,23 +720,31 @@ export default function AdminPropertiesPage() {
             zugehörigen Verwaltungsbereiche direkt beim jeweiligen
             Objekt.
           </p>
+
+          {!canEdit && (
+            <div className="mt-3 inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
+              Nur Leserechte
+            </div>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={openCreateForm}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
-        >
-          <Plus
-            className="h-4 w-4"
-            aria-hidden="true"
-          />
-          Neues Objekt
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={openCreateForm}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
+          >
+            <Plus
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+            Neues Objekt
+          </button>
+        )}
       </div>
 
       {/* Formular */}
-      {showForm && (
+      {showForm && canEdit && (
         <div
           ref={formSectionRef}
           className="scroll-mt-28"
@@ -1208,17 +1280,19 @@ export default function AdminPropertiesPage() {
             Lege zuerst eine Unterkunft an.
           </p>
 
-          <button
-            type="button"
-            onClick={openCreateForm}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
-          >
-            <Plus
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
-            Erstes Objekt anlegen
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={openCreateForm}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
+            >
+              <Plus
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+              Erstes Objekt anlegen
+            </button>
+          )}
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
@@ -1279,18 +1353,20 @@ export default function AdminPropertiesPage() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => editRow(item.id)}
-                    disabled={busy}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
-                  >
-                    <Pencil
-                      className="h-3.5 w-3.5"
-                      aria-hidden="true"
-                    />
-                    Grunddaten
-                  </button>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => editRow(item.id)}
+                      disabled={busy}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      <Pencil
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      Grunddaten
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -1412,18 +1488,20 @@ export default function AdminPropertiesPage() {
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => askRemoveRow(item)}
-                    disabled={busy}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 ring-1 ring-rose-100 transition hover:bg-rose-100 disabled:opacity-50"
-                  >
-                    <Trash2
-                      className="h-3.5 w-3.5"
-                      aria-hidden="true"
-                    />
-                    Löschen
-                  </button>
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() => askRemoveRow(item)}
+                      disabled={busy}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 ring-1 ring-rose-100 transition hover:bg-rose-100 disabled:opacity-50"
+                    >
+                      <Trash2
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      Löschen
+                    </button>
+                  )}
                 </div>
               </div>
             </article>
@@ -1432,7 +1510,7 @@ export default function AdminPropertiesPage() {
       )}
 
       {/* Löschdialog */}
-      {pendingDelete && (
+      {pendingDelete && canDelete && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           role="dialog"

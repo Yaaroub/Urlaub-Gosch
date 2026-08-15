@@ -1,26 +1,159 @@
 import prisma from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+import {
+  ADMIN_PERMISSIONS,
+  requireAdminPermission,
+} from "@/lib/admin-permissions";
 
+export const dynamic =
+  "force-dynamic";
+
+function deny(auth) {
+  return Response.json(
+    {
+      error: auth.error,
+    },
+    {
+      status: auth.status,
+
+      headers: {
+        "Cache-Control":
+          "no-store",
+      },
+    }
+  );
+}
+
+async function getOfferId(
+  context
+) {
+  const params =
+    await context.params;
+
+  const id =
+    Number(params.id);
+
+  if (
+    !id ||
+    Number.isNaN(id)
+  ) {
+    return null;
+  }
+
+  return id;
+}
+
+// ============================================================
 // DELETE /api/admin/lastminute/:id
-export async function DELETE(_req, { params }) {
+//
+// benötigt:
+// LASTMINUTE_DELETE
+// ============================================================
+
+export async function DELETE(
+  req,
+  context
+) {
   try {
-    const id = Number(params.id);
-    if (!id) return Response.json({ error: "id fehlt" }, { status: 400 });
+    const auth =
+      await requireAdminPermission(
+        ADMIN_PERMISSIONS.LASTMINUTE_DELETE,
+        req
+      );
 
-    // propertyId merken, damit wir danach die frische Liste zurückgeben können
-    const existing = await prisma.lastMinuteOffer.findUnique({ where: { id }, select: { propertyId: true } });
-    if (!existing) return Response.json({ error: "Nicht gefunden" }, { status: 404 });
+    if (!auth.ok) {
+      return deny(auth);
+    }
 
-    await prisma.lastMinuteOffer.delete({ where: { id } });
+    const id =
+      await getOfferId(
+        context
+      );
 
-    const fresh = await prisma.lastMinuteOffer.findMany({
-      where: { propertyId: existing.propertyId },
-      orderBy: [{ startDate: "asc" }, { id: "asc" }],
+    if (!id) {
+      return Response.json(
+        {
+          error:
+            "Ungültige Angebots-ID.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const existing =
+      await prisma.lastMinuteOffer.findUnique({
+        where: {
+          id,
+        },
+
+        select: {
+          id: true,
+          propertyId: true,
+        },
+      });
+
+    if (!existing) {
+      return Response.json(
+        {
+          error:
+            "Last-Minute-Angebot wurde nicht gefunden.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    await prisma.lastMinuteOffer.delete({
+      where: {
+        id,
+      },
     });
-    return Response.json(fresh);
-  } catch (e) {
-    console.error(e);
-    return Response.json({ error: "Löschen fehlgeschlagen" }, { status: 500 });
+
+    const fresh =
+      await prisma.lastMinuteOffer.findMany({
+        where: {
+          propertyId:
+            existing.propertyId,
+        },
+
+        orderBy: [
+          {
+            startDate:
+              "asc",
+          },
+          {
+            id:
+              "asc",
+          },
+        ],
+      });
+
+    return Response.json(
+      fresh,
+      {
+        headers: {
+          "Cache-Control":
+            "no-store",
+        },
+      }
+    );
+  } catch (error) {
+    console.error(
+      "DELETE /api/admin/lastminute/[id] failed:",
+      error
+    );
+
+    return Response.json(
+      {
+        error:
+          "Löschen fehlgeschlagen.",
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }

@@ -172,7 +172,7 @@ function ExistingImagesPremium({
             className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 disabled:opacity-40"
           >
             <Save className="h-4 w-4" />
-            Änderungen speichern
+            Reihenfolge speichern
           </button>
 
           <button
@@ -734,10 +734,7 @@ export default function AdminImagesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           propertyId: Number(propertyId),
-          order: normalized.map((it) => ({
-            id: it.id,
-            sort: it.sort,
-          })),
+          ids: normalized.map((it) => it.id),
         }),
       });
 

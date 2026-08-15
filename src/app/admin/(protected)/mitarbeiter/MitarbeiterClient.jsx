@@ -13,6 +13,7 @@ import {
   KeyRound,
   Loader2,
   Lock,
+  Pencil,
   Shield,
   ShieldCheck,
   Trash2,
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 
 import AdminConfirmDialog from "./AdminConfirmDialog";
+import MitarbeiterEditModal from "./MitarbeiterEditModal";
 
 const ROLE_LABELS = {
   EDITOR: "Editor",
@@ -67,6 +69,9 @@ export default function MitarbeiterClient({
       type: null,
       employee: null,
     });
+
+  const [editEmployee, setEditEmployee] =
+    useState(null);
 
   const [form, setForm] =
     useState({
@@ -403,7 +408,7 @@ export default function MitarbeiterClient({
 
       setGeneratedPassword({
         password:
-          data.password,
+          data.generatedPassword,
 
         name:
           employee.name ||
@@ -864,52 +869,29 @@ export default function MitarbeiterClient({
 
                     {/* Aktionen */}
                     <div className="flex flex-wrap items-center gap-2">
-
-                      {!isMe &&
-                        employee.role !==
-                          "SUPERADMIN" && (
-                          <select
-                            value={
-                              employee.role
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateEmployee(
-                                employee.id,
-                                {
-                                  role:
-                                    event
-                                      .target
-                                      .value,
-                                }
-                              )
-                            }
-                            className="
-                              h-10
-                              rounded-xl
-                              border border-slate-200
-                              bg-white
-                              px-3
-                              text-sm
-                              font-medium
-                              text-slate-700
-                              outline-none
-                              transition
-                              focus:border-sky-400
-                              focus:ring-4
-                              focus:ring-sky-100
-                            "
-                          >
-                            <option value="EDITOR">
-                              Editor
-                            </option>
-
-                            <option value="ADMIN">
-                              Administrator
-                            </option>
-                          </select>
-                        )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditEmployee(employee)
+                        }
+                        className="
+                          inline-flex h-10
+                          items-center gap-2
+                          rounded-xl
+                          border border-slate-200
+                          bg-white
+                          px-3
+                          text-sm font-medium
+                          text-slate-700
+                          transition
+                          hover:border-sky-200
+                          hover:bg-sky-50
+                          hover:text-sky-700
+                        "
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Bearbeiten
+                      </button>
 
                       {!isMe && (
                         <button
@@ -978,34 +960,32 @@ export default function MitarbeiterClient({
                         </button>
                       )}
 
-                      {!isMe &&
-                        employee.role !==
-                          "SUPERADMIN" && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openConfirm(
-                                "delete",
-                                employee
-                              )
-                            }
-                            className="
-                              inline-flex h-10
-                              items-center gap-2
-                              rounded-xl
-                              border border-red-200
-                              bg-white
-                              px-3
-                              text-sm font-medium
-                              text-red-700
-                              transition
-                              hover:bg-red-50
-                            "
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Entfernen
-                          </button>
-                        )}
+                      {!isMe && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openConfirm(
+                              "delete",
+                              employee
+                            )
+                          }
+                          className="
+                            inline-flex h-10
+                            items-center gap-2
+                            rounded-xl
+                            border border-red-200
+                            bg-white
+                            px-3
+                            text-sm font-medium
+                            text-red-700
+                            transition
+                            hover:bg-red-50
+                          "
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Entfernen
+                        </button>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -1022,7 +1002,7 @@ export default function MitarbeiterClient({
       {showCreate && (
         <div
           className="
-            fixed inset-0 z-[250]
+            fixed inset-0 z-[99999]
             flex items-center justify-center
             bg-slate-950/40
             p-4
@@ -1341,6 +1321,18 @@ export default function MitarbeiterClient({
       {/* ======================================================
           BESTÄTIGUNGS-DIALOG
          ====================================================== */}
+
+      <MitarbeiterEditModal
+        open={Boolean(editEmployee)}
+        employee={editEmployee}
+        currentUserId={currentUserId}
+        onClose={() =>
+          setEditEmployee(null)
+        }
+        onUpdated={async () => {
+          await loadEmployees();
+        }}
+      />
 
       <AdminConfirmDialog
         open={

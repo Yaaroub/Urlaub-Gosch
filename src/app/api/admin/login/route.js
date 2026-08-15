@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+
 import prisma from "@/lib/db";
 
 import {
@@ -6,26 +7,37 @@ import {
   sessionCookie,
 } from "@/lib/auth";
 
-const ADMIN_ROLES = [
+const STAFF_ROLES = [
   "EDITOR",
   "ADMIN",
   "SUPERADMIN",
 ];
 
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const body = await request.json();
+    const body =
+      await req.json();
 
-    const email = String(body?.email || "")
-      .trim()
-      .toLowerCase();
+    const email =
+      String(
+        body?.email || ""
+      )
+        .trim()
+        .toLowerCase();
 
-    const password = String(body?.password || "");
+    const password =
+      String(
+        body?.password || ""
+      );
 
-    if (!email || !password) {
+    if (
+      !email ||
+      !password
+    ) {
       return Response.json(
         {
-          error: "Bitte E-Mail und Passwort eingeben.",
+          error:
+            "E-Mail und Passwort sind erforderlich.",
         },
         {
           status: 400,
@@ -33,18 +45,37 @@ export async function POST(request) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    const user =
+      await prisma.user.findUnique({
+        where: {
+          email,
+        },
 
-    // Gleiche Fehlermeldung, damit nicht verraten wird,
-    // ob eine E-Mail existiert.
-    if (!user) {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          password: true,
+
+          role: true,
+          isActive: true,
+
+          sessionVersion: true,
+          sessionTimeoutMinutes: true,
+          mustChangePassword: true,
+        },
+      });
+
+    if (
+      !user ||
+      !STAFF_ROLES.includes(
+        user.role
+      )
+    ) {
       return Response.json(
         {
-          error: "E-Mail oder Passwort ist nicht korrekt.",
+          error:
+            "E-Mail oder Passwort ist falsch.",
         },
         {
           status: 401,
@@ -55,7 +86,8 @@ export async function POST(request) {
     if (!user.isActive) {
       return Response.json(
         {
-          error: "Dieses Konto ist gesperrt.",
+          error:
+            "Dieses Mitarbeiterkonto ist gesperrt.",
         },
         {
           status: 403,
@@ -63,26 +95,17 @@ export async function POST(request) {
       );
     }
 
-    if (!ADMIN_ROLES.includes(user.role)) {
-      return Response.json(
-        {
-          error: "Für dieses Konto besteht kein Admin-Zugriff.",
-        },
-        {
-          status: 403,
-        }
+    const passwordMatches =
+      await bcrypt.compare(
+        password,
+        user.password
       );
-    }
 
-    const passwordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    if (!passwordValid) {
+    if (!passwordMatches) {
       return Response.json(
         {
-          error: "E-Mail oder Passwort ist nicht korrekt.",
+          error:
+            "E-Mail oder Passwort ist falsch.",
         },
         {
           status: 401,
@@ -90,41 +113,82 @@ export async function POST(request) {
       );
     }
 
-    const updatedUser = await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        lastLoginAt: new Date(),
-      },
-    });
+    const updated =
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
 
-    const token = await createSession(updatedUser);
+        data: {
+          lastLoginAt:
+            new Date(),
+        },
+
+        select: {
+          id: true,
+          email: true,
+          name: true,
+
+          role: true,
+          isActive: true,
+
+          sessionVersion: true,
+          sessionTimeoutMinutes: true,
+          mustChangePassword: true,
+        },
+      });
+
+    const token =
+      await createSession(
+        updated
+      );
 
     return Response.json(
       {
-        success: true,
+        ok: true,
 
         user: {
-          id: updatedUser.id,
-          email: updatedUser.email,
-          name: updatedUser.name,
-          role: updatedUser.role,
+          id:
+            updated.id,
+
+          email:
+            updated.email,
+
+          name:
+            updated.name,
+
+          role:
+            updated.role,
         },
+
+        mustChangePassword:
+          updated.mustChangePassword,
+
+        sessionTimeoutMinutes:
+          updated.sessionTimeoutMinutes,
       },
       {
         headers: {
-          "Set-Cookie": sessionCookie(token),
-          "Cache-Control": "no-store",
+          "Set-Cookie":
+            sessionCookie(
+              token
+            ),
+
+          "Cache-Control":
+            "no-store",
         },
       }
     );
   } catch (error) {
-    console.error("ADMIN LOGIN ERROR:", error);
+    console.error(
+      "POST /api/admin/login failed:",
+      error
+    );
 
     return Response.json(
       {
-        error: "Anmeldung konnte nicht durchgeführt werden.",
+        error:
+          "Anmeldung konnte nicht durchgeführt werden.",
       },
       {
         status: 500,

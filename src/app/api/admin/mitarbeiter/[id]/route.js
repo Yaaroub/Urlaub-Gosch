@@ -1,162 +1,771 @@
 import prisma from "@/lib/db";
-import { getSuperAdmin } from "@/lib/admin-auth";
 
-const ALLOWED_ROLES = ["EDITOR", "ADMIN"];
+import {
+  createSession,
+  sessionCookie,
+} from "@/lib/auth";
 
-async function getId(context) {
-  const params = await context.params;
-  const id = Number(params.id);
+import {
+  sanitizePermissions,
+} from "@/lib/admin-permissions";
 
-  if (!Number.isInteger(id) || id <= 0) {
-    return null;
-  }
+import {
+  getSuperAdmin,
+} from "@/lib/admin-auth";
 
-  return id;
+const ALLOWED_ROLES = [
+  "EDITOR",
+  "ADMIN",
+  "SUPERADMIN",
+];
+
+const ALLOWED_TIMEOUTS = [
+  15,
+  30,
+  45,
+  60,
+  120,
+];
+
+function normalizeEmail(email) {
+  return String(email || "")
+    .trim()
+    .toLowerCase();
 }
 
-export async function PATCH(request, context) {
-  const admin = await getSuperAdmin(request);
+function validEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    email
+  );
+}
 
-  if (!admin) {
-    return Response.json(
-      { error: "Keine Berechtigung." },
-      { status: 403 }
+async function getId(
+  context
+) {
+  const params =
+    await context.params;
+
+  return Number(
+    params.id
+  );
+}
+
+async function superAdminCount() {
+  return prisma.user.count({
+    where: {
+      role: "SUPERADMIN",
+      isActive: true,
+    },
+  });
+}
+
+export async function PATCH(
+  request,
+  context
+) {
+  const currentUser =
+    await getSuperAdmin(
+      request
     );
-  }
 
-  const id = await getId(context);
-
-  if (!id) {
-    return Response.json(
-      { error: "Ungültige Benutzer-ID." },
-      { status: 400 }
-    );
-  }
-
-  if (id === admin.id) {
+  if (!currentUser) {
     return Response.json(
       {
-        error: "Du kannst deinen eigenen Superadmin-Zugang hier nicht verändern.",
+        error:
+          "Nur ein Superadmin darf Zugangsdaten bearbeiten.",
       },
-      { status: 400 }
+      {
+        status: 403,
+      }
     );
   }
 
-  const target = await prisma.user.findUnique({
-    where: { id },
-  });
+  const id =
+    await getId(context);
+
+  if (
+    !id ||
+    Number.isNaN(id)
+  ) {
+    return Response.json(
+      {
+        error:
+          "Ungültige Benutzer-ID.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  const target =
+    await prisma.user.findUnique({
+      where: {
+        id,
+      },
+
+      include: {
+        adminPermissions:
+          true,
+      },
+    });
 
   if (!target) {
     return Response.json(
-      { error: "Mitarbeiter wurde nicht gefunden." },
-      { status: 404 }
+      {
+        error:
+          "Mitarbeiter wurde nicht gefunden.",
+      },
+      {
+        status: 404,
+      }
     );
   }
 
-  if (target.role === "SUPERADMIN") {
+  let body;
+
+  try {
+    body =
+      await request.json();
+  } catch {
     return Response.json(
       {
-        error: "Andere Superadmin-Konten können hier nicht verändert werden.",
+        error:
+          "Ungültige Anfrage.",
       },
-      { status: 403 }
+      {
+        status: 400,
+      }
     );
   }
 
-  const body = await request.json();
+  const isSelf =
+    id === currentUser.id;
 
   const data = {};
 
-  if (body.role !== undefined) {
-    if (!ALLOWED_ROLES.includes(body.role)) {
+  // ------------------------------------------------------------
+  // Name
+  // ------------------------------------------------------------
+
+  if (
+    body.name !==
+    undefined
+  ) {
+    const name =
+      String(
+        body.name || ""
+      ).trim();
+
+    if (!name) {
       return Response.json(
-        { error: "Ungültige Rolle." },
-        { status: 400 }
+        {
+          error:
+            "Der Name darf nicht leer sein.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    data.role = body.role;
+    data.name = name;
+  }
 
-    // Bei Rollenänderung bestehende Sessions beenden.
+  // ------------------------------------------------------------
+  // E-Mail
+  // ------------------------------------------------------------
+
+  let emailChanged =
+    false;
+
+  if (
+    body.email !==
+    undefined
+  ) {
+    const email =
+      normalizeEmail(
+        body.email
+      );
+
+    if (!validEmail(email)) {
+      return Response.json(
+        {
+          error:
+            "Bitte eine gültige E-Mail-Adresse eingeben.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const existing =
+      await prisma.user.findFirst({
+        where: {
+          email,
+
+          NOT: {
+            id,
+          },
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (existing) {
+      return Response.json(
+        {
+          error:
+            "Diese E-Mail-Adresse wird bereits verwendet.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    if (
+      email !==
+      target.email
+    ) {
+      data.email =
+        email;
+
+      emailChanged =
+        true;
+    }
+  }
+
+  // ------------------------------------------------------------
+  // Rolle
+  // ------------------------------------------------------------
+
+  let role =
+    target.role;
+
+  let roleChanged =
+    false;
+
+  if (
+    body.role !==
+    undefined
+  ) {
+    role =
+      String(
+        body.role
+      ).toUpperCase();
+
+    if (
+      !ALLOWED_ROLES.includes(
+        role
+      )
+    ) {
+      return Response.json(
+        {
+          error:
+            "Ungültige Rolle.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // Eigenen Superadmin-Status nicht entfernen.
+    if (
+      isSelf &&
+      target.role ===
+        "SUPERADMIN" &&
+      role !==
+        "SUPERADMIN"
+    ) {
+      return Response.json(
+        {
+          error:
+            "Du kannst deinem eigenen Konto die Superadmin-Rolle nicht entziehen.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      target.role ===
+        "SUPERADMIN" &&
+      role !==
+        "SUPERADMIN"
+    ) {
+      const count =
+        await superAdminCount();
+
+      if (count <= 1) {
+        return Response.json(
+          {
+            error:
+              "Der letzte aktive Superadmin kann nicht heruntergestuft werden.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+    }
+
+    if (
+      role !==
+      target.role
+    ) {
+      data.role =
+        role;
+
+      roleChanged =
+        true;
+    }
+  }
+
+  // ------------------------------------------------------------
+  // Aktiv / gesperrt
+  // ------------------------------------------------------------
+
+  let statusChanged =
+    false;
+
+  if (
+    typeof body.isActive ===
+    "boolean"
+  ) {
+    if (
+      isSelf &&
+      body.isActive ===
+        false
+    ) {
+      return Response.json(
+        {
+          error:
+            "Du kannst dein eigenes Superadmin-Konto nicht sperren.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      target.role ===
+        "SUPERADMIN" &&
+      body.isActive ===
+        false &&
+      target.isActive
+    ) {
+      const count =
+        await superAdminCount();
+
+      if (count <= 1) {
+        return Response.json(
+          {
+            error:
+              "Der letzte aktive Superadmin kann nicht gesperrt werden.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+    }
+
+    if (
+      body.isActive !==
+      target.isActive
+    ) {
+      data.isActive =
+        body.isActive;
+
+      statusChanged =
+        true;
+    }
+  }
+
+  // ------------------------------------------------------------
+  // Timeout
+  // ------------------------------------------------------------
+
+  if (
+    body.sessionTimeoutMinutes !==
+    undefined
+  ) {
+    const timeout =
+      Number(
+        body.sessionTimeoutMinutes
+      );
+
+    if (
+      !ALLOWED_TIMEOUTS.includes(
+        timeout
+      )
+    ) {
+      return Response.json(
+        {
+          error:
+            "Ungültiger Session-Timeout.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    data.sessionTimeoutMinutes =
+      timeout;
+  }
+
+  // ------------------------------------------------------------
+  // Passwortwechsel erzwingen
+  // ------------------------------------------------------------
+
+  if (
+    typeof body.mustChangePassword ===
+    "boolean"
+  ) {
+    data.mustChangePassword =
+      body.mustChangePassword;
+  }
+
+  // ------------------------------------------------------------
+  // Rechte
+  // ------------------------------------------------------------
+
+  let permissionsChanged =
+    false;
+
+  let permissions =
+    null;
+
+  if (
+    Array.isArray(
+      body.permissions
+    )
+  ) {
+    permissions =
+      sanitizePermissions(
+        body.permissions
+      );
+
+    if (
+      role ===
+      "SUPERADMIN"
+    ) {
+      permissions = [];
+    }
+
+    const oldPermissions =
+      target.adminPermissions
+        .map(
+          (item) =>
+            item.permission
+        )
+        .sort();
+
+    const newPermissions =
+      [...permissions].sort();
+
+    permissionsChanged =
+      JSON.stringify(
+        oldPermissions
+      ) !==
+      JSON.stringify(
+        newPermissions
+      );
+  }
+
+  // ------------------------------------------------------------
+  // Session invalidieren bei sicherheitsrelevanten Änderungen
+  // ------------------------------------------------------------
+
+  const invalidateSessions =
+    emailChanged ||
+    roleChanged ||
+    statusChanged ||
+    permissionsChanged;
+
+  if (invalidateSessions) {
     data.sessionVersion = {
       increment: 1,
     };
   }
 
-  if (body.isActive !== undefined) {
-    data.isActive = Boolean(body.isActive);
+  const updated =
+    await prisma.$transaction(
+      async (tx) => {
+        if (
+          permissions !==
+          null
+        ) {
+          await tx.userAdminPermission.deleteMany(
+            {
+              where: {
+                userId: id,
+              },
+            }
+          );
 
-    // Sperren/Aktivieren macht bestehende Session ungültig.
-    data.sessionVersion = {
-      increment: 1,
-    };
-  }
+          if (
+            role !==
+              "SUPERADMIN" &&
+            permissions.length
+          ) {
+            await tx.userAdminPermission.createMany(
+              {
+                data:
+                  permissions.map(
+                    (
+                      permission
+                    ) => ({
+                      userId:
+                        id,
 
-  const employee = await prisma.user.update({
-    where: { id },
-    data,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      lastLoginAt: true,
+                      permission,
+                    })
+                  ),
+              }
+            );
+          }
+        } else if (
+          role ===
+            "SUPERADMIN" &&
+          target.role !==
+            "SUPERADMIN"
+        ) {
+          // Superadmin braucht keine Einzelrechte.
+          await tx.userAdminPermission.deleteMany(
+            {
+              where: {
+                userId:
+                  id,
+              },
+            }
+          );
+        }
+
+        return tx.user.update({
+          where: {
+            id,
+          },
+
+          data,
+
+          select: {
+            id: true,
+            name: true,
+            email: true,
+
+            role: true,
+            isActive: true,
+
+            sessionVersion:
+              true,
+
+            sessionTimeoutMinutes:
+              true,
+
+            mustChangePassword:
+              true,
+
+            lastLoginAt:
+              true,
+
+            passwordChangedAt:
+              true,
+
+            createdAt: true,
+            updatedAt: true,
+
+            adminPermissions: {
+              select: {
+                permission:
+                  true,
+              },
+            },
+          },
+        });
+      }
+    );
+
+  const responseBody = {
+    success: true,
+
+    employee: {
+      ...updated,
+
+      permissions:
+        updated.role ===
+        "SUPERADMIN"
+          ? []
+          : updated.adminPermissions.map(
+              (item) =>
+                item.permission
+            ),
+
+      adminPermissions:
+        undefined,
     },
-  });
+  };
 
-  return Response.json({ employee });
+  /*
+   * Wurde das eigene Konto geändert und
+   * sessionVersion erhöht, bekommt genau
+   * dieser Browser direkt eine neue Session.
+   * Andere alte Sessions werden ungültig.
+   */
+  if (
+    isSelf &&
+    invalidateSessions &&
+    updated.isActive
+  ) {
+    const token =
+      await createSession(
+        updated
+      );
+
+    return Response.json(
+      responseBody,
+      {
+        headers: {
+          "Set-Cookie":
+            sessionCookie(
+              token
+            ),
+
+          "Cache-Control":
+            "no-store",
+        },
+      }
+    );
+  }
+
+  return Response.json(
+    responseBody,
+    {
+      headers: {
+        "Cache-Control":
+          "no-store",
+      },
+    }
+  );
 }
 
-export async function DELETE(request, context) {
-  const admin = await getSuperAdmin(request);
 
-  if (!admin) {
-    return Response.json(
-      { error: "Keine Berechtigung." },
-      { status: 403 }
+// ============================================================================
+// LÖSCHEN
+// ============================================================================
+
+export async function DELETE(
+  request,
+  context
+) {
+  const currentUser =
+    await getSuperAdmin(
+      request
     );
-  }
 
-  const id = await getId(context);
-
-  if (!id) {
-    return Response.json(
-      { error: "Ungültige Benutzer-ID." },
-      { status: 400 }
-    );
-  }
-
-  if (id === admin.id) {
+  if (!currentUser) {
     return Response.json(
       {
-        error: "Du kannst dein eigenes Superadmin-Konto nicht löschen.",
+        error:
+          "Nur ein Superadmin darf Mitarbeiter entfernen.",
       },
-      { status: 400 }
+      {
+        status: 403,
+      }
     );
   }
 
-  const target = await prisma.user.findUnique({
-    where: { id },
-  });
+  const id =
+    await getId(context);
+
+  if (
+    !id ||
+    Number.isNaN(id)
+  ) {
+    return Response.json(
+      {
+        error:
+          "Ungültige Benutzer-ID.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  if (
+    id ===
+    currentUser.id
+  ) {
+    return Response.json(
+      {
+        error:
+          "Du kannst dein eigenes Konto nicht löschen.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  const target =
+    await prisma.user.findUnique({
+      where: {
+        id,
+      },
+
+      select: {
+        id: true,
+        role: true,
+        isActive: true,
+      },
+    });
 
   if (!target) {
     return Response.json(
-      { error: "Mitarbeiter wurde nicht gefunden." },
-      { status: 404 }
+      {
+        error:
+          "Mitarbeiter wurde nicht gefunden.",
+      },
+      {
+        status: 404,
+      }
     );
   }
 
-  if (target.role === "SUPERADMIN") {
-    return Response.json(
-      {
-        error: "Superadmin-Konten können hier nicht gelöscht werden.",
-      },
-      { status: 403 }
-    );
+  if (
+    target.role ===
+      "SUPERADMIN" &&
+    target.isActive
+  ) {
+    const count =
+      await superAdminCount();
+
+    if (count <= 1) {
+      return Response.json(
+        {
+          error:
+            "Der letzte aktive Superadmin kann nicht gelöscht werden.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
   }
 
   await prisma.user.delete({
-    where: { id },
+    where: {
+      id,
+    },
   });
 
   return Response.json({
