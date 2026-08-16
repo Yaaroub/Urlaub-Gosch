@@ -1,5 +1,3 @@
-// src/components/CookieSettingsButton.jsx
-
 "use client";
 
 import { Cookie } from "lucide-react";
@@ -13,13 +11,16 @@ export default function CookieSettingsButton({
     <button
       type="button"
       onClick={openConsentSettings}
-      className={className}
+      className={`inline-flex items-center gap-2 ${className}`}
     >
-      {showIcon ? (
-        <Cookie className="h-4 w-4" />
-      ) : null}
+      {showIcon && (
+        <Cookie
+          aria-hidden="true"
+          className="h-4 w-4 shrink-0"
+        />
+      )}
 
-      Cookie-Einstellungen
+      <span>Cookie-Einstellungen</span>
     </button>
   );
 }

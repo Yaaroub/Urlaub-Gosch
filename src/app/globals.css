@@ -25,10 +25,25 @@
   --brand-text: #0f172a;
 }
 
-html,
+html {
+  max-width: 100%;
+  background: #f8fafc;
+  color: var(--brand-text);
+}
+
 body {
   max-width: 100%;
-  overflow-x: hidden;
+  min-height: 100vh;
+
+  /*
+   * Wichtig für position: sticky:
+   *
+   * clip verhindert horizontalen Überlauf,
+   * erzeugt aber keinen normalen Scroll-Container
+   * wie overflow-x: hidden.
+   */
+  overflow-x: clip;
+
   background: #f8fafc;
   color: var(--brand-text);
 }
