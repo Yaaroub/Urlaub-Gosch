@@ -32,7 +32,7 @@ export default function Gallery({ images = [] }) {
         className="group relative block min-h-11 w-full overflow-hidden rounded-2xl ring-1 ring-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
         aria-label="Hero Bild vergrößern"
       >
-        <div className="relative aspect-[16/9] w-full">
+        <div className="relative aspect-[16/6] w-full">
           <Image
             src={hero.url}
             alt={hero.alt || ""}

@@ -129,13 +129,13 @@ function MobileHeroInfo({
       : "bg-white/15 text-white ring-white/15";
 
   return (
-    <details className="group relative sm:hidden">
+    <details className="group relative min-w-0 sm:hidden">
       <summary
         aria-label={ariaLabel}
         className={`
           flex
-          h-9
-          min-w-9
+          h-10
+          min-w-10
           cursor-pointer
           list-none
           items-center
@@ -143,6 +143,8 @@ function MobileHeroInfo({
           gap-1.5
           rounded-full
           px-2.5
+          touch-manipulation
+          select-none
           backdrop-blur-md
           ring-1
           transition
@@ -166,7 +168,7 @@ function MobileHeroInfo({
           left-1/2
           z-[80]
           w-max
-          max-w-[min(280px,calc(100vw-40px))]
+          max-w-[min(280px,calc(100vw-24px))]
           -translate-x-1/2
           translate-y-1
           rounded-xl
@@ -1231,7 +1233,7 @@ export default async function PropertyPage({
   ========================================================================== */
 
   return (
-    <main className="mx-auto max-w-7xl pb-16 pt-24 md:pb-24 md:pt-28">
+    <main className="mx-auto w-full min-w-0 max-w-7xl overflow-x-clip pb-14 pt-20 sm:pb-16 sm:pt-24 md:pb-24 md:pt-28">
       {/* STRUCTURED DATA */}
 
       <script
@@ -1246,11 +1248,11 @@ export default async function PropertyPage({
 
       <nav
         aria-label="Breadcrumb"
-        className="px-4 pt-6"
+        className="px-3 pt-4 sm:px-4 sm:pt-6"
       >
         <Link
           href="/"
-          className="inline-flex items-center gap-2 rounded-full px-1 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
+          className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-full px-2 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
         >
           <ChevronLeft
             aria-hidden="true"
@@ -1267,9 +1269,9 @@ export default async function PropertyPage({
 
       <section
         aria-labelledby="property-title"
-        className="relative mx-4 mt-3 overflow-hidden rounded-3xl bg-slate-900 shadow-xl ring-1 ring-black/10"
+        className="relative mx-2 mt-2 min-w-0 overflow-hidden rounded-[1.5rem] bg-slate-900 shadow-xl ring-1 ring-black/10 sm:mx-4 sm:mt-3 sm:rounded-3xl"
       >
-        <div className="relative h-[440px] sm:h-[400px] md:h-[440px]">
+        <div className="relative h-[520px] min-h-[520px] sm:h-[430px] sm:min-h-0 md:h-[460px]">
           {property.images[0]
             ?.url ? (
             <Image
@@ -1285,7 +1287,7 @@ export default async function PropertyPage({
                 property.title
               }
               fill
-              sizes="(max-width: 1280px) calc(100vw - 32px), 1248px"
+              sizes="(max-width: 639px) calc(100vw - 16px), (max-width: 1280px) calc(100vw - 32px), 1248px"
               quality={78}
               priority
               fetchPriority="high"
@@ -1295,17 +1297,17 @@ export default async function PropertyPage({
             <div className="h-full w-full bg-gradient-to-br from-sky-100 to-slate-300" />
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-slate-950/5" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-slate-950/5 sm:from-slate-950/90 sm:via-slate-950/25" />
 
-          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-5 p-5 text-white sm:p-6 md:flex-row md:items-end md:justify-between md:p-10">
-            <div className="max-w-3xl">
-              <p className="mb-2 text-sm font-medium text-white/80">
+          <div className="absolute inset-x-0 bottom-0 flex min-w-0 flex-col gap-4 p-4 pb-5 text-white sm:gap-5 sm:p-6 md:flex-row md:items-end md:justify-between md:p-10">
+            <div className="min-w-0 max-w-3xl">
+              <p className="mb-2 text-xs font-medium leading-5 text-white/80 sm:text-sm">
                 Ferienunterkunft an der Ostsee
               </p>
 
               <h1
                 id="property-title"
-                className="text-3xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:text-4xl md:text-5xl"
+                className="max-w-full break-words text-[clamp(1.75rem,8vw,2.25rem)] font-semibold leading-[1.08] tracking-tight drop-shadow-sm sm:text-4xl sm:leading-tight md:text-5xl"
               >
                 {
                   property.title
@@ -1318,7 +1320,7 @@ export default async function PropertyPage({
                   Desktop: bisherige ausführliche Badges
               ============================================================ */}
 
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              <div className="mt-3 flex max-w-full flex-wrap items-center gap-2 text-sm sm:mt-4">
                 {/* ---------------- MOBILE ---------------- */}
 
                 <MobileHeroInfo
@@ -1462,10 +1464,10 @@ export default async function PropertyPage({
               </div>
             </div>
 
-            <div className="flex w-full shrink-0 items-center justify-between gap-3 md:w-auto md:justify-end">
+            <div className="grid w-full min-w-0 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-stretch gap-2.5 sm:flex sm:items-center sm:justify-between sm:gap-3 md:w-auto md:justify-end">
               <a
                 href="#galerie"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                className="inline-flex min-h-11 min-w-0 touch-manipulation items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-slate-950 shadow-lg transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:px-4"
               >
                 <ImagesIcon
                   aria-hidden="true"
@@ -1477,18 +1479,18 @@ export default async function PropertyPage({
 
               {minNightlyPrice !==
                 null && (
-                <div className="rounded-xl bg-slate-950/70 px-4 py-2.5 text-right backdrop-blur-md ring-1 ring-white/15">
+                <div className="min-w-[112px] rounded-xl bg-slate-950/75 px-3 py-2 text-right backdrop-blur-md ring-1 ring-white/15 sm:min-w-0 sm:px-4 sm:py-2.5">
                   <span className="block text-xs text-white/70">
                     ab
                   </span>
 
-                  <strong className="text-xl">
+                  <strong className="block whitespace-nowrap text-lg leading-tight sm:inline sm:text-xl">
                     {currencyFormatter.format(
                       minNightlyPrice,
                     )}
                   </strong>
 
-                  <span className="ml-1 text-xs text-white/70">
+                  <span className="block whitespace-nowrap text-[10px] text-white/70 sm:ml-1 sm:inline sm:text-xs">
                     / Nacht
                   </span>
                 </div>
@@ -1504,11 +1506,11 @@ export default async function PropertyPage({
 
       <section
         aria-labelledby="overview-title"
-        className="mx-4 mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
+        className="mx-3 mt-5 min-w-0 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:mx-4 sm:mt-6 sm:p-6 md:p-7"
       >
         <h2
           id="overview-title"
-          className="text-xl font-semibold text-slate-950"
+          className="text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
         >
           Das Wichtigste auf
           einen Blick
@@ -1534,8 +1536,8 @@ export default async function PropertyPage({
           einem Ort.
         </p>
 
-        <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
+        <dl className="mt-5 grid grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 sm:grid-cols-3 sm:gap-3">
+          <div className="min-w-0 rounded-xl bg-slate-50 p-3.5 ring-1 ring-slate-100 sm:p-4">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Kapazität
             </dt>
@@ -1549,7 +1551,7 @@ export default async function PropertyPage({
             </dd>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
+          <div className="min-w-0 rounded-xl bg-slate-50 p-3.5 ring-1 ring-slate-100 sm:p-4">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Haustiere
             </dt>
@@ -1562,7 +1564,7 @@ export default async function PropertyPage({
             </dd>
           </div>
 
-          <div className="col-span-2 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100 sm:col-span-1">
+          <div className="min-w-0 rounded-xl bg-slate-50 p-3.5 ring-1 ring-slate-100 min-[380px]:col-span-2 sm:col-span-1 sm:p-4">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Ausstattung
             </dt>
@@ -1586,7 +1588,7 @@ export default async function PropertyPage({
       <section
         id="galerie"
         aria-labelledby="gallery-title"
-        className="scroll-mt-28 px-4 pt-8"
+        className="scroll-mt-24 px-3 pt-6 sm:scroll-mt-28 sm:px-4 sm:pt-8"
       >
         <h2
           id="gallery-title"
@@ -1609,18 +1611,18 @@ export default async function PropertyPage({
           CONTENT + STICKY BOOKING
       ====================================================================== */}
 
-      <div className="grid gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-stretch">
-        <div className="space-y-6">
+      <div className="grid min-w-0 gap-6 px-3 py-6 sm:px-4 sm:py-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-stretch lg:gap-8">
+        <div className="min-w-0 space-y-5 sm:space-y-6">
           {/* BESCHREIBUNG */}
 
           {property.description && (
             <section
               aria-labelledby="description-title"
-              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
+              className="min-w-0 overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
             >
               <h2
                 id="description-title"
-                className="text-xl font-semibold text-slate-950"
+                className="text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
               >
                 Über diese Unterkunft
               </h2>
@@ -1636,11 +1638,11 @@ export default async function PropertyPage({
 
           <section
             aria-labelledby="amenities-title"
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-7"
+            className="min-w-0 overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
           >
             <h2
               id="amenities-title"
-              className="mb-4 text-xl font-semibold text-slate-950"
+              className="mb-4 text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
             >
               Ausstattung
             </h2>
@@ -1656,12 +1658,12 @@ export default async function PropertyPage({
 
           <section
             aria-labelledby="prices-title"
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-7"
+            className="min-w-0 overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
           >
-            <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="mb-4 flex min-w-0 items-center justify-between gap-3 sm:gap-4">
               <h2
                 id="prices-title"
-                className="text-xl font-semibold text-slate-950"
+                className="text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
               >
                 Preise pro Nacht
               </h2>
@@ -1683,12 +1685,12 @@ export default async function PropertyPage({
 
           <section
             aria-labelledby="fees-title"
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-7"
+            className="min-w-0 overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-6 md:p-7"
           >
-            <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="mb-4 flex min-w-0 items-center justify-between gap-3 sm:gap-4">
               <h2
                 id="fees-title"
-                className="text-xl font-semibold text-slate-950"
+                className="text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
               >
                 Nebenkosten
               </h2>
@@ -1713,9 +1715,9 @@ export default async function PropertyPage({
                       key={
                         fee.id
                       }
-                      className="flex items-start justify-between gap-5 py-3"
+                      className="flex min-w-0 items-start justify-between gap-3 py-3 sm:gap-5"
                     >
-                      <span className="text-slate-700">
+                      <span className="min-w-0 break-words text-slate-700">
                         {
                           fee.name
                         }
@@ -1757,16 +1759,16 @@ export default async function PropertyPage({
             <div className="mb-4">
               <h2
                 id="location-title"
-                className="text-xl font-semibold text-slate-950"
+                className="text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
               >
                 Lage & Umgebung
               </h2>
 
               {displayAddress ? (
-                <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                <p className="mt-1 flex min-w-0 items-start gap-1.5 text-sm font-medium leading-5 text-slate-700">
                   <MapPin className="h-4 w-4 shrink-0 text-sky-600" />
 
-                  {displayAddress}
+                  <span className="min-w-0 break-words">{displayAddress}</span>
                 </p>
               ) : (
                 <p className="mt-1 text-sm text-slate-600">
@@ -1795,13 +1797,13 @@ export default async function PropertyPage({
           before={
             <section
               aria-labelledby="availability-title"
-              className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-black/5"
+              className="min-w-0 overflow-hidden rounded-2xl bg-white p-4 shadow-lg ring-1 ring-black/5 sm:p-6"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div>
+              <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
+                <div className="min-w-0">
                   <h2
                     id="availability-title"
-                    className="text-xl font-semibold text-slate-950"
+                    className="text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
                   >
                     Verfügbarkeit
                   </h2>
@@ -1864,7 +1866,7 @@ export default async function PropertyPage({
                 </p>
               )}
 
-              <div className="mt-5">
+              <div className="mt-5 min-w-0 max-w-full overflow-x-auto overscroll-x-contain pb-1">
                 <BookingCalendar
                   propertyId={
                     property.id
@@ -1897,11 +1899,11 @@ export default async function PropertyPage({
 
           <section
             aria-labelledby="booking-title"
-            className="min-w-0 overflow-hidden rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 sm:p-6"
+            className="min-w-0 overflow-hidden rounded-2xl bg-white p-4 shadow-xl ring-1 ring-black/5 sm:p-6"
           >
             <h2
               id="booking-title"
-              className="text-xl font-semibold text-slate-950"
+              className="text-lg font-semibold leading-tight text-slate-950 sm:text-xl"
             >
               Info oder Buchung
               anfragen
@@ -1916,7 +1918,7 @@ export default async function PropertyPage({
               senden möchten.
             </p>
 
-            <div className="min-w-0 max-w-full [&_*]:min-w-0 [&_input]:w-full [&_select]:w-full [&_textarea]:w-full">
+            <div className="min-w-0 max-w-full overflow-hidden [&_*]:min-w-0 [&_button]:max-w-full [&_input]:w-full [&_select]:w-full [&_textarea]:w-full">
               <BookingBox
                 propertyId={
                   property.id
