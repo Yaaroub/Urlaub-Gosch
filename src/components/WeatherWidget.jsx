@@ -1,279 +1,791 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  Cloud,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudMoon,
+  CloudRain,
+  CloudSnow,
+  CloudSun,
+  Droplets,
+  MapPin,
+  MoonStar,
+  Sparkles,
+  Sun,
+  ThermometerSun,
+  Umbrella,
+  Wind,
+} from "lucide-react";
 
 const PLACES = [
-  { id: "holm", label: "Holm", lat: 54.41, lon: 10.33 },
-  { id: "kiel", label: "Kiel", lat: 54.32, lon: 10.14 },
-  { id: "flensburg", label: "Flensburg", lat: 54.78, lon: 9.44 },
+  { id: "holm", name: "Holm", latitude: 54.419, longitude: 10.424 },
+  {
+    id: "schoenberger-strand",
+    name: "Schönberger Strand",
+    latitude: 54.425,
+    longitude: 10.413,
+  },
+  { id: "kiel", name: "Kiel", latitude: 54.323, longitude: 10.122 },
+  {
+    id: "hohwacht",
+    name: "Hohwacht",
+    latitude: 54.318,
+    longitude: 10.668,
+  },
+  {
+    id: "fehmarn",
+    name: "Fehmarn",
+    latitude: 54.468,
+    longitude: 11.139,
+  },
+  {
+    id: "scharbeutz",
+    name: "Scharbeutz",
+    latitude: 54.026,
+    longitude: 10.754,
+  },
+  {
+    id: "luebeck",
+    name: "Lübeck",
+    latitude: 53.866,
+    longitude: 10.686,
+  },
+  {
+    id: "flensburg",
+    name: "Flensburg",
+    latitude: 54.793,
+    longitude: 9.446,
+  },
 ];
 
-const WMO = {
-  0: { text: "Klar", icon: "☀️", mood: "sun" },
-  1: { text: "Überwiegend klar", icon: "🌤️", mood: "sun" },
-  2: { text: "Teilweise bewölkt", icon: "⛅", mood: "cloud" },
-  3: { text: "Bewölkt", icon: "☁️", mood: "cloud" },
-  45: { text: "Nebel", icon: "🌫️", mood: "fog" },
-  48: { text: "Nebel", icon: "🌫️", mood: "fog" },
-  51: { text: "Nieselregen", icon: "🌦️", mood: "rain" },
-  53: { text: "Nieselregen", icon: "🌦️", mood: "rain" },
-  55: { text: "Nieselregen", icon: "🌧️", mood: "rain" },
-  61: { text: "Regen", icon: "🌧️", mood: "rain" },
-  63: { text: "Regen", icon: "🌧️", mood: "rain" },
-  65: { text: "Starker Regen", icon: "🌧️", mood: "rain" },
-  71: { text: "Schnee", icon: "❄️", mood: "snow" },
-  73: { text: "Schnee", icon: "❄️", mood: "snow" },
-  75: { text: "Starker Schnee", icon: "❄️", mood: "snow" },
-  80: { text: "Schauer", icon: "🌦️", mood: "rain" },
-  81: { text: "Schauer", icon: "🌧️", mood: "rain" },
-  82: { text: "Starke Schauer", icon: "⛈️", mood: "storm" },
-  95: { text: "Gewitter", icon: "⛈️", mood: "storm" },
-  96: { text: "Gewitter", icon: "⛈️", mood: "storm" },
-  97: { text: "Gewitter", icon: "⛈️", mood: "storm" },
-};
+function getWeatherInfo(code, isDay = 1) {
+  const night = Number(isDay) === 0;
 
-function weatherInfo(code) {
-  return WMO[code] ?? { text: "Wetter", icon: "🌤️", mood: "cloud" };
-}
-
-function fmtDay(date) {
-  return new Date(date).toLocaleDateString("de-DE", {
-    weekday: "short",
-  });
-}
-
-function fmtDate(date) {
-  return new Date(date).toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-}
-
-function moodClasses(mood) {
-  switch (mood) {
-    case "sun":
-      return "from-sky-400 via-blue-500 to-cyan-600";
-    case "rain":
-      return "from-slate-700 via-blue-800 to-slate-950";
-    case "storm":
-      return "from-slate-900 via-indigo-950 to-black";
-    case "snow":
-      return "from-sky-200 via-blue-400 to-indigo-500";
-    case "fog":
-      return "from-slate-400 via-slate-600 to-slate-800";
-    default:
-      return "from-sky-600 via-blue-700 to-indigo-800";
+  if (code === 0) {
+    return night
+      ? { label: "Klare Nacht", Icon: MoonStar }
+      : { label: "Klar", Icon: Sun };
   }
+
+  if ([1, 2].includes(code)) {
+    return night
+      ? { label: "Leicht bewölkt", Icon: CloudMoon }
+      : { label: "Heiter", Icon: CloudSun };
+  }
+
+  if (code === 3) {
+    return { label: "Bewölkt", Icon: Cloud };
+  }
+
+  if ([45, 48].includes(code)) {
+    return { label: "Nebel", Icon: CloudFog };
+  }
+
+  if ([51, 53, 55, 56, 57].includes(code)) {
+    return { label: "Nieselregen", Icon: CloudDrizzle };
+  }
+
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) {
+    return { label: "Regen", Icon: CloudRain };
+  }
+
+  if ([71, 73, 75, 77, 85, 86].includes(code)) {
+    return { label: "Schnee", Icon: CloudSnow };
+  }
+
+  if ([95, 96, 99].includes(code)) {
+    return { label: "Gewitter", Icon: CloudLightning };
+  }
+
+  return {
+    label: "Wechselhaft",
+    Icon: night ? CloudMoon : CloudSun,
+  };
 }
 
 function getTravelHint(temp, wind, code) {
-  const mood = weatherInfo(code).mood;
-
-  if (mood === "storm") return "Lieber Indoor-Aktivitäten planen";
-  if (mood === "rain") return "Regenjacke einpacken";
-  if (wind >= 35) return "Windig – perfekt für frische Seeluft";
-  if (temp >= 20) return "Sehr gut für Strand & Spaziergänge";
-  if (temp >= 14) return "Angenehm für Ausflüge";
-  return "Frisch – warme Kleidung empfohlen";
+  if ([95, 96, 99].includes(code)) return "Lieber drinnen";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) {
+    return "Regenjacke";
+  }
+  if (wind >= 35) return "Sehr windig";
+  if (temp >= 24) return "Strandwetter";
+  if (temp >= 18) return "Sehr angenehm";
+  if (temp >= 12) return "Jacke mitnehmen";
+  return "Warm anziehen";
 }
 
-function Skeleton() {
+function formatDay(value) {
+  return new Intl.DateTimeFormat("de-DE", {
+    weekday: "short",
+  }).format(new Date(`${value}T12:00:00`));
+}
+
+function formatDate(value) {
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(new Date(`${value}T12:00:00`));
+}
+
+function formatUpdated(value) {
+  if (!value) return "–";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function WeatherSkeleton() {
   return (
-    <div className="animate-pulse space-y-5">
-      <div className="flex items-center justify-between">
-        <div className="h-5 w-28 rounded-full bg-white/20" />
-        <div className="h-8 w-24 rounded-xl bg-white/20" />
-      </div>
-      <div className="h-24 rounded-3xl bg-white/15" />
-      <div className="grid grid-cols-5 gap-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-white/15" />
-        ))}
+    <div className="w-full overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
+      <div className="animate-pulse">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="h-3 w-20 rounded-full bg-slate-200" />
+            <div className="mt-2 h-6 w-36 rounded-lg bg-slate-200" />
+          </div>
+          <div className="h-10 w-10 rounded-2xl bg-slate-100" />
+        </div>
+
+        <div className="mt-4 flex gap-2 overflow-hidden">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-9 w-24 shrink-0 rounded-full bg-slate-100"
+            />
+          ))}
+        </div>
+
+        <div className="mt-4 h-48 rounded-[1.5rem] bg-slate-200" />
+
+        <div className="mt-4 flex gap-2 overflow-hidden">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-24 w-20 shrink-0 rounded-2xl bg-slate-100"
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 export default function WeatherWidget({ initialPlaceId = "holm" }) {
-  const [placeId, setPlaceId] = useState(initialPlaceId);
+  const safeInitialPlace = PLACES.some(
+    (place) => place.id === initialPlaceId,
+  )
+    ? initialPlaceId
+    : "holm";
+
+  const [placeId, setPlaceId] = useState(safeInitialPlace);
   const [data, setData] = useState(null);
-  const [err, setErr] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   const place = useMemo(
-    () => PLACES.find((p) => p.id === placeId) ?? PLACES[0],
-    [placeId]
+    () =>
+      PLACES.find((item) => item.id === placeId) ||
+      PLACES[0],
+    [placeId],
   );
 
   useEffect(() => {
-    let cancel = false;
+    const controller = new AbortController();
 
     async function loadWeather() {
-      setErr("");
-      setData(null);
+      setLoading(true);
+      setError("");
+
+      const params = new URLSearchParams({
+        latitude: String(place.latitude),
+        longitude: String(place.longitude),
+        current:
+          "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day",
+        daily:
+          "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+        timezone: "auto",
+        forecast_days: "5",
+      });
 
       try {
-        const res = await fetch(
-          `/api/weather?lat=${place.lat}&lon=${place.lon}`,
-          { cache: "no-store" }
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
+          {
+            signal: controller.signal,
+            cache: "no-store",
+          },
         );
 
-        const json = await res.json();
-
-        if (!res.ok) {
-          throw new Error(json?.error || "Fehler");
+        if (!response.ok) {
+          throw new Error(
+            `Wetterdienst antwortet mit ${response.status}.`,
+          );
         }
 
-        if (!cancel) setData(json);
-      } catch {
-        if (!cancel) setErr("Wetter konnte nicht geladen werden.");
+        const payload = await response.json();
+
+        if (!payload?.current || !payload?.daily?.time) {
+          throw new Error(
+            "Die Wetterdaten sind unvollständig.",
+          );
+        }
+
+        setData(payload);
+      } catch (requestError) {
+        if (requestError?.name !== "AbortError") {
+          console.error(
+            "WeatherWidget:",
+            requestError,
+          );
+
+          setError(
+            "Wetterdaten konnten gerade nicht geladen werden.",
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadWeather();
 
-    return () => {
-      cancel = true;
-    };
-  }, [place.lat, place.lon]);
+    return () => controller.abort();
+  }, [place, retryKey]);
 
-  const currentCode = data?.current?.weather_code;
-  const info = weatherInfo(currentCode);
-  const temp = data?.current?.temperature_2m;
-  const wind = data?.current?.wind_speed_10m;
+  if (loading && !data) {
+    return <WeatherSkeleton />;
+  }
 
-  return (
-    <div
-      className={`relative overflow-hidden rounded-[2rem] bg-gradient-to-br ${
-        data ? moodClasses(info.mood) : "from-sky-600 via-blue-700 to-indigo-800"
-      } p-5 text-white shadow-2xl shadow-sky-950/25`}
-    >
-      {/* Glow */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-white/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-cyan-300/20 blur-3xl" />
-
-      <div className="relative">
-        {/* Header */}
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/70">
-              Live Wetter
-            </p>
-            <h3 className="mt-1 text-xl font-bold tracking-tight">
-              Ostsee-Wetter
-            </h3>
-          </div>
-
-          <label htmlFor="weather-place" className="sr-only">
-            Wetter-Ort auswählen
-          </label>
-          <select
-            id="weather-place"
-            name="weather-place"
-            value={placeId}
-            onChange={(e) => setPlaceId(e.target.value)}
-            className="min-h-11 rounded-2xl border border-white/20 bg-white/15 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-xl outline-none transition hover:bg-white/20 focus:ring-2 focus:ring-white/40"
-          >
-            {PLACES.map((p) => (
-              <option key={p.id} value={p.id} className="text-slate-900">
-                {p.label}
-              </option>
-            ))}
-          </select>
+  if (error && !data) {
+    return (
+      <div className="w-full rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
+        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-50 text-sky-700">
+          <Cloud className="h-6 w-6" />
         </div>
 
-        {err ? (
-          <div className="rounded-3xl border border-white/20 bg-white/15 p-4 text-sm text-white backdrop-blur-xl">
-            {err}
+        <h3 className="mt-4 text-base font-black text-[#07131f]">
+          Wetter nicht verfügbar
+        </h3>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          {error}
+        </p>
+
+        <button
+          type="button"
+          onClick={() =>
+            setRetryKey((value) => value + 1)
+          }
+          className="mt-4 min-h-11 rounded-full bg-[#07131f] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
+        >
+          Erneut versuchen
+        </button>
+      </div>
+    );
+  }
+
+  const current = data.current;
+
+  const weatherCode = Number(current.weather_code);
+  const isDay = Number(current.is_day);
+  const isNight = isDay === 0;
+
+  const currentInfo = getWeatherInfo(
+    weatherCode,
+    isDay,
+  );
+
+  const CurrentIcon = currentInfo.Icon;
+
+  const temperature = Math.round(
+    Number(current.temperature_2m),
+  );
+
+  const feelsLike = Math.round(
+    Number(current.apparent_temperature),
+  );
+
+  const humidity = Math.round(
+    Number(current.relative_humidity_2m),
+  );
+
+  const wind = Math.round(
+    Number(current.wind_speed_10m),
+  );
+
+  const forecastDays = data.daily.time.slice(0, 5);
+
+  return (
+    <section
+      aria-label={`Wettervorhersage für ${place.name}`}
+      className="min-w-0"
+    >
+      <div
+        className={[
+          `
+            relative
+            min-w-0
+            overflow-hidden
+            rounded-[1.75rem]
+            border
+            p-3.5
+            shadow-[0_22px_65px_rgba(15,23,42,0.16)]
+            sm:p-4
+          `,
+          isNight
+            ? `
+                border-white/10
+                bg-gradient-to-br
+                from-[#08111f]
+                via-[#102347]
+                to-[#16466a]
+                text-white
+              `
+            : `
+                border-sky-300/25
+                bg-gradient-to-br
+                from-[#2496c9]
+                via-[#1777ae]
+                to-[#0b477b]
+                text-white
+              `,
+        ].join(" ")}
+      >
+        {/* Atmosphäre */}
+
+        <div
+          aria-hidden="true"
+          className={[
+            `
+              pointer-events-none
+              absolute
+              -right-20
+              -top-24
+              h-56
+              w-56
+              rounded-full
+              blur-3xl
+            `,
+            isNight
+              ? "bg-indigo-300/15"
+              : "bg-white/20",
+          ].join(" ")}
+        />
+
+        <div
+          aria-hidden="true"
+          className={[
+            `
+              pointer-events-none
+              absolute
+              -bottom-28
+              -left-20
+              h-56
+              w-56
+              rounded-full
+              blur-3xl
+            `,
+            isNight
+              ? "bg-sky-400/10"
+              : "bg-cyan-200/15",
+          ].join(" ")}
+        />
+
+        <div className="relative">
+          {/* Kopf */}
+
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-white/85 backdrop-blur-xl">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-70" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                </span>
+
+                Live Wetter
+              </div>
+
+              <h3 className="mt-2 text-xl font-black leading-tight tracking-[-0.035em]">
+                Ostsee-Wetter
+              </h3>
+            </div>
+
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl">
+              {isNight ? (
+                <MoonStar className="h-5 w-5" />
+              ) : (
+                <Sparkles className="h-5 w-5" />
+              )}
+            </div>
           </div>
-        ) : !data ? (
-          <Skeleton />
-        ) : (
-          <>
-            {/* Main */}
-            <div className="rounded-[1.5rem] border border-white/15 bg-white/15 p-4 shadow-xl backdrop-blur-xl">
-              <div className="flex items-end justify-between gap-5">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-5xl drop-shadow-sm">{info.icon}</span>
-                    <div>
-                      <div className="text-5xl font-black tracking-tight">
-                        {Math.round(temp)}°
-                      </div>
-                      <p className="mt-1 text-sm font-semibold text-white/85">
-                        {info.text}
-                      </p>
-                    </div>
-                  </div>
+
+          {/* Orte – horizontal wischbar */}
+
+          <div
+            className="
+              -mx-1
+              mt-4
+              flex
+              snap-x
+              snap-mandatory
+              gap-1.5
+              overflow-x-auto
+              px-1
+              pb-1
+
+              [scrollbar-width:none]
+              [&::-webkit-scrollbar]:hidden
+            "
+            aria-label="Wetter-Ort auswählen"
+          >
+            {PLACES.map((item) => {
+              const selected =
+                item.id === placeId;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() =>
+                    setPlaceId(item.id)
+                  }
+                  aria-pressed={selected}
+                  className={[
+                    `
+                      snap-start
+                      shrink-0
+                      rounded-full
+                      border
+                      px-3
+                      py-2
+                      text-[11px]
+                      font-bold
+                      transition
+                    `,
+                    selected
+                      ? `
+                          border-white
+                          bg-white
+                          text-[#07131f]
+                          shadow-[0_8px_24px_rgba(0,0,0,0.15)]
+                        `
+                      : `
+                          border-white/15
+                          bg-white/[0.08]
+                          text-white/78
+                          backdrop-blur-xl
+                          hover:bg-white/15
+                          hover:text-white
+                        `,
+                  ].join(" ")}
+                >
+                  {item.name}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Hauptwetter */}
+
+          <div className="mt-3 overflow-hidden rounded-[1.45rem] border border-white/15 bg-white/[0.10] p-3.5 backdrop-blur-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/65">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+
+                  <span className="truncate">
+                    {place.name}
+                  </span>
                 </div>
 
-                <div className="text-right">
-                  <p className="text-xs text-white/80">Aktualisiert</p>
-                  <p className="text-sm font-bold">
-                    {new Date(data.current.time).toLocaleTimeString("de-DE", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}{" "}
-                    Uhr
-                  </p>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-[1.15rem] border border-white/15 bg-white/10 shadow-inner">
+                    <CurrentIcon className="h-8 w-8" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex items-end gap-1">
+                      <strong className="text-[2.8rem] font-black leading-none tracking-[-0.065em]">
+                        {temperature}
+                      </strong>
+
+                      <span className="pb-1 text-xl font-bold text-white/75">
+                        °
+                      </span>
+                    </div>
+
+                    <p className="mt-1 truncate text-xs font-bold text-white/85">
+                      {currentInfo.label}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Stats */}
-              <div className="mt-5 grid grid-cols-2 gap-2">
-                <div className="rounded-2xl bg-white/12 px-3 py-2 ring-1 ring-white/10">
-                  <p className="text-[11px] text-white/75">Wind</p>
-                  <p className="mt-0.5 text-sm font-bold">
-                    {Math.round(wind)} km/h
-                  </p>
-                </div>
+              <div className="shrink-0 text-right">
+                <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white/70">
+                  {isNight ? "Nacht" : "Tag"}
+                </span>
 
-                <div className="rounded-2xl bg-white/12 px-3 py-2 ring-1 ring-white/10">
-                  <p className="text-[11px] text-white/75">Urlaubstipp</p>
-                  <p className="mt-0.5 line-clamp-1 text-sm font-bold">
-                    {getTravelHint(Math.round(temp), Math.round(wind), currentCode)}
-                  </p>
-                </div>
+                <p className="mt-3 text-[9px] uppercase tracking-[0.12em] text-white/45">
+                  Aktualisiert
+                </p>
+
+                <p className="mt-0.5 text-xs font-bold text-white/85">
+                  {formatUpdated(
+                    current.time,
+                  )}
+                </p>
               </div>
             </div>
 
-            {/* Forecast */}
-            <div className="mt-4 grid grid-cols-5 gap-2">
-              {data.daily.time.slice(0, 5).map((day, i) => {
-                const dayInfo = weatherInfo(data.daily.weather_code[i]);
+            {/* Werte */}
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <WeatherMetric
+                icon={ThermometerSun}
+                label="Gefühlt"
+                value={`${feelsLike}°`}
+              />
+
+              <WeatherMetric
+                icon={Wind}
+                label="Wind"
+                value={`${wind} km/h`}
+              />
+
+              <WeatherMetric
+                icon={Droplets}
+                label="Feuchte"
+                value={`${humidity}%`}
+              />
+
+              <WeatherMetric
+                icon={Sparkles}
+                label="Urlaubstipp"
+                value={getTravelHint(
+                  temperature,
+                  wind,
+                  weatherCode,
+                )}
+                small
+              />
+            </div>
+          </div>
+
+          {/* Prognose */}
+
+          <div className="mt-4 flex items-center justify-between gap-3 px-0.5">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">
+                Vorschau
+              </p>
+
+              <p className="mt-0.5 text-xs font-bold text-white/85">
+                Die nächsten 5 Tage
+              </p>
+            </div>
+
+            <Umbrella className="h-4 w-4 text-white/45" />
+          </div>
+
+          <div
+            className="
+              -mx-1
+              mt-2.5
+              flex
+              snap-x
+              snap-mandatory
+              gap-2
+              overflow-x-auto
+              px-1
+              pb-1
+
+              [scrollbar-width:none]
+              [&::-webkit-scrollbar]:hidden
+            "
+          >
+            {forecastDays.map(
+              (day, index) => {
+                const info =
+                  getWeatherInfo(
+                    Number(
+                      data.daily
+                        .weather_code[index],
+                    ),
+                    1,
+                  );
+
+                const ForecastIcon =
+                  info.Icon;
+
+                const rain =
+                  data.daily
+                    .precipitation_probability_max?.[
+                    index
+                  ];
+
+                const maxTemp =
+                  Math.round(
+                    Number(
+                      data.daily
+                        .temperature_2m_max[
+                        index
+                      ],
+                    ),
+                  );
+
+                const minTemp =
+                  Math.round(
+                    Number(
+                      data.daily
+                        .temperature_2m_min[
+                        index
+                      ],
+                    ),
+                  );
+
+                const today =
+                  index === 0;
 
                 return (
                   <div
                     key={day}
-                    className="group rounded-2xl border border-white/15 bg-white/15 px-2 py-3 text-center shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/25 hover:shadow-lg"
+                    className={[
+                      `
+                        min-w-[74px]
+                        flex-1
+                        snap-start
+                        rounded-[1.15rem]
+                        border
+                        px-2
+                        py-2.5
+                        text-center
+                        backdrop-blur-xl
+                        transition
+                      `,
+                      today
+                        ? `
+                            border-white/30
+                            bg-white/[0.16]
+                          `
+                        : `
+                            border-white/10
+                            bg-white/[0.07]
+                          `,
+                    ].join(" ")}
+                    title={`${info.label}${
+                      Number.isFinite(
+                        Number(rain),
+                      )
+                        ? `, ${rain}% Regenwahrscheinlichkeit`
+                        : ""
+                    }`}
                   >
-                    <p className="text-[11px] font-bold text-white/80">
-                      {fmtDay(day)}
+                    <p className="truncate text-[10px] font-black text-white/90">
+                      {today
+                        ? "Heute"
+                        : formatDay(day)}
                     </p>
-                    <p className="text-[10px] text-white/75">{fmtDate(day)}</p>
 
-                    <div className="my-2 text-2xl transition group-hover:scale-110">
-                      {dayInfo.icon}
+                    <p className="mt-0.5 text-[8px] font-medium text-white/45">
+                      {formatDate(day)}
+                    </p>
+
+                    <div className="my-2 flex justify-center">
+                      <ForecastIcon className="h-5 w-5 text-white/90" />
                     </div>
 
-                    <p className="text-xs font-black">
-                      {Math.round(data.daily.temperature_2m_max[i])}°
-                    </p>
-                    <p className="text-[11px] text-white/80">
-                      {Math.round(data.daily.temperature_2m_min[i])}°
-                    </p>
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-xs font-black">
+                        {maxTemp}°
+                      </span>
+
+                      <span className="text-[9px] font-semibold text-white/50">
+                        {minTemp}°
+                      </span>
+                    </div>
+
+                    {Number.isFinite(
+                      Number(rain),
+                    ) ? (
+                      <div className="mt-1.5 flex items-center justify-center gap-1 text-[8px] font-bold text-sky-100/75">
+                        <Droplets className="h-2.5 w-2.5" />
+                        {Math.round(
+                          Number(rain),
+                        )}
+                        %
+                      </div>
+                    ) : null}
                   </div>
                 );
-              })}
-            </div>
+              },
+            )}
+          </div>
 
-            {/* Footer */}
-            <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/10 px-3 py-2 text-[11px] text-white/70 ring-1 ring-white/10">
-              <span>{place.label}, Schleswig-Holstein</span>
-              <span>Open-Meteo</span>
-            </div>
-          </>
-        )}
+          {loading && data ? (
+            <p
+              className="mt-3 text-center text-[10px] font-semibold text-white/55"
+              role="status"
+            >
+              Wetter wird aktualisiert …
+            </p>
+          ) : null}
+
+          {error && data ? (
+            <p
+              className="mt-3 rounded-xl border border-amber-200/15 bg-amber-100/10 px-3 py-2 text-[10px] leading-4 text-amber-50/85"
+              role="status"
+            >
+              Aktualisierung fehlgeschlagen. Die zuletzt geladenen Werte bleiben sichtbar.
+            </p>
+          ) : null}
+        </div>
       </div>
+    </section>
+  );
+}
+
+function WeatherMetric({
+  icon: Icon,
+  label,
+  value,
+  small = false,
+}) {
+  return (
+    <div className="min-w-0 rounded-[1rem] border border-white/10 bg-black/[0.06] px-2.5 py-2.5">
+      <div className="flex items-center gap-1.5 text-white/55">
+        <Icon className="h-3.5 w-3.5 shrink-0" />
+
+        <span className="truncate text-[9px] font-semibold">
+          {label}
+        </span>
+      </div>
+
+      <p
+        className={[
+          `
+            mt-1
+            truncate
+            font-black
+            text-white
+          `,
+          small
+            ? "text-[11px]"
+            : "text-sm",
+        ].join(" ")}
+        title={value}
+      >
+        {value}
+      </p>
     </div>
   );
 }
