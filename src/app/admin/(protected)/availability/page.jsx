@@ -62,8 +62,10 @@ export default function AvailabilityPage() {
     setErrorMsg("");
   }
 
-  // Beim Aufruf über /admin/availability?propertyId=123
-  // das entsprechende Objekt automatisch auswählen.
+  // ============================================================
+  // propertyId aus URL übernehmen
+  // ============================================================
+
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const propertyIdFromUrl = searchParams.get("propertyId");
@@ -72,6 +74,10 @@ export default function AvailabilityPage() {
       setPropertyId(propertyIdFromUrl);
     }
   }, []);
+
+  // ============================================================
+  // Objekte laden
+  // ============================================================
 
   useEffect(() => {
     let cancelled = false;
@@ -93,8 +99,11 @@ export default function AvailabilityPage() {
           if (!cancelled) {
             setBookings([]);
             setCanEdit(false);
-            showError("Dir fehlt die Berechtigung, Verfügbarkeiten anzusehen.");
+            showError(
+              "Dir fehlt die Berechtigung, Verfügbarkeiten anzusehen."
+            );
           }
+
           return;
         }
 
@@ -112,7 +121,9 @@ export default function AvailabilityPage() {
                 String(a.title || "").localeCompare(
                   String(b.title || ""),
                   "de",
-                  { sensitivity: "base" }
+                  {
+                    sensitivity: "base",
+                  }
                 )
               )
             : [];
@@ -138,6 +149,10 @@ export default function AvailabilityPage() {
     };
   }, []);
 
+  // ============================================================
+  // Buchungen des ausgewählten Objekts laden
+  // ============================================================
+
   useEffect(() => {
     if (!propertyId) {
       setBookings([]);
@@ -154,7 +169,9 @@ export default function AvailabilityPage() {
 
         const res = await fetch(
           `/api/admin/booking?propertyId=${encodeURIComponent(propertyId)}`,
-          { cache: "no-store" }
+          {
+            cache: "no-store",
+          }
         );
 
         if (res.status === 401) {
@@ -193,6 +210,10 @@ export default function AvailabilityPage() {
     };
   }, [propertyId]);
 
+  // ============================================================
+  // Objekt wechseln
+  // ============================================================
+
   function handlePropertyChange(event) {
     const nextPropertyId = event.target.value;
 
@@ -220,46 +241,178 @@ export default function AvailabilityPage() {
   }
 
   const selectedProperty = useMemo(() => {
-    return properties.find((property) => property.id === Number(propertyId));
+    return properties.find(
+      (property) => property.id === Number(propertyId)
+    );
   }, [properties, propertyId]);
 
+  // ============================================================
+  // Überschneidung prüfen
+  //
+  // Buchungen werden als halb-offenes Intervall behandelt:
+  //
+  // [Check-in, Check-out)
+  //
+  // Beispiel:
+  //
+  // 23.10. -> 25.10.
+  //
+  // Eine neue Buchung darf am 25.10. beginnen.
+  //
+  // Ebenso darf eine Buchung am 23.10. enden.
+  // ============================================================
+
+  function hasBookingConflict(
+    startDate,
+    endDate,
+    ignoreBookingId = null
+  ) {
+    return bookings.some((booking) => {
+      if (
+        !booking.startDate ||
+        !booking.endDate ||
+        booking.id === ignoreBookingId
+      ) {
+        return false;
+      }
+
+      const existingStart = toDateOnly(booking.startDate);
+      const existingEnd = toDateOnly(booking.endDate);
+
+      return (
+        existingStart < endDate &&
+        existingEnd > startDate
+      );
+    });
+  }
+
+  // ============================================================
+  // ROTE TAGE
+  //
+  // Nur die tatsächlichen Aufenthaltstage zwischen
+  // Check-in und Check-out.
+  //
+  // Beispiel:
+  //
+  // 23.10. Check-in     -> rosa
+  // 24.10. Belegt       -> rot
+  // 25.10. Check-out    -> rosa
+  //
+  // 26.10.              -> frei
+  // ============================================================
+
   const bookedRanges = useMemo(() => {
-    return bookings
-      .filter((booking) => booking.startDate && booking.endDate)
-      .map((booking) => ({
-        from: toDateOnly(booking.startDate),
-        to: addDays(toDateOnly(booking.endDate), -1),
-      }));
+    return bookings.flatMap((booking) => {
+      if (!booking.startDate || !booking.endDate) {
+        return [];
+      }
+
+      const checkin = toDateOnly(booking.startDate);
+      const checkout = toDateOnly(booking.endDate);
+
+      const firstBookedDay = addDays(checkin, 1);
+      const lastBookedDay = addDays(checkout, -1);
+
+      // Beispiel:
+      // 23.10. Check-in
+      // 24.10. Check-out
+      //
+      // Es gibt keinen roten Tag dazwischen.
+      if (firstBookedDay > lastBookedDay) {
+        return [];
+      }
+
+      return [
+        {
+          from: firstBookedDay,
+          to: lastBookedDay,
+        },
+      ];
+    });
   }, [bookings]);
 
-  const checkoutDays = useMemo(() => {
-    return bookings
-      .filter((booking) => booking.endDate)
-      .map((booking) => toDateOnly(booking.endDate));
+  // ============================================================
+  // ROSA TAGE
+  //
+  // Check-in UND Check-out.
+  //
+  // Diese Tage bleiben auswählbar / buchbar.
+  //
+  // Falls ein Tag gleichzeitig Checkout einer Buchung
+  // und Check-in der nächsten Buchung ist, bleibt er rosa.
+  // ============================================================
+
+  const changeoverDays = useMemo(() => {
+    const days = new Map();
+
+    for (const booking of bookings) {
+      if (booking.startDate) {
+        const checkin = toDateOnly(booking.startDate);
+
+        days.set(
+          formatDate(checkin),
+          checkin
+        );
+      }
+
+      if (booking.endDate) {
+        const checkout = toDateOnly(booking.endDate);
+
+        days.set(
+          formatDate(checkout),
+          checkout
+        );
+      }
+    }
+
+    return [...days.values()];
   }, [bookings]);
 
   const modifiers = useMemo(
     () => ({
       booked: bookedRanges,
-      checkout: checkoutDays,
+      changeover: changeoverDays,
     }),
-    [bookedRanges, checkoutDays]
+    [bookedRanges, changeoverDays]
   );
 
   const modifiersClassNames = {
     booked:
-      "[&>button]:bg-rose-500 [&>button]:text-white [&>button]:font-semibold [&>button]:ring-1 [&>button]:ring-rose-500",
+      "[&>button]:bg-rose-500 " +
+      "[&>button]:text-white " +
+      "[&>button]:font-semibold " +
+      "[&>button]:ring-1 " +
+      "[&>button]:ring-rose-500",
 
-    checkout:
-      "relative [&>button]:bg-white [&>button]:text-pink-700 [&>button]:font-semibold [&>button]:ring-2 [&>button]:ring-pink-300 after:absolute after:bottom-1 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-pink-400",
+    changeover:
+      "relative " +
+      "[&>button]:bg-pink-50 " +
+      "[&>button]:text-pink-700 " +
+      "[&>button]:font-semibold " +
+      "[&>button]:ring-2 " +
+      "[&>button]:ring-pink-300 " +
+      "after:absolute " +
+      "after:bottom-1 " +
+      "after:left-1/2 " +
+      "after:h-1 " +
+      "after:w-1 " +
+      "after:-translate-x-1/2 " +
+      "after:rounded-full " +
+      "after:bg-pink-400",
   };
+
+  // ============================================================
+  // Buchungen neu laden
+  // ============================================================
 
   async function reloadBookings() {
     if (!propertyId) return;
 
     const res = await fetch(
       `/api/admin/booking?propertyId=${encodeURIComponent(propertyId)}`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+      }
     );
 
     if (res.status === 401) {
@@ -270,65 +423,145 @@ export default function AvailabilityPage() {
     if (res.status === 403) {
       setBookings([]);
       setCanEdit(false);
-      throw new Error("Dir fehlt die Berechtigung, Verfügbarkeiten anzusehen.");
+
+      throw new Error(
+        "Dir fehlt die Berechtigung, Verfügbarkeiten anzusehen."
+      );
     }
 
     const data = await res.json().catch(() => []);
 
     if (!res.ok) {
       throw new Error(
-        data?.error || "Buchungen konnten nicht neu geladen werden."
+        data?.error ||
+          "Buchungen konnten nicht neu geladen werden."
       );
     }
 
     setBookings(Array.isArray(data) ? data : []);
-    setCanEdit(res.headers.get("x-admin-can-edit") === "1");
+    setCanEdit(
+      res.headers.get("x-admin-can-edit") === "1"
+    );
   }
+
+  // ============================================================
+  // Neue Buchung / Block speichern
+  // ============================================================
 
   async function add() {
     if (!canEdit) {
-      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+      showError(
+        "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten."
+      );
+
       return;
     }
 
-    if (!range?.from || !range?.to || !propertyId || isSaving) return;
+    if (
+      !range?.from ||
+      !range?.to ||
+      !propertyId ||
+      isSaving
+    ) {
+      return;
+    }
 
-    const arrival = formatDate(range.from);
-    const departure = formatDate(addDays(range.to, 1));
+    const arrivalDate = toDateOnly(range.from);
+    const departureDate = toDateOnly(range.to);
+
+    if (arrivalDate >= departureDate) {
+      showError(
+        "Der Check-out muss nach dem Check-in liegen."
+      );
+
+      return;
+    }
+
+    // Frontend-Sicherheitsprüfung.
+    //
+    // Gleiche Grenztage sind erlaubt:
+    //
+    // bestehender Checkout = neuer Check-in
+    //
+    // oder
+    //
+    // neuer Checkout = bestehender Check-in
+
+    if (
+      hasBookingConflict(
+        arrivalDate,
+        departureDate
+      )
+    ) {
+      showError(
+        "Der gewählte Zeitraum überschneidet sich mit einer bestehenden Buchung. Ein Check-in am Check-out-Tag ist erlaubt."
+      );
+
+      return;
+    }
+
+    // WICHTIG:
+    //
+    // KEIN addDays(range.to, 1) mehr!
+    //
+    // Wenn der Benutzer den 25.10. als Checkout auswählt,
+    // wird tatsächlich der 25.10. gespeichert.
+
+    const arrival = formatDate(arrivalDate);
+    const departure = formatDate(departureDate);
 
     setErrorMsg("");
     setSuccessMsg("");
     setIsSaving(true);
 
     try {
-      const res = await fetch("/api/admin/booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          propertyId: Number(propertyId),
-          startDate: arrival,
-          endDate: departure,
-          guestName: guestName.trim() || "(Admin)",
-        }),
-      });
+      const res = await fetch(
+        "/api/admin/booking",
+        {
+          method: "POST",
 
-      const data = await res.json().catch(() => null);
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            propertyId: Number(propertyId),
+            startDate: arrival,
+            endDate: departure,
+            guestName:
+              guestName.trim() || "(Admin)",
+          }),
+        }
+      );
+
+      const data = await res
+        .json()
+        .catch(() => null);
 
       if (res.status === 401) {
-        window.location.href = "/admin/login";
+        window.location.href =
+          "/admin/login";
+
         return;
       }
 
       if (res.status === 403) {
         setCanEdit(false);
-        showError(data?.error || "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+
+        showError(
+          data?.error ||
+            "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten."
+        );
+
         return;
       }
 
       if (!res.ok) {
-        showError(data?.error || "Fehler beim Speichern des Zeitraums.");
+        showError(
+          data?.error ||
+            "Fehler beim Speichern des Zeitraums."
+        );
+
         return;
       }
 
@@ -337,36 +570,95 @@ export default function AvailabilityPage() {
       setRange(emptyRange());
       setGuestName("");
 
-      showSuccess("Zeitraum wurde gespeichert.");
+      showSuccess(
+        "Zeitraum wurde gespeichert."
+      );
     } catch {
-      showError("Zeitraum konnte nicht gespeichert werden.");
+      showError(
+        "Zeitraum konnte nicht gespeichert werden."
+      );
     } finally {
       setIsSaving(false);
     }
   }
 
+  // ============================================================
+  // Bearbeiten öffnen
+  // ============================================================
+
   function openEditDialog(booking) {
     if (!canEdit) {
-      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+      showError(
+        "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten."
+      );
+
       return;
     }
 
     setEditingBooking(booking);
-    setEditStartDate(formatDate(booking.startDate));
-    setEditEndDate(formatDate(booking.endDate));
-    setEditGuestName(booking.guestName || "");
+
+    setEditStartDate(
+      formatDate(booking.startDate)
+    );
+
+    setEditEndDate(
+      formatDate(booking.endDate)
+    );
+
+    setEditGuestName(
+      booking.guestName || ""
+    );
   }
+
+  // ============================================================
+  // Buchung aktualisieren
+  // ============================================================
 
   async function updateBooking() {
     if (!canEdit) {
-      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+      showError(
+        "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten."
+      );
+
       return;
     }
 
-    if (!editingBooking || !editStartDate || !editEndDate || isUpdating) return;
+    if (
+      !editingBooking ||
+      !editStartDate ||
+      !editEndDate ||
+      isUpdating
+    ) {
+      return;
+    }
 
-    if (new Date(editStartDate) >= new Date(editEndDate)) {
-      showError("Das Enddatum muss nach dem Startdatum liegen.");
+    const nextStartDate =
+      toDateOnly(editStartDate);
+
+    const nextEndDate =
+      toDateOnly(editEndDate);
+
+    if (
+      nextStartDate >= nextEndDate
+    ) {
+      showError(
+        "Der Check-out muss nach dem Check-in liegen."
+      );
+
+      return;
+    }
+
+    if (
+      hasBookingConflict(
+        nextStartDate,
+        nextEndDate,
+        editingBooking.id
+      )
+    ) {
+      showError(
+        "Der gewählte Zeitraum überschneidet sich mit einer bestehenden Buchung. Ein Check-in am Check-out-Tag ist erlaubt."
+      );
+
       return;
     }
 
@@ -375,54 +667,85 @@ export default function AvailabilityPage() {
     setSuccessMsg("");
 
     try {
-      const res = await fetch(`/api/admin/booking/${editingBooking.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          startDate: editStartDate,
-          endDate: editEndDate,
-          guestName: editGuestName.trim() || "(Admin)",
-        }),
-      });
+      const res = await fetch(
+        `/api/admin/booking/${editingBooking.id}`,
+        {
+          method: "PUT",
 
-      const data = await res.json().catch(() => null);
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            startDate: editStartDate,
+            endDate: editEndDate,
+            guestName:
+              editGuestName.trim() ||
+              "(Admin)",
+          }),
+        }
+      );
+
+      const data = await res
+        .json()
+        .catch(() => null);
 
       if (res.status === 401) {
-        window.location.href = "/admin/login";
+        window.location.href =
+          "/admin/login";
+
         return;
       }
 
       if (res.status === 403) {
         setCanEdit(false);
         setEditingBooking(null);
-        showError(data?.error || "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+
+        showError(
+          data?.error ||
+            "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten."
+        );
+
         return;
       }
 
       if (!res.ok) {
         showError(
-          data?.error || "Der Zeitraum konnte nicht aktualisiert werden."
+          data?.error ||
+            "Der Zeitraum konnte nicht aktualisiert werden."
         );
+
         return;
       }
 
       await reloadBookings();
 
       setEditingBooking(null);
-      showSuccess("Zeitraum wurde aktualisiert.");
+
+      showSuccess(
+        "Zeitraum wurde aktualisiert."
+      );
     } catch {
-      showError("Der Zeitraum konnte nicht aktualisiert werden.");
+      showError(
+        "Der Zeitraum konnte nicht aktualisiert werden."
+      );
     } finally {
       setIsUpdating(false);
     }
   }
 
+  // ============================================================
+  // Löschen
+  // ============================================================
+
   async function confirmDelete() {
     if (!canEdit) {
       setPendingDelete(null);
-      showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+
+      showError(
+        "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten."
+      );
+
       return;
     }
 
@@ -431,47 +754,82 @@ export default function AvailabilityPage() {
     const id = pendingDelete.id;
 
     try {
-      const res = await fetch(`/api/admin/booking/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/api/admin/booking/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (res.status === 401) {
-        window.location.href = "/admin/login";
+        window.location.href =
+          "/admin/login";
+
         return;
       }
 
       if (res.status === 403) {
         setCanEdit(false);
-        showError("Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten.");
+
+        showError(
+          "Dir fehlt die Berechtigung zum Bearbeiten von Verfügbarkeiten."
+        );
+
         setPendingDelete(null);
+
         return;
       }
 
       if (!res.ok) {
-        showError("Der Eintrag konnte nicht gelöscht werden.");
+        showError(
+          "Der Eintrag konnte nicht gelöscht werden."
+        );
+
         setPendingDelete(null);
+
         return;
       }
 
-      setBookings((prev) => prev.filter((booking) => booking.id !== id));
-      showSuccess("Buchung / Block wurde gelöscht.");
+      setBookings((prev) =>
+        prev.filter(
+          (booking) =>
+            booking.id !== id
+        )
+      );
+
+      showSuccess(
+        "Buchung / Block wurde gelöscht."
+      );
+
       setPendingDelete(null);
     } catch {
-      showError("Der Eintrag konnte nicht gelöscht werden.");
+      showError(
+        "Der Eintrag konnte nicht gelöscht werden."
+      );
+
       setPendingDelete(null);
     }
   }
 
+  // ============================================================
+  // Oberfläche
+  // ============================================================
+
   return (
     <section className="relative mx-auto mt-24 max-w-6xl px-4 py-8 md:py-10">
+      {/* Meldungen */}
+
       <div className="mb-4 space-y-2">
         {errorMsg && (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
             <span>{errorMsg}</span>
+
             <button
               type="button"
               className="text-xs font-medium text-rose-500 hover:text-rose-700"
-              onClick={() => setErrorMsg("")}
+              onClick={() =>
+                setErrorMsg("")
+              }
             >
               Schließen
             </button>
@@ -481,16 +839,21 @@ export default function AvailabilityPage() {
         {successMsg && (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
             <span>{successMsg}</span>
+
             <button
               type="button"
               className="text-xs font-medium text-emerald-600 hover:text-emerald-700"
-              onClick={() => setSuccessMsg("")}
+              onClick={() =>
+                setSuccessMsg("")
+              }
             >
               Schließen
             </button>
           </div>
         )}
       </div>
+
+      {/* Kopfbereich */}
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -503,16 +866,21 @@ export default function AvailabilityPage() {
           </h1>
 
           <p className="mt-1 text-sm text-slate-600">
-            Zeiträume blockieren, Bezeichnungen hinterlegen und bestehende
-            Einträge bearbeiten.
+            Zeiträume blockieren,
+            Bezeichnungen hinterlegen und
+            bestehende Einträge bearbeiten.
           </p>
 
-          {propertyId && !isLoadingBookings && !canEdit && (
-            <span className="mt-3 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
-              Nur Leserechte
-            </span>
-          )}
+          {propertyId &&
+            !isLoadingBookings &&
+            !canEdit && (
+              <span className="mt-3 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
+                Nur Leserechte
+              </span>
+            )}
         </div>
+
+        {/* Objekt Auswahl */}
 
         <div className="w-full max-w-xs">
           <label className="mb-1 block text-xs font-semibold text-slate-700">
@@ -522,8 +890,12 @@ export default function AvailabilityPage() {
           <select
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50 disabled:opacity-60"
             value={propertyId}
-            onChange={handlePropertyChange}
-            disabled={isLoadingProperties}
+            onChange={
+              handlePropertyChange
+            }
+            disabled={
+              isLoadingProperties
+            }
           >
             <option value="">
               {isLoadingProperties
@@ -531,17 +903,24 @@ export default function AvailabilityPage() {
                 : "— Objekt wählen —"}
             </option>
 
-            {properties.map((property) => (
-              <option key={property.id} value={property.id}>
-                {property.title}
-              </option>
-            ))}
+            {properties.map(
+              (property) => (
+                <option
+                  key={property.id}
+                  value={property.id}
+                >
+                  {property.title}
+                </option>
+              )
+            )}
           </select>
         </div>
       </div>
 
       {propertyId ? (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+          {/* Kalender */}
+
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -552,19 +931,30 @@ export default function AvailabilityPage() {
                     : ""}
                 </h2>
 
+                {/* Legende */}
+
                 <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {/* Rot */}
+
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-200">
                     <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+
                     Belegt
                   </span>
 
+                  {/* Rosa */}
+
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-50 px-2.5 py-1 text-xs font-semibold text-pink-700 ring-1 ring-pink-200">
                     <span className="h-2.5 w-2.5 rounded-full border-2 border-pink-300 bg-white" />
-                    Checkout
+
+                    Check-in / Check-out
                   </span>
+
+                  {/* Auswahl */}
 
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
                     <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
+
                     Auswahl
                   </span>
                 </div>
@@ -577,97 +967,180 @@ export default function AvailabilityPage() {
               )}
             </div>
 
+            {/* DayPicker */}
+
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/70 p-3">
               <DayPicker
-  locale={de}
-  weekStartsOn={1}
-  formatters={{
-    formatWeekdayName: (date) =>
-      ["So.", "Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa."][
-        date.getDay()
-      ],
-  }}
-  mode="range"
-  selected={range}
-  onSelect={(selectedRange) => {
-    if (!canEdit) return;
-    setRange(selectedRange ?? emptyRange());
-  }}
-  numberOfMonths={2}
-  showOutsideDays
-  modifiers={modifiers}
-  modifiersClassNames={modifiersClassNames}
-  disabled={canEdit ? bookedRanges : true}
-  classNames={{
-    root: "relative m-0 w-full",
-    months:
-      "flex w-max min-w-full flex-col gap-8 md:flex-row md:justify-center md:gap-8",
-    month: "w-[300px]",
-    month_caption: "mb-4 flex justify-center pr-16",
-    caption_label: "text-sm font-bold text-slate-900",
+                locale={de}
+                weekStartsOn={1}
+                formatters={{
+                  formatWeekdayName:
+                    (date) =>
+                      [
+                        "So.",
+                        "Mo.",
+                        "Di.",
+                        "Mi.",
+                        "Do.",
+                        "Fr.",
+                        "Sa.",
+                      ][
+                        date.getDay()
+                      ],
+                }}
+                mode="range"
+                selected={range}
+                onSelect={(
+                  selectedRange
+                ) => {
+                  if (!canEdit) {
+                    return;
+                  }
 
-    nav: "absolute right-0 top-0 flex items-center gap-1",
-    button_previous:
-      "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
-    button_next:
-      "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
+                  setRange(
+                    selectedRange ??
+                      emptyRange()
+                  );
+                }}
+                numberOfMonths={2}
+                showOutsideDays
+                modifiers={
+                  modifiers
+                }
+                modifiersClassNames={
+                  modifiersClassNames
+                }
 
-    weekdays: "grid grid-cols-7 gap-1",
-    weekday:
-      "flex h-7 items-center justify-center text-[11px] font-semibold text-slate-500",
+                // =================================================
+                // Nur ROTE Aufenthaltstage werden gesperrt.
+                //
+                // Check-in / Check-out bleiben anklickbar.
+                // =================================================
 
-    week: "mt-1 grid grid-cols-7 gap-1",
-    day: "flex h-9 items-center justify-center p-0",
-    day_button:
-      "flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950",
+                disabled={
+                  canEdit
+                    ? bookedRanges
+                    : true
+                }
 
-    outside: "[&>button]:text-slate-300",
-    today: "[&>button]:font-bold",
+                // Verhindert, dass ein neuer Bereich
+                // über einen gesperrten roten Tag gezogen wird.
 
-    selected:
-      "[&>button]:bg-slate-900 [&>button]:text-white",
-    range_start:
-      "[&>button]:bg-slate-900 [&>button]:text-white",
-    range_middle:
-      "[&>button]:bg-slate-200 [&>button]:text-slate-900",
-    range_end:
-      "[&>button]:bg-slate-900 [&>button]:text-white",
+                excludeDisabled
+                classNames={{
+                  root:
+                    "relative m-0 w-full",
 
-    disabled:
-      "cursor-not-allowed [&>button]:cursor-not-allowed",
-  }}
-/>
+                  months:
+                    "flex w-max min-w-full flex-col gap-8 md:flex-row md:justify-center md:gap-8",
+
+                  month:
+                    "w-[300px]",
+
+                  month_caption:
+                    "mb-4 flex justify-center pr-16",
+
+                  caption_label:
+                    "text-sm font-bold text-slate-900",
+
+                  nav:
+                    "absolute right-0 top-0 flex items-center gap-1",
+
+                  button_previous:
+                    "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
+
+                  button_next:
+                    "flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900",
+
+                  weekdays:
+                    "grid grid-cols-7 gap-1",
+
+                  weekday:
+                    "flex h-7 items-center justify-center text-[11px] font-semibold text-slate-500",
+
+                  week:
+                    "mt-1 grid grid-cols-7 gap-1",
+
+                  day:
+                    "flex h-9 items-center justify-center p-0",
+
+                  day_button:
+                    "flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950",
+
+                  outside:
+                    "[&>button]:text-slate-300",
+
+                  today:
+                    "[&>button]:font-bold",
+
+                  selected:
+                    "[&>button]:bg-slate-900 [&>button]:text-white",
+
+                  range_start:
+                    "[&>button]:bg-slate-900 [&>button]:text-white",
+
+                  range_middle:
+                    "[&>button]:bg-slate-200 [&>button]:text-slate-900",
+
+                  range_end:
+                    "[&>button]:bg-slate-900 [&>button]:text-white",
+
+                  disabled:
+                    "cursor-not-allowed [&>button]:cursor-not-allowed",
+                }}
+              />
             </div>
+
+            {/* Gast */}
 
             <div className="mt-4 grid gap-3">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-slate-700">
                   Gast / Bezeichnung
                 </label>
+
                 <input
                   value={guestName}
-                  onChange={(event) => setGuestName(event.target.value)}
+                  onChange={(event) =>
+                    setGuestName(
+                      event.target.value
+                    )
+                  }
                   placeholder="z. B. Familie Müller"
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
                 />
               </div>
             </div>
 
+            {/* Speichern */}
+
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={add}
-                disabled={!canEdit || !range?.from || !range?.to || isSaving}
+                disabled={
+                  !canEdit ||
+                  !range?.from ||
+                  !range?.to ||
+                  isSaving
+                }
                 className="inline-flex items-center rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/70 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {isSaving ? "Speichert..." : "Zeitraum speichern"}
+                {isSaving
+                  ? "Speichert..."
+                  : "Zeitraum speichern"}
               </button>
 
               <p className="max-w-sm text-xs leading-5 text-slate-500">
-                Anreise inkl., Abreise exkl. Checkout wird rosa markiert.
+                Check-in und Check-out
+                sind rosa und buchbar.
+                Nur die Tage dazwischen
+                sind belegt.
               </p>
             </div>
           </div>
+
+          {/* Buchungsliste */}
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-3 flex items-center justify-between gap-2">
@@ -676,7 +1149,11 @@ export default function AvailabilityPage() {
               </h3>
 
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-                {bookings.length} Eintrag{bookings.length === 1 ? "" : "e"}
+                {bookings.length}{" "}
+                Eintrag
+                {bookings.length === 1
+                  ? ""
+                  : "e"}
               </span>
             </div>
 
@@ -686,173 +1163,272 @@ export default function AvailabilityPage() {
               </p>
             ) : (
               <ul className="space-y-2">
-                {bookings.map((booking) => (
-                  <li
-                    key={booking.id}
-                    className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          {formatDate(booking.startDate)} →{" "}
-                          {formatDate(booking.endDate)}
-                        </p>
+                {bookings.map(
+                  (booking) => (
+                    <li
+                      key={booking.id}
+                      className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {formatDate(
+                              booking.startDate
+                            )}{" "}
+                            →{" "}
+                            {formatDate(
+                              booking.endDate
+                            )}
+                          </p>
 
-                        <p className="mt-0.5 text-xs text-slate-500">
-                          Abreise exkl. · Checkout rosa markiert
-                        </p>
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            Check-in /
+                            Check-out rosa
+                            · Tage
+                            dazwischen
+                            belegt
+                          </p>
+                        </div>
+
+                        {canEdit && (
+                          <div className="flex shrink-0 items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openEditDialog(
+                                  booking
+                                )
+                              }
+                              className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                            >
+                              Ändern
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPendingDelete(
+                                  booking
+                                )
+                              }
+                              className="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
+                            >
+                              Löschen
+                            </button>
+                          </div>
+                        )}
                       </div>
 
-                      {canEdit && (
-                        <div className="flex shrink-0 items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openEditDialog(booking)}
-                            className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
-                          >
-                            Ändern
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setPendingDelete(booking)}
-                            className="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
-                          >
-                            Löschen
-                          </button>
+                      {booking.guestName && (
+                        <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                          <p>
+                            <span className="font-semibold text-slate-700">
+                              Bezeichnung:
+                            </span>{" "}
+                            {
+                              booking.guestName
+                            }
+                          </p>
                         </div>
                       )}
-                    </div>
-
-                    {booking.guestName && (
-                      <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                        <p>
-                          <span className="font-semibold text-slate-700">
-                            Bezeichnung:
-                          </span>{" "}
-                          {booking.guestName}
-                        </p>
-                      </div>
-                    )}
-                  </li>
-                ))}
+                    </li>
+                  )
+                )}
               </ul>
             )}
           </div>
         </div>
       ) : (
         <p className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-500">
-          Bitte zuerst oben ein Objekt auswählen.
+          Bitte zuerst oben ein
+          Objekt auswählen.
         </p>
       )}
 
-      {editingBooking && canEdit && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl">
-            <div className="mb-4">
+      {/* ===================================================== */}
+      {/* Bearbeiten Dialog */}
+      {/* ===================================================== */}
+
+      {editingBooking &&
+        canEdit && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl">
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-slate-900">
+                  Zeitraum bearbeiten
+                </h4>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Startdatum =
+                  Check-in,
+                  Enddatum =
+                  Check-out.
+                  Beide
+                  Wechsel-Tage
+                  bleiben buchbar.
+                </p>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                {/* Check-in */}
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                    Check-in
+                  </label>
+
+                  <input
+                    type="date"
+                    value={
+                      editStartDate
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setEditStartDate(
+                        event.target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
+                  />
+                </div>
+
+                {/* Check-out */}
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                    Check-out
+                  </label>
+
+                  <input
+                    type="date"
+                    value={
+                      editEndDate
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setEditEndDate(
+                        event.target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
+                  />
+                </div>
+
+                {/* Gast */}
+
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-semibold text-slate-700">
+                    Gast /
+                    Bezeichnung
+                  </label>
+
+                  <input
+                    value={
+                      editGuestName
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setEditGuestName(
+                        event.target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
+                  />
+                </div>
+              </div>
+
+              {/* Dialog Buttons */}
+
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingBooking(
+                      null
+                    )
+                  }
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Abbrechen
+                </button>
+
+                <button
+                  type="button"
+                  onClick={
+                    updateBooking
+                  }
+                  disabled={
+                    isUpdating
+                  }
+                  className="rounded-xl bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isUpdating
+                    ? "Speichert..."
+                    : "Speichern"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+      {/* ===================================================== */}
+      {/* Löschen Dialog */}
+      {/* ===================================================== */}
+
+      {pendingDelete &&
+        canEdit && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
               <h4 className="text-sm font-semibold text-slate-900">
-                Zeitraum bearbeiten
+                Buchung / Block
+                löschen?
               </h4>
 
-              <p className="mt-1 text-xs text-slate-500">
-                Startdatum ist inkl., Enddatum ist Abreise / Checkout exkl.
+              <p className="mt-2 text-sm text-slate-600">
+                Zeitraum:{" "}
+                <span className="font-medium">
+                  {formatDate(
+                    pendingDelete.startDate
+                  )}{" "}
+                  →{" "}
+                  {formatDate(
+                    pendingDelete.endDate
+                  )}
+                </span>
               </p>
-            </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Startdatum
-                </label>
-                <input
-                  type="date"
-                  value={editStartDate}
-                  onChange={(event) => setEditStartDate(event.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
-                />
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPendingDelete(
+                      null
+                    )
+                  }
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Abbrechen
+                </button>
+
+                <button
+                  type="button"
+                  onClick={
+                    confirmDelete
+                  }
+                  className="rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-500"
+                >
+                  Ja, löschen
+                </button>
               </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Enddatum / Checkout
-                </label>
-                <input
-                  type="date"
-                  value={editEndDate}
-                  onChange={(event) => setEditEndDate(event.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Gast / Bezeichnung
-                </label>
-                <input
-                  value={editGuestName}
-                  onChange={(event) => setEditGuestName(event.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
-                />
-              </div>
-            </div>
-
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setEditingBooking(null)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Abbrechen
-              </button>
-
-              <button
-                type="button"
-                onClick={updateBooking}
-                disabled={isUpdating}
-                className="rounded-xl bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isUpdating ? "Speichert..." : "Speichern"}
-              </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {pendingDelete && canEdit && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
-            <h4 className="text-sm font-semibold text-slate-900">
-              Buchung / Block löschen?
-            </h4>
-
-            <p className="mt-2 text-sm text-slate-600">
-              Zeitraum:{" "}
-              <span className="font-medium">
-                {formatDate(pendingDelete.startDate)} →{" "}
-                {formatDate(pendingDelete.endDate)}
-              </span>
-            </p>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setPendingDelete(null)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Abbrechen
-              </button>
-
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-500"
-              >
-                Ja, löschen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
     </section>
   );
 }
