@@ -1,3 +1,4 @@
+import { getKuschelwochenPeriods, formatKuschelwochenPeriod } from "@/lib/kuschelwochen-periods";
 // src/app/properties/[slug]/page.jsx
 
 import { cache } from "react";
@@ -61,11 +62,7 @@ const compactCurrencyFormatter = new Intl.NumberFormat("de-DE", {
    OSTSEE-KUSCHELWOCHEN
 ============================================================================ */
 
-const KUSCHELWOCHEN_PERIODS = [
-  "31.10.2026 – 18.12.2026",
-  "07.01.2027 – 19.03.2027",
-  "30.10.2027 – 17.12.2027",
-];
+
 
 function NoSmokingIcon({
   className = "h-4 w-4",
@@ -205,7 +202,7 @@ function MobileHeroInfo({
   );
 }
 
-function KuschelwochenHeroBadge() {
+function KuschelwochenHeroBadge({ periods }) {
   return (
     <span className="group/kuschel relative inline-flex basis-full sm:basis-auto">
       <button
@@ -325,7 +322,7 @@ function KuschelwochenHeroBadge() {
           </span>
 
           <span className="mt-1.5 grid gap-1">
-            {KUSCHELWOCHEN_PERIODS.map((period) => (
+            {periods.map((period) => (
               <span
                 key={period}
                 className="flex items-center gap-2 text-[11px] font-medium leading-4 text-slate-700"
@@ -987,6 +984,10 @@ export default async function PropertyPage({
     notFound();
   }
 
+  const kuschelwochenPeriods = property.kuschelwochenEnabled
+    ? (await getKuschelwochenPeriods()).map(formatKuschelwochenPeriod)
+    : [];
+
   const displayAddress =
     getDisplayAddress(
       property.address,
@@ -1375,7 +1376,7 @@ export default async function PropertyPage({
                   <NoSmokingIcon className="h-4 w-4" />
                 </MobileHeroInfo>
 
-                {property.kuschelwochenEnabled && (
+                {property.kuschelwochenEnabled && kuschelwochenPeriods.length > 0 && (
                   <MobileHeroInfo
                     ariaLabel="Ostsee-Kuschelwochen"
                     content="Ostsee-Kuschelwochen – 7 Nächte buchen, nur 6 bezahlen oder 14 Nächte buchen, nur 12 bezahlen"
@@ -1447,9 +1448,9 @@ export default async function PropertyPage({
                   Nichtraucher
                 </span>
 
-                {property.kuschelwochenEnabled && (
+                {property.kuschelwochenEnabled && kuschelwochenPeriods.length > 0 && (
                   <span className="hidden sm:inline-flex">
-                    <KuschelwochenHeroBadge />
+                    <KuschelwochenHeroBadge periods={kuschelwochenPeriods} />
                   </span>
                 )}
 

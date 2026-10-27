@@ -1,5 +1,7 @@
 "use client";
 
+import { useObjectFocus } from "../ObjectWorkspace";
+
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, Save, Trash2 } from "lucide-react";
@@ -569,6 +571,7 @@ function ExistingImagesPremium({
 =========================== */
 
 export default function AdminImagesPage() {
+  const focusedPropertyId = useObjectFocus();
   const [properties, setProperties] = useState([]);
   const [propertyId, setPropertyId] = useState("");
 
@@ -1697,8 +1700,7 @@ export default function AdminImagesPage() {
             onChange={
               handlePropertyChange
             }
-            disabled={
-              isLoadingProperties
+            disabled={Boolean(focusedPropertyId) || isLoadingProperties
             }
           >
             <option value="">

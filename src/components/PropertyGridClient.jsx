@@ -5,16 +5,22 @@ import {
   useMemo,
   useRef,
   useState,
+  useTransition,
 } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
 
-import { MapPin } from "lucide-react";
+import { MapPin, Heart, Tag, Check, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { getQuickFilterResults } from "@/lib/quick-filters";
+
+const EMPTY_PROPERTIES = [];
 
 import useFavorites from "@/hooks/useFavorites";
 
 import FavButton from "@/components/FavButton";
+import HuggedHeartIcon from "@/components/HuggedHeartIcon";
 import LastMinuteBadge from "@/components/LastMinuteBadge";
 
 import {
@@ -123,57 +129,17 @@ function sortByFavoritesFirst(
     );
 }
 
-function SwitchRow({
-  checked,
-  onChange,
-  label,
-  disabled = false,
-}) {
+function QuickFilter({ checked, onChange, label, description, count, icon: Icon, disabled = false }) {
   return (
-    <button
-      type="button"
-      onClick={() =>
-        onChange(!checked)
-      }
-      disabled={disabled}
+    <button type="button" onClick={() => onChange(!checked)} disabled={disabled}
+      aria-pressed={checked} aria-label={label + (count === null ? ", wird geladen" : ", " + count + " passende Unterkünfte")}
       className={[
-        "inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 text-sm transition",
-
-        checked
-          ? "border-sky-200 bg-sky-50 text-sky-800"
-          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
-
-        disabled
-          ? "cursor-not-allowed opacity-60"
-          : "",
-      ].join(" ")}
-      aria-pressed={
-        checked
-      }
-    >
-      <span
-        className={[
-          "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-
-          checked
-            ? "bg-sky-600"
-            : "bg-slate-300",
-        ].join(" ")}
-      >
-        <span
-          className={[
-            "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-
-            checked
-              ? "translate-x-4"
-              : "translate-x-1",
-          ].join(" ")}
-        />
-      </span>
-
-      <span className="font-medium">
-        {label}
-      </span>
+        "relative flex min-h-20 items-center gap-3 rounded-xl border p-3 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none",
+        checked ? "border-sky-600 bg-sky-50 text-sky-950 shadow-sm" : "border-slate-200 bg-white text-slate-700 hover:border-sky-300 hover:bg-sky-50/40",
+      ].join(" ")}>
+      <span aria-hidden="true" className={"flex h-9 w-9 shrink-0 items-center justify-center rounded-lg " + (checked ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-500")}><Icon className="h-4 w-4" /></span>
+      <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{label}</span><span className="mt-0.5 block text-[11px] leading-4 text-slate-500">{description}</span></span>
+      <span aria-hidden="true" className="flex shrink-0 flex-col items-end gap-1"><span className={"min-w-6 rounded-md px-1.5 py-0.5 text-center text-xs font-bold tabular-nums " + (checked ? "bg-sky-100 text-sky-800" : "bg-slate-100 text-slate-600")}>{count ?? "…"}</span><span className="flex h-4 w-4 items-center justify-center">{checked && <Check className="h-3.5 w-3.5 text-sky-700" />}</span></span>
     </button>
   );
 }
@@ -186,6 +152,8 @@ export default function PropertyGridClient({
   desktopColumns = 3,
   initialKuschelwochen = false,
 }) {
+  const router = useRouter();
+  const [isUpdating, startTransition] = useTransition();
   const {
     ready,
     favorites,
@@ -232,7 +200,7 @@ export default function PropertyGridClient({
   const properties =
     Array.isArray(items)
       ? items
-      : [];
+      : EMPTY_PROPERTIES;
 
   /*
    * Auf der Startseite sitzt das Grid
@@ -415,250 +383,75 @@ export default function PropertyGridClient({
       lastMinuteDiscounts,
     ]);
 
-  const filtered =
-    useMemo(() => {
-      let base =
-        properties;
+  const { results, counts } = useMemo(() => getQuickFilterResults(properties, {
+    onlyFavs, onlyLastMinute, onlyKuschelwochen, ready, favorites, lastMinuteMap,
+  }), [properties, onlyFavs, onlyLastMinute, onlyKuschelwochen, ready, favorites, lastMinuteMap]);
 
-      /*
-       * Last-Minute:
-       * Prozent UND fester Betrag
-       */
-      if (
-        onlyLastMinute
-      ) {
-        base =
-          base.filter(
-            (item) =>
-              lastMinuteMap.has(
-                String(
-                  item.id,
-                ),
-              ),
-          );
-      }
+  const filtered = useMemo(() => favFirst && ready
+    ? sortByFavoritesFirst(results, favSortSnapshot) : results,
+    [results, favFirst, ready, favSortSnapshot]);
+  const activeCount = Number(onlyFavs) + Number(onlyLastMinute) + Number(onlyKuschelwochen);
 
-      /*
-       * Ostsee-Kuschelwochen:
-       * Nur Objekte anzeigen, bei denen
-       * die Teilnahme ausdrücklich aktiviert ist.
-       */
-      if (
-        onlyKuschelwochen
-      ) {
-        base =
-          base.filter(
-            (item) =>
-              item.kuschelwochenEnabled === true,
-          );
-      }
+  useEffect(() => {
+    setOnlyKuschelwochen(Boolean(initialKuschelwochen));
+  }, [initialKuschelwochen]);
 
-      if (
-        onlyFavs &&
-        ready
-      ) {
-        base =
-          base.filter(
-            (item) =>
-              favorites.has(
-                String(
-                  item.id,
-                ),
-              ),
-          );
-      }
+  function refreshFavoriteOrder() {
+    if (ready) setFavSortSnapshot(new Set(favorites));
+  }
 
-      if (
-        favFirst &&
-        ready
-      ) {
-        return sortByFavoritesFirst(
-          base,
-          favSortSnapshot,
-        );
-      }
+  function clearKuschelwochenQuery() {
+    if (!initialKuschelwochen) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("kuschelwochen");
+    startTransition(() => router.replace(url.pathname + url.search + url.hash, { scroll: false }));
+  }
 
-      return base;
-    }, [
-      properties,
-      onlyLastMinute,
-      onlyKuschelwochen,
-      onlyFavs,
-      favFirst,
-      ready,
-      favorites,
-      favSortSnapshot,
-      lastMinuteMap,
-    ]);
-
-  const lastMinuteCount =
-    useMemo(() => {
-      let count = 0;
-
-      for (
-        const property of
-        properties
-      ) {
-        if (
-          lastMinuteMap.has(
-            String(
-              property.id,
-            ),
-          )
-        ) {
-          count++;
-        }
-      }
-
-      return count;
-    }, [
-      properties,
-      lastMinuteMap,
-    ]);
-
-  const kuschelwochenCount =
-    useMemo(
-      () =>
-        properties.filter(
-          (property) =>
-            property.kuschelwochenEnabled === true,
-        ).length,
-      [
-        properties,
-      ],
-    );
+  function resetQuickFilters() {
+    setOnlyFavs(false);
+    setOnlyLastMinute(false);
+    setOnlyKuschelwochen(false);
+    refreshFavoriteOrder();
+    clearKuschelwochenQuery();
+  }
 
   return (
     <>
       {controls && (
-        <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">
-                Schnellfilter
-              </p>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Filtere die
-                Objekte nach
-                Favoriten,
-                Last-Minute-Angeboten
-                oder Ostsee-Kuschelwochen.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <SwitchRow
-                checked={
-                  onlyFavs
-                }
-                onChange={
-                  setOnlyFavs
-                }
-                label="Nur Favoriten"
-                disabled={
-                  !ready
-                }
-              />
-
-              <SwitchRow
-                checked={
-                  favFirst
-                }
-                onChange={
-                  handleFavFirstChange
-                }
-                label="Favoriten zuerst"
-                disabled={
-                  !ready
-                }
-              />
-
-              <SwitchRow
-                checked={
-                  onlyLastMinute
-                }
-                onChange={
-                  setOnlyLastMinute
-                }
-                label={`Last-Minute (${lastMinuteCount})`}
-              />
-
-              <SwitchRow
-                checked={
-                  onlyKuschelwochen
-                }
-                onChange={
-                  setOnlyKuschelwochen
-                }
-                label={`Kuschelwochen (${kuschelwochenCount})`}
-              />
-            </div>
+        <section aria-label="Schnellfilter" className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+          <div className="mb-4 flex min-h-11 items-center justify-between gap-3">
+            <div className="flex items-center gap-2"><SlidersHorizontal aria-hidden="true" className="h-4 w-4 text-sky-700" /><h2 className="text-sm font-semibold text-slate-900">Schnellfilter</h2>{activeCount > 0 && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-800">{activeCount} aktiv</span>}</div>
+            {activeCount > 0 && <button type="button" onClick={resetQuickFilters} disabled={isUpdating} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-slate-500 hover:bg-slate-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"><RotateCcw className="h-3.5 w-3.5" />Zurücksetzen</button>}
           </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-            <span className="rounded-full bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200">
-              Angezeigt:{" "}
-
-              <span className="font-semibold text-slate-700">
-                {
-                  filtered.length
-                }
-              </span>
-            </span>
-
-            {ready ? (
-              <span className="rounded-full bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200">
-                Favoriten:{" "}
-
-                <span className="font-semibold text-slate-700">
-                  {
-                    favorites.size
-                  }
-                </span>
-              </span>
-            ) : (
-              <span className="rounded-full bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200">
-                Favoriten werden
-                geladen …
-              </span>
-            )}
-
-            <span className="rounded-full bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200">
-              Last-Minute:{" "}
-
-              <span className="font-semibold text-slate-700">
-                {
-                  lastMinuteCount
-                }
-              </span>
-            </span>
-
-            <span className="rounded-full bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200">
-              Kuschelwochen:{" "}
-
-              <span className="font-semibold text-slate-700">
-                {
-                  kuschelwochenCount
-                }
-              </span>
-            </span>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,190px),1fr))] gap-2">
+            <QuickFilter checked={onlyFavs} onChange={(value) => { setOnlyFavs(value); refreshFavoriteOrder(); }} label="Favoriten" description="Ihre gemerkten Unterkünfte" count={ready ? counts.favorites : null} icon={Heart} disabled={!ready} />
+            <QuickFilter checked={onlyLastMinute} onChange={(value) => { setOnlyLastMinute(value); refreshFavoriteOrder(); }} label="Last-Minute" description="Unterkünfte mit Angebot" count={counts.lastMinute} icon={Tag} />
+            <QuickFilter checked={onlyKuschelwochen} onChange={(value) => { setOnlyKuschelwochen(value); refreshFavoriteOrder(); if (!value) clearKuschelwochenQuery(); }} label="Kuschelwochen" description="Teilnehmende Unterkünfte" count={counts.kuschelwochen} icon={HuggedHeartIcon} disabled={isUpdating} />
           </div>
-        </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-slate-100 pt-3">
+            <p role="status" aria-live="polite" aria-atomic="true" className="text-xs text-slate-500">{isUpdating ? "Ergebnisse werden aktualisiert …" : <><strong className="font-semibold tabular-nums text-slate-900">{filtered.length}</strong> von {properties.length} Unterkünften{activeCount > 1 ? " · Filter kombiniert" : ""}</>}</p>
+            <label className="inline-flex items-center gap-2 text-xs text-slate-500">Sortierung
+              <select value={favFirst ? "favorites" : "default"} disabled={!ready || onlyFavs} onChange={(event) => handleFavFirstChange(event.target.value === "favorites")} className="min-h-10 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:opacity-50">
+                <option value="favorites">Favoriten zuerst</option><option value="default">Standardreihenfolge</option>
+              </select>
+            </label>
+          </div>
+        </section>
       )}
 
-      {filtered.length ===
-      0 ? (
-        <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-          Keine Objekte für die
-          Auswahl.
-        </p>
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
+          <p className="font-semibold text-slate-800">Keine Unterkunft passt zu dieser Auswahl.</p>
+          <p className="mt-2 text-sm text-slate-500">{onlyFavs ? "Merken Sie Unterkünfte über das Herz oder entfernen Sie einen Schnellfilter." : "Entfernen Sie einen Schnellfilter oder passen Sie Ihre Suche an."}</p>
+          {controls && activeCount > 0 && <button type="button" onClick={resetQuickFilters} disabled={isUpdating} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-sky-600 px-4 text-sm font-semibold text-white hover:bg-sky-500"><RotateCcw className="h-4 w-4" />Schnellfilter zurücksetzen</button>}
+        </div>
       ) : (
         <div
           className={
             gridClassName
           }
           aria-label="Ferienunterkünfte"
+          aria-busy={isUpdating}
         >
           {filtered.map(
             (property) => {

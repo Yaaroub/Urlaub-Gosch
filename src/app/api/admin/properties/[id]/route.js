@@ -398,6 +398,10 @@ export async function PUT(
           location:
             cleanLocation,
 
+          address: typeof body.address === "string"
+            ? body.address.trim() || null
+            : undefined,
+
           maxPersons:
             Math.floor(
               maxPersons
@@ -445,6 +449,7 @@ export async function PUT(
           slug: true,
           title: true,
           location: true,
+          address: true,
           maxPersons: true,
           dogsAllowed: true,
           kuschelwochenEnabled:

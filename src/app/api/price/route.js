@@ -1,6 +1,7 @@
 // src/app/api/price/route.js
 import prisma from "@/lib/db";
-import { eachDayOfInterval, addDays, formatISO } from "date-fns";
+import { parseTravelDate, applyKuschelwochen } from "@/lib/kuschelwochen";
+import { getKuschelwochenPeriods } from "@/lib/kuschelwochen-periods";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ function getOfferSaving(offer, basePrice) {
 }
 
 function formatDiscountDetail(detail) {
+  if (detail.type === "KUSCHELWOCHEN") return `${detail.value} Gratisnacht${detail.value === 1 ? "" : "e"}, anteilig aus den bestehenden Nachtpreisen`;
   if (detail.type === "FIXED") {
     return `−${Number(detail.value).toFixed(2)} € pro Nacht für ${detail.nights} Nacht${
       detail.nights === 1 ? "" : "e"
@@ -69,13 +71,13 @@ export async function POST(req) {
       );
     }
 
-    const start = new Date(arrival);
-    const end = new Date(departure);
+    const start = parseTravelDate(arrival);
+    const end = parseTravelDate(departure);
 
     if (
-      Number.isNaN(start.getTime()) ||
-      Number.isNaN(end.getTime()) ||
-      end <= start
+      !start ||
+      !end ||
+      end <= start || (end - start) / 86400000 > 730
     ) {
       return Response.json(
         { error: "Ungültiger Zeitraum." },
@@ -84,10 +86,15 @@ export async function POST(req) {
     }
 
     // Nächte [start, end)
-    const nights = eachDayOfInterval({
-      start,
-      end: addDays(end, -1),
+    const nights = Array.from({ length: (end - start) / 86400000 }, (_, index) => new Date(start.getTime() + index * 86400000));
+    const unavailable = await prisma.booking.findFirst({
+      where: { propertyId: property.id, startDate: { lt: end }, endDate: { gt: start } },
+      select: { id: true },
     });
+    if (unavailable) return Response.json({ error: "Der Zeitraum ist bereits belegt." }, { status: 409 });
+    if (nights.some((night) => !property.pricePeriods.some((period) => night >= period.startDate && night < period.endDate))) {
+      return Response.json({ error: "Für diesen Zeitraum sind noch nicht alle Nachtpreise hinterlegt. Bitte fragen Sie den Preis direkt an." }, { status: 422 });
+    }
 
     // Basispreise pro Nacht aus den normalen Preisperioden.
     const breakdown = nights.map((night) => {
@@ -102,7 +109,7 @@ export async function POST(req) {
         : 0;
 
       return {
-        date: formatISO(night, { representation: "date" }),
+        date: night.toISOString().slice(0, 10),
         base: round2(base),
 
         // Rückwärtskompatibel: bei Prozent steht hier weiterhin der Prozentwert.
@@ -170,6 +177,14 @@ export async function POST(req) {
         }
       }
     }
+
+    const kuschelwochen = applyKuschelwochen({
+      enabled: property.kuschelwochenEnabled,
+      start, end, breakdown,
+      periods: property.kuschelwochenEnabled && [7, 14].includes(nights.length)
+        ? await getKuschelwochenPeriods() : [],
+    });
+    const discountLabel = kuschelwochen ? "Ostsee-Kuschelwochen" : "Last-Minute-Rabatt";
 
     // Nebenkosten
     const extraRows = await prisma.extraCost.findMany({
@@ -290,7 +305,7 @@ export async function POST(req) {
         ? [
             {
               type: "discount",
-              title: "Last-Minute-Rabatt",
+              title: discountLabel,
               details: discountDetails,
               amount: -discountAmount,
             },
@@ -302,15 +317,16 @@ export async function POST(req) {
 
     const invoiceNote =
       discountAmount > 0
-        ? `Enthält Last-Minute-Rabatt in Höhe von ${discountAmount.toFixed(
+        ? `Enthält ${discountLabel} in Höhe von ${discountAmount.toFixed(
             2
           )} € (${discountDetails
             .map(formatDiscountDetail)
             .join(", ")}).`
-        : "Kein Last-Minute-Rabatt angewendet.";
+        : "Kein Aktionsrabatt angewendet.";
 
     return Response.json({
       nights: nights.length,
+      kuschelwochen,
       breakdown,
 
       // Gesamt-Ersparnis in Euro, unabhängig von der Rabattart.

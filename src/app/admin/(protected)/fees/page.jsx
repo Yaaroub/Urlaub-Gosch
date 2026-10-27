@@ -1,5 +1,7 @@
 "use client";
 
+import { useObjectFocus } from "../ObjectWorkspace";
+
 import { useEffect, useMemo, useState } from "react";
 
 const EMPTY_FORM = {
@@ -29,6 +31,7 @@ function formatEuroFromCents(cents) {
 }
 
 export default function FeesPage() {
+  const focusedPropertyId = useObjectFocus();
   const [properties, setProperties] = useState([]);
   const [propertyId, setPropertyId] = useState("");
   const [items, setItems] = useState([]);
@@ -440,7 +443,7 @@ export default function FeesPage() {
             className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60 disabled:opacity-60"
             value={propertyId}
             onChange={handlePropertyChange}
-            disabled={loadingProperties}
+            disabled={Boolean(focusedPropertyId) || loadingProperties}
           >
             <option value="">
               {loadingProperties

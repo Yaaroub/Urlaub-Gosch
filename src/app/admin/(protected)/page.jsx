@@ -1,3 +1,4 @@
+import HuggedHeartIcon from "@/components/HuggedHeartIcon";
 import Link from "next/link";
 
 import {
@@ -28,6 +29,7 @@ export default async function AdminHome() {
   const user = await getAdminUser();
 
   const items = [
+    { href: "/admin/kuschelwochen", title: "Ostsee-Kuschelwochen", desc: "Aktionszeiträume für alle teilnehmenden Unterkünfte verwalten.", icon: HuggedHeartIcon },
     {
       href: "/admin/properties",
       title: "Objekte",

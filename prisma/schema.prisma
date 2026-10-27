@@ -73,6 +73,15 @@ model PricePeriod {
   @@index([propertyId, startDate, endDate])
 }
 
+// Global travel windows; endDate is the latest permitted departure date.
+model KuschelwochenPeriod {
+  id        Int      @id @default(autoincrement())
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+
+  @@unique([startDate, endDate])
+}
+
 // ============================================================================
 // BUCHUNGEN
 // ============================================================================

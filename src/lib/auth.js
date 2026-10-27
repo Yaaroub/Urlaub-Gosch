@@ -6,6 +6,7 @@ import {
 import { cookies } from "next/headers";
 
 import prisma from "@/lib/db";
+import { retryDatabaseRead } from "@/lib/database-availability";
 
 const COOKIE = "session";
 
@@ -148,7 +149,7 @@ export async function getCurrentUser(
   }
 
   const user =
-    await prisma.user.findUnique({
+    await retryDatabaseRead(() => prisma.user.findUnique({
       where: {
         id: session.userId,
       },
@@ -172,7 +173,7 @@ export async function getCurrentUser(
         createdAt: true,
         updatedAt: true,
       },
-    });
+    }));
 
   if (!user) {
     return null;

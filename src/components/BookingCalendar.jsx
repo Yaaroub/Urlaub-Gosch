@@ -70,25 +70,37 @@ export default function BookingCalendar({
       }));
   }, [source]);
 
-  const checkoutDays = useMemo(() => {
-    return source
+  const changeoverDays = useMemo(() => {
+    const arrivals = source
+      .filter((booking) => booking.startDate && booking.endDate)
+      .map((booking) => dateOnly(booking.startDate))
+      .filter((arrival) => {
+        const previousDay = addDays(arrival, -1);
+        return !bookedRanges.some(
+          ({ from, to }) => previousDay >= from && previousDay <= to
+        );
+      });
+    const departures = source
       .filter((booking) => booking.endDate)
       .map((booking) => dateOnly(booking.endDate));
-  }, [source]);
+    return [...arrivals, ...departures];
+  }, [source, bookedRanges]);
 
   const modifiers = useMemo(
     () => ({
-      booked: bookedRanges,
-      checkout: checkoutDays,
+      booked: (day) =>
+        bookedRanges.some(({ from, to }) => day >= from && day <= to) &&
+        !changeoverDays.some((boundary) => boundary.getTime() === day.getTime()),
+      changeover: changeoverDays,
     }),
-    [bookedRanges, checkoutDays]
+    [bookedRanges, changeoverDays]
   );
 
   const modifiersClassNames = {
     booked:
       "[&>button]:bg-red-500 [&>button]:text-white [&>button]:font-semibold [&>button]:ring-1 [&>button]:ring-red-500",
 
-    checkout:
+    changeover:
       "[&>button]:bg-pink-100 [&>button]:text-pink-700 [&>button]:font-semibold [&>button]:ring-1 [&>button]:ring-pink-300",
   };
 
@@ -180,7 +192,7 @@ export default function BookingCalendar({
               className="h-2.5 w-2.5 rounded-full bg-pink-300"
               aria-hidden="true"
             />
-            <span>Checkout</span>
+            <span>An-/Abreise</span>
           </div>
         </div>
       )}

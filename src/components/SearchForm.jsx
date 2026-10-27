@@ -6,6 +6,8 @@ import {
   Building2,
   Calendar,
   Dog,
+  PawPrint,
+  Ban,
   MapPin,
   RotateCcw,
   Search,
@@ -33,6 +35,7 @@ export default function SearchForm({
   const [location, setLocation] = useState(initialParams.location || "");
   const [persons, setPersons] = useState(initialParams.persons || "");
   const [dogs, setDogs] = useState(initialParams.dogs === "true");
+  const [petFree, setPetFree] = useState(initialParams.dogs === "false");
 
   const [amenityValues, setAmenityValues] = useState(() => {
     const value = initialParams?.amenity;
@@ -87,6 +90,7 @@ export default function SearchForm({
     setLocation("");
     setPersons("");
     setDogs(false);
+    setPetFree(false);
     setAmenityValues([]);
 
     startTransition(() => {
@@ -126,6 +130,7 @@ export default function SearchForm({
     }
 
     if (dogs) params.set("dogs", "true");
+    if (petFree) params.set("dogs", "false");
 
     amenityValues.forEach((amenity) => {
       params.append("amenity", amenity);
@@ -274,9 +279,35 @@ export default function SearchForm({
             <input
               type="checkbox"
               checked={dogs}
-              onChange={(event) => setDogs(event.target.checked)}
+              onChange={(event) => {
+                setDogs(event.target.checked);
+                if (event.target.checked) setPetFree(false);
+              }}
               className="h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
               aria-label="Nur Unterkünfte anzeigen, in denen Hunde erlaubt sind"
+            />
+          </span>
+        </label>
+
+        <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-800">
+            <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200" aria-hidden="true">
+              <PawPrint className="h-4 w-4 text-slate-700" />
+              <Ban className="absolute h-6 w-6 text-slate-700" />
+            </span>
+            Tierfrei
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="text-xs text-slate-500">nur anzeigen</span>
+            <input
+              type="checkbox"
+              checked={petFree}
+              onChange={(event) => {
+                setPetFree(event.target.checked);
+                if (event.target.checked) setDogs(false);
+              }}
+              className="h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+              aria-label="Nur tierfreie Unterkünfte anzeigen"
             />
           </span>
         </label>

@@ -101,6 +101,7 @@ export async function GET(request) {
         slug: true,
         title: true,
         location: true,
+        address: true,
         maxPersons: true,
         dogsAllowed: true,
         kuschelwochenEnabled: true,
@@ -252,6 +253,10 @@ export async function POST(request) {
           location:
             cleanLocation,
 
+          address: typeof body.address === "string"
+            ? body.address.trim() || null
+            : undefined,
+
           maxPersons:
             Math.floor(
               parsedMaxPersons
@@ -293,6 +298,7 @@ export async function POST(request) {
           id: true,
           title: true,
           location: true,
+          address: true,
           maxPersons: true,
           dogsAllowed: true,
           kuschelwochenEnabled: true,

@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import ObjectWorkspace from "./ObjectWorkspace";
+import DatabaseUnavailable from "./DatabaseUnavailable";
+import { isDatabaseUnavailable } from "@/lib/database-availability";
 import { redirect } from "next/navigation";
 
 import {
@@ -25,8 +29,13 @@ const ROLE_LABELS = {
 export default async function ProtectedAdminLayout({
   children,
 }) {
-  const user =
-    await getAdminUser();
+  let user;
+  try {
+    user = await getAdminUser();
+  } catch (error) {
+    if (!isDatabaseUnavailable(error)) throw error;
+    return <DatabaseUnavailable />;
+  }
 
   // Nicht angemeldet
   if (!user) {
@@ -75,7 +84,9 @@ export default async function ProtectedAdminLayout({
   return (
     <>
       <div className="relative min-h-screen bg-[#f7f9fc] pb-28">
-        {children}
+        <Suspense fallback={<div className="p-8">Verwaltung wird geladen …</div>}>
+          <ObjectWorkspace>{children}</ObjectWorkspace>
+        </Suspense>
       </div>
 
       {/* ======================================================

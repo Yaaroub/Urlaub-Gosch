@@ -1,29 +1,20 @@
 "use client";
 
+import HuggedHeartIcon from "@/components/HuggedHeartIcon";
+import PropertyOverview from "./PropertyOverview";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useObjectFocus } from "../ObjectWorkspace";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import MarkdownContent from "@/components/MarkdownContent";
 
 import {
-  Calendar,
-  CalendarDays,
   Dog,
-  Euro,
   Eye,
-  Home,
-  Heart,
-  Images,
-  MapPin,
-  Pencil,
   Plus,
   Save,
-  Search,
-  Settings,
-  Tag,
   Trash2,
-  Upload,
-  Users,
   X,
 } from "lucide-react";
 
@@ -35,6 +26,7 @@ const EMPTY_FORM = {
   id: null,
   title: "",
   location: "",
+  address: "",
   maxPersons: 2,
   dogsAllowed: false,
   kuschelwochenEnabled: true,
@@ -46,51 +38,6 @@ const EMPTY_FORM = {
 // ============================================================
 // Verwaltungsbereiche
 // ============================================================
-
-const MANAGEMENT_ITEMS = [
-  {
-    key: "prices",
-    title: "Preiszeiten",
-    description: "Saisonpreise und Zeiträume",
-    href: "/admin/prices",
-    icon: Euro,
-  },
-  {
-    key: "fees",
-    title: "Nebenkosten",
-    description: "Endreinigung und Zuschläge",
-    href: "/admin/fees",
-    icon: Settings,
-  },
-  {
-    key: "images",
-    title: "Bilder",
-    description: "Upload und Reihenfolge",
-    href: "/admin/images",
-    icon: Images,
-  },
-  {
-    key: "availability",
-    title: "Verfügbarkeit",
-    description: "Belegungen und Sperrzeiten",
-    href: "/admin/availability",
-    icon: CalendarDays,
-  },
-  {
-    key: "ical",
-    title: "iCal",
-    description: "Import und Synchronisation",
-    href: "/admin/ical",
-    icon: Upload,
-  },
-  {
-    key: "lastminute",
-    title: "Last-Minute",
-    description: "Rabatte und Angebote",
-    href: "/admin/lastminute",
-    icon: Tag,
-  },
-];
 
 // ============================================================
 // LocalStorage Keys
@@ -205,6 +152,11 @@ function sortProperties(properties) {
 // ============================================================
 
 export default function AdminPropertiesPage() {
+  const focusedPropertyId = useObjectFocus();
+  const router = useRouter();
+  const openedFocus = useRef(null);
+  const savedForm = useRef(JSON.stringify(EMPTY_FORM));
+  const [returnScrollId, setReturnScrollId] = useState("");
   const formSectionRef =
     useRef(null);
 
@@ -330,6 +282,34 @@ export default function AdminPropertiesPage() {
     [form.id]
   );
 
+  useEffect(() => {
+    if (!focusedPropertyId || !canEdit || openedFocus.current === focusedPropertyId) return;
+    openedFocus.current = focusedPropertyId;
+    editRow(Number(focusedPropertyId));
+    // Open only once per focused object, never overwrite unsaved edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedPropertyId, canEdit]);
+
+  const dirty = showForm && JSON.stringify(form) !== savedForm.current;
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event) => { event.preventDefault(); event.returnValue = ""; };
+    const guard = (event) => {
+      const link = event.target.closest("a[href]");
+      if (!link || link.target === "_blank" || event.ctrlKey || event.metaKey) return;
+      if (!window.confirm("Deine Änderungen sind noch nicht gespeichert. Trotzdem wechseln?")) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    document.addEventListener("click", guard, true);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+      document.removeEventListener("click", guard, true);
+    };
+  }, [dirty]);
+
   // ==========================================================
   // Ortschaften
   // ==========================================================
@@ -440,6 +420,7 @@ export default function AdminPropertiesPage() {
               item
             ),
             item.location,
+            item.address,
             item.slug,
 
             item.kuschelwochenEnabled !==
@@ -475,164 +456,29 @@ export default function AdminPropertiesPage() {
     loadData();
   }, []);
 
-  // ==========================================================
-  // Gespeicherte Ortschaft + Objekt wiederherstellen
-  // ==========================================================
-
+  // Open the overview with all properties. Persist only a scroll destination,
+  // never restore the last edited property as a search filter.
   useEffect(() => {
-    if (
-      filtersReady ||
-      items.length === 0 ||
-      typeof window ===
-        "undefined"
-    ) {
-      return;
+    if (filtersReady || loading || items.length === 0) return;
+
+    const scrollTo = new URLSearchParams(window.location.search).get("scrollTo");
+    let lastPropertyId = null;
+    try {
+      lastPropertyId = window.localStorage.getItem(STORAGE_PROPERTY);
+      window.localStorage.removeItem(STORAGE_LOCATION);
+    } catch {
+      // The overview also works when browser storage is unavailable.
     }
-
-    const storedLocation =
-      window.localStorage.getItem(
-        STORAGE_LOCATION
-      );
-
-    const storedPropertyId =
-      window.localStorage.getItem(
-        STORAGE_PROPERTY
-      );
-
-    // --------------------------------------------
-    // Ortschaft wiederherstellen
-    // --------------------------------------------
-
-    let nextLocation = "";
-
-    if (
-      storedLocation &&
-      locations.includes(
-        storedLocation
-      )
-    ) {
-      nextLocation =
-        storedLocation;
+    const target = /^[1-9]\d*$/.test(scrollTo || "") ? scrollTo : lastPropertyId;
+    setSelectedLocation("");
+    setSelectedPropertyId("");
+    setSearchTerm("");
+    if (!focusedPropertyId && items.some((item) => String(item.id) === target)) {
+      setReturnScrollId(target);
+      setRestoreScrollPending(true);
     }
-
-    // --------------------------------------------
-    // Objekt suchen
-    // --------------------------------------------
-
-    const storedProperty =
-      storedPropertyId
-        ? items.find(
-            (item) =>
-              String(item.id) ===
-              String(
-                storedPropertyId
-              )
-          )
-        : null;
-
-    // --------------------------------------------
-    // Objekt wiederherstellen
-    // --------------------------------------------
-
-    if (storedProperty) {
-      /**
-       * Wenn die gespeicherte Ortschaft weiterhin passt,
-       * behalten wir sie.
-       *
-       * Wenn keine Ortschaft gespeichert war,
-       * bleibt "Alle Ortschaften" bestehen.
-       */
-      if (
-        nextLocation &&
-        storedProperty.location !==
-          nextLocation
-      ) {
-        /**
-         * Falls sich z. B. der Ort des Objektes
-         * zwischenzeitlich geändert hat.
-         */
-        nextLocation =
-          storedProperty.location ||
-          "";
-      }
-
-      setSelectedPropertyId(
-        String(storedProperty.id)
-      );
-
-      setRestoreScrollPending(
-        true
-      );
-    }
-
-    setSelectedLocation(
-      nextLocation
-    );
-
     setFiltersReady(true);
-  }, [
-    filtersReady,
-    items,
-    locations,
-  ]);
-
-  // ==========================================================
-  // Ortschaft speichern
-  // ==========================================================
-
-  useEffect(() => {
-    if (
-      !filtersReady ||
-      typeof window ===
-        "undefined"
-    ) {
-      return;
-    }
-
-    /**
-     * Auch "" wird gespeichert.
-     *
-     * Dadurch wissen wir:
-     * Der Admin hatte bewusst "Alle Ortschaften".
-     */
-    window.localStorage.setItem(
-      STORAGE_LOCATION,
-      selectedLocation
-    );
-  }, [
-    selectedLocation,
-    filtersReady,
-  ]);
-
-  // ==========================================================
-  // Objekt speichern
-  // ==========================================================
-
-  useEffect(() => {
-    if (
-      !filtersReady ||
-      typeof window ===
-        "undefined"
-    ) {
-      return;
-    }
-
-    if (selectedPropertyId) {
-      window.localStorage.setItem(
-        STORAGE_PROPERTY,
-        String(
-          selectedPropertyId
-        )
-      );
-    } else {
-      window.localStorage.removeItem(
-        STORAGE_PROPERTY
-      );
-    }
-  }, [
-    selectedPropertyId,
-    filtersReady,
-  ]);
+  }, [filtersReady, loading, items, focusedPropertyId]);
 
   // ==========================================================
   // Nach Rückkehr zum gespeicherten Objekt scrollen
@@ -643,7 +489,7 @@ export default function AdminPropertiesPage() {
       !filtersReady ||
       loading ||
       !restoreScrollPending ||
-      !selectedPropertyId
+      !(returnScrollId || selectedPropertyId)
     ) {
       return;
     }
@@ -652,19 +498,32 @@ export default function AdminPropertiesPage() {
       window.setTimeout(() => {
         const element =
           document.getElementById(
-            `admin-property-${selectedPropertyId}`
+            `admin-property-${returnScrollId || selectedPropertyId}`
           );
 
         if (element) {
+          const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
           element.scrollIntoView({
-            behavior: "smooth",
+            behavior: reduceMotion ? "instant" : "smooth",
             block: "center",
           });
+          if (returnScrollId) {
+            // One gentle highlight on return, never a repeating animation.
+            if (!reduceMotion) element.animate([
+              { backgroundColor: "#ffffff", boxShadow: "0 0 0 0 rgba(14,165,233,0)" },
+              { backgroundColor: "#e0f2fe", boxShadow: "0 0 0 3px rgba(14,165,233,0.5)", offset: 0.35 },
+              { backgroundColor: "#ffffff", boxShadow: "0 0 0 0 rgba(14,165,233,0)" },
+            ], { duration: 1200, delay: 500, iterations: 1, easing: "ease-out" });
+            const url = new URL(window.location.href);
+            url.searchParams.delete("scrollTo");
+            window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+          }
         }
 
         setRestoreScrollPending(
           false
         );
+        setReturnScrollId("");
       }, 150);
 
     return () =>
@@ -676,6 +535,7 @@ export default function AdminPropertiesPage() {
     loading,
     restoreScrollPending,
     selectedPropertyId,
+    returnScrollId,
     filteredItems.length,
   ]);
 
@@ -703,25 +563,6 @@ export default function AdminPropertiesPage() {
 
     setRestoreScrollPending(
       false
-    );
-  }
-
-  // ==========================================================
-  // Objekt auswählen
-  // ==========================================================
-
-  function handlePropertyFilterChange(
-    event
-  ) {
-    const propertyId =
-      event.target.value;
-
-    setSelectedPropertyId(
-      propertyId
-    );
-
-    setRestoreScrollPending(
-      Boolean(propertyId)
     );
   }
 
@@ -971,6 +812,7 @@ export default function AdminPropertiesPage() {
 
     setMsg(null);
 
+    savedForm.current = JSON.stringify(EMPTY_FORM);
     setForm(EMPTY_FORM);
 
     setNewAmenityName("");
@@ -989,6 +831,11 @@ export default function AdminPropertiesPage() {
   // ==========================================================
 
   function closeForm() {
+    if (dirty && !window.confirm("Ungespeicherte Änderungen verwerfen?")) return;
+    if (focusedPropertyId) {
+      if (!busy) router.push(`/admin/properties?scrollTo=${focusedPropertyId}`, { scroll: false });
+      return;
+    }
     if (busy) {
       return;
     }
@@ -1281,6 +1128,8 @@ export default function AdminPropertiesPage() {
       location:
         form.location.trim(),
 
+      address: form.address.trim(),
+
       maxPersons:
         Number(
           form.maxPersons
@@ -1470,6 +1319,11 @@ export default function AdminPropertiesPage() {
         });
       }
 
+      if (focusedPropertyId) {
+        savedForm.current = JSON.stringify(form);
+        return;
+      }
+
       setForm(EMPTY_FORM);
 
       setNewAmenityName("");
@@ -1595,7 +1449,7 @@ export default function AdminPropertiesPage() {
         return;
       }
 
-      setForm({
+      const loadedForm = {
         id:
           property.id,
 
@@ -1605,6 +1459,8 @@ export default function AdminPropertiesPage() {
         location:
           property.location ||
           "",
+
+        address: property.address || "",
 
         maxPersons:
           property.maxPersons ||
@@ -1635,7 +1491,9 @@ export default function AdminPropertiesPage() {
                   amenity.name
               )
             : [],
-      });
+      };
+      savedForm.current = JSON.stringify(loadedForm);
+      setForm(loadedForm);
 
       setNewAmenityName("");
 
@@ -1838,7 +1696,7 @@ export default function AdminPropertiesPage() {
   // ==========================================================
 
   return (
-    <section className="mx-auto mt-24 w-full max-w-[1600px] px-4 py-8 md:px-6 md:py-10">
+    <section className={`mx-auto ${focusedPropertyId ? "mt-0" : "mt-24"} w-full max-w-[1600px] px-4 py-8 md:px-6 md:py-10`}>
       {/* ======================================================
           Meldungen
       ====================================================== */}
@@ -1887,20 +1745,18 @@ export default function AdminPropertiesPage() {
           Kopfbereich
       ====================================================== */}
 
-      <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className={focusedPropertyId ? "hidden" : "mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"}>
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
             Admin · Objekte
           </p>
 
           <h1 className="mt-1 text-3xl font-bold text-slate-950">
-            Unterkünfte verwalten
+            Deine Unterkünfte
           </h1>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Lege Unterkünfte an und öffne anschließend alle
-            zugehörigen Verwaltungsbereiche direkt beim jeweiligen
-            Objekt.
+            Alle Objekte an einem Ort. Wähle eine Unterkunft zum Bearbeiten.
           </p>
 
           {!canEdit && (
@@ -1916,7 +1772,7 @@ export default function AdminPropertiesPage() {
             onClick={
               openCreateForm
             }
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500"
           >
             <Plus
               className="h-4 w-4"
@@ -1931,6 +1787,13 @@ export default function AdminPropertiesPage() {
       {/* ======================================================
           Grunddaten Formular
       ====================================================== */}
+
+      {focusedPropertyId && !showForm && (
+        <div className="mb-6 border-l-4 border-teal-700 bg-white p-5" role="status">
+          <p className="text-sm text-slate-600">{busy || loading ? "Objekt wird geöffnet …" : canEdit ? "Die Grunddaten konnten nicht geöffnet werden." : "Die Bearbeitung benötigt entsprechende Zugriffsrechte."}</p>
+          {canEdit && !busy && !loading && <button type="button" onClick={() => editRow(Number(focusedPropertyId))} className="mt-3 min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-semibold">Erneut laden</button>}
+        </div>
+      )}
 
       {showForm &&
         canEdit && (
@@ -2055,6 +1918,23 @@ export default function AdminPropertiesPage() {
                   />
                 </label>
 
+                <label className="grid gap-1.5">
+                  <span className="text-xs font-medium text-slate-600">
+                    Adresse (Straße und Hausnummer)
+                  </span>
+                  <input
+                    name="address"
+                    autoComplete="street-address"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-400/30"
+                    value={form.address}
+                    onChange={(event) => setForm((currentForm) => ({
+                      ...currentForm,
+                      address: event.target.value,
+                    }))}
+                    placeholder="z. B. Strandstraße 12"
+                  />
+                </label>
+
                 {/* Personen */}
 
                 <label className="grid gap-1.5">
@@ -2170,7 +2050,7 @@ export default function AdminPropertiesPage() {
                     className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm ring-1 ring-amber-200"
                     aria-hidden="true"
                   >
-                    <Heart className="h-4 w-4" />
+                    <HuggedHeartIcon className="h-4 w-4" />
                   </span>
 
                   <div className="min-w-0 flex-1">
@@ -2215,6 +2095,13 @@ export default function AdminPropertiesPage() {
 
                         Für Kuschelwochen freigeben
                       </label>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-amber-200 pt-4">
+                      <Link href="/admin/kuschelwochen" className="inline-flex min-h-11 items-center rounded-lg bg-amber-900 px-4 text-sm font-semibold text-white hover:bg-amber-950">
+                        Kuschelwochen-Zeiträume bearbeiten
+                      </Link>
+                      <span className="text-xs text-amber-900">Anreise- und Abreisedaten zentral für alle teilnehmenden Objekte ändern.</span>
                     </div>
 
                     {!editing &&
@@ -2585,498 +2472,28 @@ export default function AdminPropertiesPage() {
           Objektübersicht
       ====================================================== */}
 
-      <div className="mb-5 space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-950">
-            Objektübersicht
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-600">
-            Standardmäßig werden alle Objekte angezeigt. Bei Bedarf
-            kannst du nach Ortschaft und Objekt filtern.
-          </p>
-        </div>
-
-        {/* ====================================================
-            Filter
-        ==================================================== */}
-
-        {items.length >
-          0 && (
-          <div className="grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:grid-cols-2 xl:grid-cols-[220px_280px_minmax(300px,1fr)_auto] xl:items-end">
-            {/* Ortschaft */}
-
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-slate-600">
-                Ortschaft
-              </span>
-
-              <select
-                value={
-                  selectedLocation
-                }
-                onChange={
-                  handleLocationFilterChange
-                }
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-400/30"
-              >
-                <option value="">
-                  Alle Ortschaften
-                </option>
-
-                {locations.map(
-                  (
-                    location
-                  ) => (
-                    <option
-                      key={
-                        location
-                      }
-                      value={
-                        location
-                      }
-                    >
-                      {
-                        location
-                      }
-                    </option>
-                  )
-                )}
-              </select>
-            </label>
-
-            {/* Objekt */}
-
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-slate-600">
-                Objekt
-              </span>
-
-              <select
-                value={
-                  selectedPropertyId
-                }
-                onChange={
-                  handlePropertyFilterChange
-                }
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-400/30"
-              >
-                <option value="">
-                  Alle Objekte
-                </option>
-
-                {availableObjectOptions.map(
-                  (item) => (
-                    <option
-                      key={
-                        item.id
-                      }
-                      value={
-                        item.id
-                      }
-                    >
-                      {getAdminPropertyName(
-                        item
-                      )}
-                    </option>
-                  )
-                )}
-              </select>
-            </label>
-
-            {/* Suche */}
-
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-slate-600">
-                Suche
-              </span>
-
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                  aria-hidden="true"
-                />
-
-                <input
-                  type="search"
-                  value={
-                    searchTerm
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setSearchTerm(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                  placeholder="Objekt, Ort, Slug oder ID suchen …"
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-400/30"
-                />
-
-                {searchTerm && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSearchTerm(
-                        ""
-                      )
-                    }
-                    className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            </label>
-
-            {/* Anzahl */}
-
-            <span className="w-fit shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 xl:mb-2.5">
-              {searchTerm.trim() ||
-              selectedLocation ||
-              selectedPropertyId
-                ? `${filteredItems.length} von ${items.length}`
-                : `${items.length} Objekt${
-                    items.length ===
-                    1
-                      ? ""
-                      : "e"
-                  }`}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* ======================================================
-          Objektliste
-      ====================================================== */}
-
-      {loading ? (
-        <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
-          <p className="text-sm text-slate-500">
-            Objekte werden geladen …
-          </p>
-        </div>
-      ) : items.length ===
-        0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <Home className="mx-auto h-10 w-10 text-slate-400" />
-
-          <h2 className="mt-4 text-lg font-semibold text-slate-900">
-            Noch keine Objekte vorhanden
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-600">
-            Lege zuerst eine Unterkunft an.
-          </p>
-
-          {canEdit && (
-            <button
-              type="button"
-              onClick={
-                openCreateForm
-              }
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
-            >
-              <Plus className="h-4 w-4" />
-
-              Erstes Objekt anlegen
-            </button>
-          )}
-        </div>
-      ) : filteredItems.length ===
-        0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <Search className="mx-auto h-10 w-10 text-slate-400" />
-
-          <h2 className="mt-4 text-lg font-semibold text-slate-900">
-            Kein Objekt gefunden
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-600">
-            Für die aktuelle Auswahl wurde keine passende
-            Unterkunft gefunden.
-          </p>
-
-          <button
-            type="button"
-            onClick={
-              resetFilters
-            }
-            className="mt-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <X className="h-4 w-4" />
-
-            Filter zurücksetzen
-          </button>
-        </div>
-      ) : (
-        <div className="grid gap-5 lg:grid-cols-2">
-          {filteredItems.map(
-            (item) => (
-              <article
-                id={`admin-property-${item.id}`}
-                key={
-                  item.id
-                }
-                className="scroll-mt-28 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md"
-              >
-                {/* ============================================
-                    Objektinformationen
-                ============================================ */}
-
-                <div className="border-b border-slate-100 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {/* Nur kurzer Admin-Name */}
-
-                        <h3 className="truncate text-lg font-semibold text-slate-950">
-                          {getAdminPropertyName(
-                            item
-                          )}
-                        </h3>
-
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                          ID{" "}
-                          {
-                            item.id
-                          }
-                        </span>
-                      </div>
-
-                      {/* Ort */}
-
-                      <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-600">
-                        <MapPin
-                          className="h-4 w-4 shrink-0"
-                          aria-hidden="true"
-                        />
-
-                        <span className="truncate">
-                          {item.location ||
-                            "Kein Ort hinterlegt"}
-                        </span>
-                      </p>
-                    </div>
-
-                    {/* Grunddaten */}
-
-                    {canEdit && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          editRow(
-                            item.id
-                          )
-                        }
-                        disabled={
-                          busy
-                        }
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
-                      >
-                        <Pencil
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-
-                        Grunddaten
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Eigenschaften */}
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                      <Users
-                        className="h-3.5 w-3.5"
-                        aria-hidden="true"
-                      />
-
-                      Bis{" "}
-                      {item.maxPersons ||
-                        "–"}{" "}
-                      Personen
-                    </span>
-
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                      <Dog
-                        className="h-3.5 w-3.5"
-                        aria-hidden="true"
-                      />
-
-                      Hunde{" "}
-                      {item.dogsAllowed
-                        ? "erlaubt"
-                        : "nicht erlaubt"}
-                    </span>
-
-                    {item.kuschelwochenEnabled !==
-                      false && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
-                        <Heart
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-
-                        Kuschelwochen
-                      </span>
-                    )}
-
-                    {item.slug && (
-                      <span className="max-w-full truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">
-                        /
-                        {
-                          item.slug
-                        }
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* ============================================
-                    Verwaltungsbereiche
-                ============================================ */}
-
-                <div className="p-5">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
-                    Objekt verwalten
-                  </p>
-
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {MANAGEMENT_ITEMS.map(
-                      (
-                        managementItem
-                      ) => {
-                        const Icon =
-                          managementItem.icon;
-
-                        return (
-                          <Link
-                            key={
-                              managementItem.key
-                            }
-                            href={`${managementItem.href}?propertyId=${item.id}`}
-                            /**
-                             * DAS IST FÜR DEINEN WUNSCH
-                             * ENTSCHEIDEND:
-                             *
-                             * Vor dem Wechsel zur Unterseite
-                             * wird das Objekt gespeichert.
-                             */
-                            onClick={() =>
-                              rememberProperty(
-                                item
-                              )
-                            }
-                            className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 transition hover:border-sky-200 hover:bg-sky-50"
-                          >
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sky-700 shadow-sm ring-1 ring-slate-200 transition group-hover:ring-sky-200">
-                              <Icon
-                                className="h-4 w-4"
-                                aria-hidden="true"
-                              />
-                            </span>
-
-                            <span className="min-w-0">
-                              <span className="block text-sm font-semibold text-slate-900 group-hover:text-sky-800">
-                                {
-                                  managementItem.title
-                                }
-                              </span>
-
-                              <span className="block truncate text-xs text-slate-500">
-                                {
-                                  managementItem.description
-                                }
-                              </span>
-                            </span>
-                          </Link>
-                        );
-                      }
-                    )}
-                  </div>
-
-                  {/* ==========================================
-                      Vorschau / iCal / Löschen
-                  ========================================== */}
-
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                    <div className="flex flex-wrap gap-2">
-                      {item.slug ? (
-                        <>
-                          {/* Vorschau */}
-
-                          <a
-                            href={`/properties/${item.slug}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                          >
-                            <Eye
-                              className="h-3.5 w-3.5"
-                              aria-hidden="true"
-                            />
-
-                            Vorschau
-                          </a>
-
-                          {/* iCal */}
-
-                          <a
-                            href={`/api/ical/${item.slug}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                          >
-                            <Calendar
-                              className="h-3.5 w-3.5"
-                              aria-hidden="true"
-                            />
-
-                            iCal-Export
-                          </a>
-                        </>
-                      ) : (
-                        <span className="text-xs text-slate-400">
-                          Vorschau erst nach Vergabe eines Slugs
-                          verfügbar.
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Löschen */}
-
-                    {canDelete && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          askRemoveRow(
-                            item
-                          )
-                        }
-                        disabled={
-                          busy
-                        }
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 ring-1 ring-rose-100 transition hover:bg-rose-100 disabled:opacity-50"
-                      >
-                        <Trash2
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-
-                        Löschen
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </article>
-            )
-          )}
-        </div>
+      {!focusedPropertyId && (
+        <PropertyOverview
+          items={items}
+          filteredItems={filteredItems}
+          locations={locations}
+          loading={loading}
+          busy={busy}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedLocation={selectedLocation}
+          onLocationChange={handleLocationFilterChange}
+          selectedPropertyId={selectedPropertyId}
+          availableObjectOptions={availableObjectOptions}
+          onPropertyChange={(event) => { setSelectedPropertyId(event.target.value); setRestoreScrollPending(Boolean(event.target.value)); }}
+          onReset={resetFilters}
+          onCreate={openCreateForm}
+          onRemember={rememberProperty}
+          onDelete={askRemoveRow}
+          getName={getAdminPropertyName}
+        />
       )}
 
       {/* ======================================================

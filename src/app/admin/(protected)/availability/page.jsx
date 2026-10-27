@@ -1,5 +1,7 @@
 "use client";
 
+import { useObjectFocus } from "../ObjectWorkspace";
+
 import { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { de } from "react-day-picker/locale";
@@ -29,6 +31,7 @@ function emptyRange() {
 }
 
 export default function AvailabilityPage() {
+  const focusedPropertyId = useObjectFocus();
   const [properties, setProperties] = useState([]);
   const [propertyId, setPropertyId] = useState("");
   const [bookings, setBookings] = useState([]);
@@ -893,8 +896,7 @@ export default function AvailabilityPage() {
             onChange={
               handlePropertyChange
             }
-            disabled={
-              isLoadingProperties
+            disabled={Boolean(focusedPropertyId) || isLoadingProperties
             }
           >
             <option value="">

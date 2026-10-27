@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { retryDatabaseRead } from "@/lib/database-availability";
 import { getCurrentUser } from "@/lib/auth";
 
 export const ADMIN_PERMISSIONS = {
@@ -131,7 +132,7 @@ export async function getAdminUserWithPermissions(
     return null;
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await retryDatabaseRead(() => prisma.user.findUnique({
     where: {
       id: currentUser.id,
     },
@@ -160,7 +161,7 @@ export async function getAdminUserWithPermissions(
         },
       },
     },
-  });
+  }));
 
   if (!user || !user.isActive) {
     return null;

@@ -91,7 +91,10 @@ export const amenityIconMap = {
   waschmaschine: WashingMachine,
   trockner: Shirt,
 
+  eingezäunt: Fence,
+  eingezaunt: Fence,
   "eingezäuntes grundstück": Fence,
+  "eingezauntes grundstueck": Fence,
   sicher: ShieldCheck,
 
   balkon: Sun,

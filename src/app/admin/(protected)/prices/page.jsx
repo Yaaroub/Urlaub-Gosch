@@ -1,5 +1,9 @@
 "use client";
 
+import Link from "next/link";
+
+import { useObjectFocus } from "../ObjectWorkspace";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   formatEuro,
@@ -13,6 +17,7 @@ import {
 } from "@/lib/pricePeriodUtils";
 
 export default function PriceEditorPage() {
+  const focusedPropertyId = useObjectFocus();
   const [properties, setProperties] = useState([]);
   const [propertyId, setPropertyId] = useState("");
   const [items, setItems] = useState([]);
@@ -349,6 +354,7 @@ export default function PriceEditorPage() {
             Lege Preiszeiträume mit Start- und Enddatum an. Das Ende ist{" "}
             <strong>exklusiv</strong> (Abreise-Tag).
           </p>
+          <Link href="/admin/kuschelwochen" className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-amber-300 bg-amber-50 px-4 text-sm font-semibold text-amber-950 hover:bg-amber-100">Kuschelwochen-Zeiträume bearbeiten</Link>
         </div>
 
         <div className="flex flex-col gap-2 sm:ml-auto sm:items-end">
@@ -356,7 +362,7 @@ export default function PriceEditorPage() {
             Objekt wählen
           </label>
           <div className="flex flex-wrap items-center gap-3">
-            <select
+            <select disabled={Boolean(focusedPropertyId)}
               className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
               value={propertyId}
               onChange={handlePropertyChange}
