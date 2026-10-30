@@ -1,32 +1,13 @@
 import prisma from "@/lib/db";
+import { publicPropertySelect } from "@/lib/public-property-select";
 
 export async function GET() {
   const items = await prisma.property.findMany({
-    include: { amenities: true, pricePeriods: true, bookings: true },
+    select: { ...publicPropertySelect, bookings: { select: { startDate: true, endDate: true } } },
     orderBy: { id: "asc" },
   });
   return Response.json(items);
 }
 
-export async function POST(req) {
-  const data = await req.json();
-
-  const created = await prisma.property.create({
-    data: {
-      title: data.title,
-      description: data.description ?? null,
-      location: data.location,
-      maxPersons: Number(data.maxPersons ?? 2),
-      dogsAllowed: !!data.dogsAllowed,
-      amenities: {
-        connectOrCreate: (data.amenities ?? []).map((name) => ({
-          where: { name },
-          create: { name },
-        })),
-      },
-    },
-    include: { amenities: true },
-  });
-
-  return Response.json(created, { status: 201 });
-}
+// Legacy write endpoint shares the same permission checks as the admin route.
+export { POST } from "@/app/api/admin/properties/route";

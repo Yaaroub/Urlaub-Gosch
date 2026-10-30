@@ -1,9 +1,9 @@
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { getVerifiedSession, createSession, sessionCookie } from "@/lib/auth";
 import bcrypt from "bcrypt";
 
 export async function PUT(req) {
-  const session = await getSession(req);
+  const session = await getVerifiedSession(req);
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
@@ -20,9 +20,10 @@ export async function PUT(req) {
     if (!ok) return Response.json({ error: "Altes Passwort ist falsch" }, { status: 401 });
 
     const hash = await bcrypt.hash(newPassword, 12);
-    await prisma.user.update({ where: { id: session.userId }, data: { password: hash } });
+    const updated = await prisma.user.update({ where: { id: session.userId }, data: { password: hash, sessionVersion: { increment: 1 } } });
 
-    return Response.json({ ok: true });
+    const token = await createSession(updated);
+    return Response.json({ ok: true }, { headers: { "Set-Cookie": sessionCookie(token) } });
   } catch (e) {
     console.error(e);
     return Response.json({ error: "Passwort-Update fehlgeschlagen" }, { status: 500 });

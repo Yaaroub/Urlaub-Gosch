@@ -1,9 +1,9 @@
 import prisma from "@/lib/db";
-import { getSession, clearSessionCookie } from "@/lib/auth";
+import { getVerifiedSession, clearSessionCookie } from "@/lib/auth";
 import bcrypt from "bcrypt";
 
 export async function POST(req) {
-  const session = await getSession(req);
+  const session = await getVerifiedSession(req);
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   try {

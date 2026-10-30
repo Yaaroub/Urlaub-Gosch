@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getCurrentUser } from "@/lib/auth";
 
 export const STAFF_ROLES = [
@@ -10,7 +11,7 @@ export const STAFF_ROLES = [
  * Liefert Benutzer nur zurück,
  * wenn er Mitarbeiter/Admin ist.
  */
-export async function getAdminUser(req = null) {
+export const getAdminUser = cache(async function getAdminUser(req = null) {
   const user = await getCurrentUser(req);
 
   if (!user) {
@@ -22,7 +23,7 @@ export async function getAdminUser(req = null) {
   }
 
   return user;
-}
+});
 
 /**
  * Geschützter Admin-Zugriff.

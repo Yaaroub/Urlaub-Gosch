@@ -345,10 +345,10 @@ export default function PriceEditorPage() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-            Admin · Preiszeiten
+            Admin · Nachtpreise & Saisonzeiten
           </p>
           <h1 className="text-2xl font-semibold text-slate-900">
-            Saisonpreise & Zeiträume
+            Nachtpreise & Saisonzeiten
           </h1>
           <p className="mt-1 text-sm text-slate-600">
             Lege Preiszeiträume mit Start- und Enddatum an. Das Ende ist{" "}

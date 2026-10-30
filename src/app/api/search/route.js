@@ -1,3 +1,4 @@
+import { publicPropertySelect } from "@/lib/public-property-select";
 import prisma from "@/lib/db";
 import { buildPropertyWhere, isDateStr } from "@/lib/search-utils";
 
@@ -67,7 +68,7 @@ export async function POST(req) {
   try {
     const results = await prisma.property.findMany({
       where,
-      include: { amenities: true, pricePeriods: true },
+      select: publicPropertySelect,
       orderBy: [{ location: "asc" }, { title: "asc" }],
     });
 
@@ -79,7 +80,6 @@ export async function POST(req) {
     return Response.json(
       {
         error: "Database unavailable",
-        detail: err?.message ?? String(err),
       },
       { status: 503 }
     );

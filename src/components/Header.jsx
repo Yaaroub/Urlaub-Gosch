@@ -214,18 +214,23 @@ export default function Header() {
       }
     }
 
-    loadHeaderWeather();
+    // Weather is secondary to navigation, images and the initial page render.
+    const schedule = "requestIdleCallback" in window
+      ? window.requestIdleCallback(() => loadHeaderWeather(), { timeout: 3000 })
+      : window.setTimeout(() => loadHeaderWeather(), 1500);
 
     const refreshTimer = window.setInterval(
-      loadHeaderWeather,
+      () => { if (!document.hidden) loadHeaderWeather(); },
       15 * 60 * 1000
     );
 
     return () => {
+      if ("cancelIdleCallback" in window) window.cancelIdleCallback(schedule);
+      else window.clearTimeout(schedule);
       window.clearInterval(refreshTimer);
       controller.abort();
     };
-  }, [headerWeatherPlace.id]);
+  }, [headerWeatherPlace.id, headerWeatherPlace.latitude, headerWeatherPlace.longitude]);
 
   useEffect(() => {
     if (!open && !searchOpen) return;

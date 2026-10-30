@@ -1,3 +1,4 @@
+import { ADMIN_PERMISSIONS, requireAdminPermission } from "@/lib/admin-permissions";
 import prisma from "@/lib/db";
 
 /** Utils */
@@ -27,7 +28,7 @@ export async function GET(req) {
     const rows = await prisma.booking.findMany({
       where: { propertyId: pid },
       orderBy: { startDate: "asc" },
-      select: { id: true, startDate: true, endDate: true, guestName: true },
+      select: { id: true, startDate: true, endDate: true },
     });
 
     return Response.json(rows);
@@ -44,6 +45,8 @@ export async function GET(req) {
  */
 export async function POST(req) {
   try {
+    const auth = await requireAdminPermission(ADMIN_PERMISSIONS.AVAILABILITY_EDIT, req);
+    if (!auth.ok) return Response.json({ error: auth.error }, { status: auth.status });
     const { propertyId, arrival, departure, guestName } = await req.json();
 
     const pid = Number(propertyId);

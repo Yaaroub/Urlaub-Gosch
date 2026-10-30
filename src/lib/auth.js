@@ -232,3 +232,9 @@ export function clearSessionCookie() {
     .filter(Boolean)
     .join("; ");
 }
+
+// Use this for account APIs so revoked sessions and locked accounts are rejected.
+export async function getVerifiedSession(request) {
+  const user = await getCurrentUser(request);
+  return user ? { userId: user.id, email: user.email, sessionVersion: user.sessionVersion } : null;
+}

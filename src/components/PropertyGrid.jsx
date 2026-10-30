@@ -1,6 +1,6 @@
+import HuggedHeartIcon from "@/components/HuggedHeartIcon";
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles } from "lucide-react";
 
 import FavButton from "@/components/FavButton";
 import LastMinuteBadge from "@/components/LastMinuteBadge";
@@ -119,7 +119,7 @@ export default function PropertyGrid({
                     ].join(" ")}
                     aria-label="Dieses Objekt nimmt an den Ostsee-Kuschelwochen teil"
                   >
-                    <Sparkles
+                    <HuggedHeartIcon
                       aria-hidden="true"
                       className="h-3.5 w-3.5"
                     />

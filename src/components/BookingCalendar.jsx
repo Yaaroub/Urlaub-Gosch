@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { de } from "react-day-picker/locale";
 import "react-day-picker/style.css";
+import { getCalendarBoundaries } from "@/lib/calendar-boundaries";
 
 const dateOnly = (d) => {
   const x = new Date(d);
@@ -70,21 +71,10 @@ export default function BookingCalendar({
       }));
   }, [source]);
 
-  const changeoverDays = useMemo(() => {
-    const arrivals = source
-      .filter((booking) => booking.startDate && booking.endDate)
-      .map((booking) => dateOnly(booking.startDate))
-      .filter((arrival) => {
-        const previousDay = addDays(arrival, -1);
-        return !bookedRanges.some(
-          ({ from, to }) => previousDay >= from && previousDay <= to
-        );
-      });
-    const departures = source
-      .filter((booking) => booking.endDate)
-      .map((booking) => dateOnly(booking.endDate));
-    return [...arrivals, ...departures];
-  }, [source, bookedRanges]);
+  const { changeoverDays } = useMemo(
+    () => getCalendarBoundaries(source),
+    [source]
+  );
 
   const modifiers = useMemo(
     () => ({

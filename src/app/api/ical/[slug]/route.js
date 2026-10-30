@@ -9,14 +9,14 @@ function dToParts(d) {
 }
 
 export async function GET(_req, { params }) {
-  const slug = decodeURIComponent(params.slug);
+  const { slug } = await params;
 
   const property = await prisma.property.findUnique({
     where: { slug },
     select: {
       id: true, title: true, location: true,
-      bookings: { select: { id:true, startDate:true, endDate:true, guestName:true } },
-      requests: { select: { id:true, startDate:true, endDate:true, guestName:true, status:true } },
+      bookings: { select: { id:true, startDate:true, endDate:true } },
+      requests: { select: { id:true, startDate:true, endDate:true, status:true } },
     },
   });
   if (!property) return new Response("Not found", { status: 404 });
@@ -29,7 +29,7 @@ export async function GET(_req, { params }) {
       start: dToParts(b.startDate),
       end: dToParts(b.endDate),              // DTEND exklusiv → passt zu unserem Modell
       title: `${property.title} – Belegt`,
-      description: b.guestName ? `Gast: ${b.guestName}` : undefined,
+      description: "Belegt",
       status: "CONFIRMED",
       productId: "urlaub-gosch",
       uid: `booking-${b.id}@urlaub-gosch`,
@@ -44,7 +44,7 @@ export async function GET(_req, { params }) {
       start: dToParts(r.startDate),
       end: dToParts(r.endDate),
       title: `${property.title} – Anfrage`,
-      description: r.guestName ? `Anfrage von ${r.guestName}` : "Unverbindliche Anfrage",
+      description: "Unverbindliche Anfrage",
       status: "TENTATIVE",
       productId: "urlaub-gosch",
       uid: `request-${r.id}@urlaub-gosch`,

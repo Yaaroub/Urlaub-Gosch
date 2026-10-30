@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import Image from "next/image";
+import CustomerStayPrice from "./CustomerStayPrice";
 import Link from "next/link";
 
 import { MapPin, Heart, Tag, Check, RotateCcw, SlidersHorizontal } from "lucide-react";
@@ -147,12 +148,15 @@ function QuickFilter({ checked, onChange, label, description, count, icon: Icon,
 export default function PropertyGridClient({
   items,
   showAvailabilityBadge = false,
+  arrival,
+  departure,
   controls = true,
   lastMinuteDiscounts = {},
   desktopColumns = 3,
   initialKuschelwochen = false,
 }) {
   const router = useRouter();
+  const [visibleCount, setVisibleCount] = useState(12);
   const [isUpdating, startTransition] = useTransition();
   const {
     ready,
@@ -390,6 +394,7 @@ export default function PropertyGridClient({
   const filtered = useMemo(() => favFirst && ready
     ? sortByFavoritesFirst(results, favSortSnapshot) : results,
     [results, favFirst, ready, favSortSnapshot]);
+  useEffect(() => { setVisibleCount(12); }, [properties, onlyFavs, onlyLastMinute, onlyKuschelwochen, favFirst, arrival, departure]);
   const activeCount = Number(onlyFavs) + Number(onlyLastMinute) + Number(onlyKuschelwochen);
 
   useEffect(() => {
@@ -453,7 +458,7 @@ export default function PropertyGridClient({
           aria-label="Ferienunterkünfte"
           aria-busy={isUpdating}
         >
-          {filtered.map(
+          {filtered.slice(0, visibleCount).map(
             (property) => {
               const lastMinuteOffer =
                 lastMinuteMap.get(
@@ -516,7 +521,7 @@ export default function PropertyGridClient({
                   )}
 
                   <Link
-                    href={`/properties/${property.slug}`}
+                    href={`/properties/${property.slug}${arrival && departure ? `?arrival=${arrival}&departure=${departure}` : ""}`}
                     className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60"
                   >
                     <div className="relative overflow-hidden bg-slate-100">
@@ -662,12 +667,14 @@ export default function PropertyGridClient({
                       </div>
                     </div>
                   </Link>
+                  {arrival && departure && <div className="px-4 pb-4"><CustomerStayPrice key={`${property.id}-${arrival}-${departure}`} propertyId={property.id} arrival={arrival} departure={departure} /></div>}
                 </article>
               );
             },
           )}
         </div>
       )}
+      {filtered.length > visibleCount && <div className="mt-6 text-center"><p className="mb-3 text-xs text-slate-500">{visibleCount} von {filtered.length} Unterkünften angezeigt</p><button type="button" onClick={() => setVisibleCount((count) => count + 12)} className="min-h-11 rounded-full border border-sky-200 bg-white px-6 text-sm font-semibold text-sky-700 hover:bg-sky-50">Weitere Unterkünfte anzeigen</button></div>}
     </>
   );
 }

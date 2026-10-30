@@ -1,5 +1,9 @@
 "use client";
 
+import Link from "next/link";
+
+import { getCalendarBoundaries } from "@/lib/calendar-boundaries";
+
 import { useObjectFocus } from "../ObjectWorkspace";
 
 import { useEffect, useMemo, useState } from "react";
@@ -32,6 +36,8 @@ function emptyRange() {
 
 export default function AvailabilityPage() {
   const focusedPropertyId = useObjectFocus();
+  const [overviewReturn, setOverviewReturn] = useState("/admin/availability-overview");
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [properties, setProperties] = useState([]);
   const [propertyId, setPropertyId] = useState("");
   const [bookings, setBookings] = useState([]);
@@ -72,6 +78,15 @@ export default function AvailabilityPage() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const propertyIdFromUrl = searchParams.get("propertyId");
+    const returnTo = searchParams.get("returnTo");
+    if (returnTo?.startsWith("/admin/availability-overview?")) {
+      setOverviewReturn(returnTo);
+      const date = new URLSearchParams(returnTo.split("?")[1]).get("arrival");
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date || "")) {
+        const month = new Date(`${date}T12:00:00`);
+        if (Number.isFinite(month.getTime())) setCalendarMonth(month);
+      }
+    }
 
     if (propertyIdFromUrl) {
       setPropertyId(propertyIdFromUrl);
@@ -334,49 +349,18 @@ export default function AvailabilityPage() {
     });
   }, [bookings]);
 
-  // ============================================================
-  // ROSA TAGE
-  //
-  // Check-in UND Check-out.
-  //
-  // Diese Tage bleiben auswählbar / buchbar.
-  //
-  // Falls ein Tag gleichzeitig Checkout einer Buchung
-  // und Check-in der nächsten Buchung ist, bleibt er rosa.
-  // ============================================================
-
-  const changeoverDays = useMemo(() => {
-    const days = new Map();
-
-    for (const booking of bookings) {
-      if (booking.startDate) {
-        const checkin = toDateOnly(booking.startDate);
-
-        days.set(
-          formatDate(checkin),
-          checkin
-        );
-      }
-
-      if (booking.endDate) {
-        const checkout = toDateOnly(booking.endDate);
-
-        days.set(
-          formatDate(checkout),
-          checkout
-        );
-      }
-    }
-
-    return [...days.values()];
-  }, [bookings]);
+  // Shared departure/arrival dates are red; single boundaries stay pink.
+  const { changeoverDays, sharedDays } = useMemo(
+    () => getCalendarBoundaries(bookings),
+    [bookings]
+  );
 
   const modifiers = useMemo(
     () => ({
-      booked: bookedRanges,
+      booked: [...bookedRanges, ...sharedDays],
       changeover: changeoverDays,
     }),
-    [bookedRanges, changeoverDays]
+    [bookedRanges, changeoverDays, sharedDays]
   );
 
   const modifiersClassNames = {
@@ -820,6 +804,7 @@ export default function AvailabilityPage() {
 
   return (
     <section className="relative mx-auto mt-24 max-w-6xl px-4 py-8 md:py-10">
+      <Link href={overviewReturn} className="mb-5 inline-flex min-h-11 items-center rounded-lg border border-sky-200 bg-white px-4 text-sm font-semibold text-sky-700 hover:bg-sky-50">← Zur Verfügbarkeitsübersicht</Link>
       {/* Meldungen */}
 
       <div className="mb-4 space-y-2">
@@ -861,11 +846,11 @@ export default function AvailabilityPage() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-            Admin · Verfügbarkeiten
+            Admin · Belegungskalender
           </p>
 
           <h1 className="text-2xl font-semibold text-slate-900">
-            Buchungskalender verwalten
+            Buchungen & Belegungen
           </h1>
 
           <p className="mt-1 text-sm text-slate-600">
@@ -990,6 +975,8 @@ export default function AvailabilityPage() {
                         date.getDay()
                       ],
                 }}
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
                 mode="range"
                 selected={range}
                 onSelect={(
@@ -1021,7 +1008,7 @@ export default function AvailabilityPage() {
 
                 disabled={
                   canEdit
-                    ? bookedRanges
+                    ? [...bookedRanges, ...sharedDays]
                     : true
                 }
 

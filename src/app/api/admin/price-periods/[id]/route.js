@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import prisma from "@/lib/db";
 
 import {
@@ -387,6 +388,9 @@ export async function PUT(
         },
       });
 
+    revalidatePath("/properties/[slug]", "page");
+    revalidatePath("/");
+
     return Response.json(
       updated,
       {
@@ -481,6 +485,9 @@ export async function DELETE(
         id,
       },
     });
+
+    revalidatePath("/properties/[slug]", "page");
+    revalidatePath("/");
 
     return new Response(
       null,

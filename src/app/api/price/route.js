@@ -47,7 +47,25 @@ function formatDiscountDetail(detail) {
 
 export async function POST(req) {
   try {
-    const { propertyId, arrival, departure } = await req.json();
+    if (req.signal?.aborted) return new Response(null, { status: 499 });
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      // Navigation can cancel the upload while Next is still reading JSON.
+      if (req.signal?.aborted || error?.name === "AbortError") {
+        return new Response(null, { status: 499 });
+      }
+      if (error?.name === "SyntaxError") {
+        return Response.json({ error: "Die Preisanfrage enthält keine gültigen Daten." }, { status: 400 });
+      }
+      throw error;
+    }
+    if (req.signal?.aborted) return new Response(null, { status: 499 });
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return Response.json({ error: "Die Preisanfrage muss ein JSON-Objekt enthalten." }, { status: 400 });
+    }
+    const { propertyId, arrival, departure } = body;
 
     if (!propertyId || !arrival || !departure) {
       return Response.json(
@@ -59,22 +77,11 @@ export async function POST(req) {
       );
     }
 
-    const property = await prisma.property.findUnique({
-      where: { id: Number(propertyId) },
-      include: { pricePeriods: true },
-    });
-
-    if (!property) {
-      return Response.json(
-        { error: "Property not found" },
-        { status: 404 }
-      );
-    }
-
     const start = parseTravelDate(arrival);
     const end = parseTravelDate(departure);
 
     if (
+      !Number.isSafeInteger(Number(propertyId)) || Number(propertyId) <= 0 ||
       !start ||
       !end ||
       end <= start || (end - start) / 86400000 > 730
@@ -85,15 +92,36 @@ export async function POST(req) {
       );
     }
 
+    const property = await prisma.property.findUnique({
+      where: { id: Number(propertyId) },
+      select: { id: true, kuschelwochenEnabled: true, pricePeriods: { where: { startDate: { lt: end }, endDate: { gt: start } } } },
+    });
+
+    if (!property) {
+      return Response.json(
+        { error: "Property not found" },
+        { status: 404 }
+      );
+    }
+
     // Nächte [start, end)
     const nights = Array.from({ length: (end - start) / 86400000 }, (_, index) => new Date(start.getTime() + index * 86400000));
-    const unavailable = await prisma.booking.findFirst({
-      where: { propertyId: property.id, startDate: { lt: end }, endDate: { gt: start } },
-      select: { id: true },
-    });
+    // Independent reads run together; availability remains fresh on every request.
+    const [unavailable, offers, extraRows, promotionPeriods] = await Promise.all([
+      prisma.booking.findFirst({
+        where: { propertyId: property.id, startDate: { lt: end }, endDate: { gt: start } },
+        select: { id: true },
+      }),
+      prisma.lastMinuteOffer.findMany({
+        where: { propertyId: property.id, startDate: { lt: end }, endDate: { gt: start } },
+      }),
+      prisma.extraCost.findMany({ where: { propertyId: property.id } }),
+      property.kuschelwochenEnabled && [7, 14].includes(nights.length)
+        ? getKuschelwochenPeriods() : Promise.resolve([]),
+    ]);
     if (unavailable) return Response.json({ error: "Der Zeitraum ist bereits belegt." }, { status: 409 });
     if (nights.some((night) => !property.pricePeriods.some((period) => night >= period.startDate && night < period.endDate))) {
-      return Response.json({ error: "Für diesen Zeitraum sind noch nicht alle Nachtpreise hinterlegt. Bitte fragen Sie den Preis direkt an." }, { status: 422 });
+      return Response.json({ error: "Für diesen Zeitraum sind noch nicht alle Nachtpreise hinterlegt. Bitte fragen Sie den Preis direkt an.", code: "MISSING_NIGHTLY_PRICE" }, { status: 422 });
     }
 
     // Basispreise pro Nacht aus den normalen Preisperioden.
@@ -122,17 +150,6 @@ export async function POST(req) {
 
         price: round2(base),
       };
-    });
-
-    // Alle Last-Minute-Angebote, die den Reisezeitraum berühren.
-    const offers = await prisma.lastMinuteOffer.findMany({
-      where: {
-        propertyId: property.id,
-        NOT: [
-          { endDate: { lte: start } },
-          { startDate: { gte: end } },
-        ],
-      },
     });
 
     // Pro Nacht gilt bei mehreren Angeboten immer die größte EURO-Ersparnis.
@@ -181,15 +198,11 @@ export async function POST(req) {
     const kuschelwochen = applyKuschelwochen({
       enabled: property.kuschelwochenEnabled,
       start, end, breakdown,
-      periods: property.kuschelwochenEnabled && [7, 14].includes(nights.length)
-        ? await getKuschelwochenPeriods() : [],
+      periods: promotionPeriods,
     });
     const discountLabel = kuschelwochen ? "Ostsee-Kuschelwochen" : "Last-Minute-Rabatt";
 
     // Nebenkosten
-    const extraRows = await prisma.extraCost.findMany({
-      where: { propertyId: property.id },
-    });
 
     let extras = 0;
     const extraLines = [];

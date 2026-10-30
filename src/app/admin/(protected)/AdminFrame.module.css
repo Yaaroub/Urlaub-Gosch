@@ -1,0 +1,33 @@
+.overview {
+  display: flex;
+  flex-direction: column;
+}
+
+:global(html):has(.overview) {
+  scrollbar-gutter: stable;
+}
+
+/* Keep account controls in the page flow instead of over calendar actions. */
+.overview > :last-child {
+  position: relative;
+  inset: auto;
+  order: -1;
+  z-index: 60;
+  padding: 8px 16px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.overview > :last-child > div {
+  width: 100%;
+  max-width: 1600px;
+  margin: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.overview > :first-child {
+  padding-bottom: 32px;
+}

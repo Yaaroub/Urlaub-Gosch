@@ -1,6 +1,6 @@
 // src/app/api/favorites/route.js
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { getVerifiedSession } from "@/lib/auth";
 
 // Wichtig: dynamisch deklarieren wegen Sessions/Cookies
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export const revalidate = 0;
 // GET /api/favorites -> { ids: number[] }
 export async function GET(req) {
   try {
-    const session = await getSession(req);
+    const session = await getVerifiedSession(req);
     if (!session?.userId) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -29,7 +29,7 @@ export async function GET(req) {
 // POST /api/favorites { propertyId }
 export async function POST(req) {
   try {
-    const session = await getSession(req);
+    const session = await getVerifiedSession(req);
     if (!session?.userId) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }

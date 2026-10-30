@@ -585,7 +585,7 @@ export default function AdminIcalPage() {
           </p>
 
           <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-            iCal Import, Export & Sync
+            Kalender synchronisieren
           </h1>
 
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">

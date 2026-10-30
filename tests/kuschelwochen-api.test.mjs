@@ -55,6 +55,51 @@ test("price API rejects occupied stays and missing rates", async () => {
   assert.equal((await price({ booked: true })).status, 409);
   assert.equal((await price({ missingPrice: true })).status, 422);
 });
+
+test("independent pricing reads start together instead of waiting for each other", async () => {
+  const started = [];
+  let release;
+  const barrier = new Promise((resolve) => { release = resolve; });
+  const read = (name, result) => async () => { started.push(name); await barrier; return result; };
+  const route = await loadRoute("../src/app/api/price/route.js", {
+    "@/lib/kuschelwochen": logic,
+    "@/lib/kuschelwochen-periods": { getKuschelwochenPeriods: read("periods", periods) },
+    "@/lib/db": {
+      property: { findUnique: async () => ({ id: 1, kuschelwochenEnabled: true, pricePeriods: [{ startDate: new Date("2026-01-01"), endDate: new Date("2027-01-01"), pricePerNight: 100 }] }) },
+      booking: { findFirst: read("availability", null) },
+      lastMinuteOffer: { findMany: read("offers", []) },
+      extraCost: { findMany: read("extras", []) },
+    },
+  });
+  const response = route.POST({ json: async () => ({ propertyId: 1, arrival: "2026-10-31", departure: "2026-11-07" }) });
+  await new Promise((resolve) => setImmediate(resolve));
+  try { assert.deepEqual(started.sort(), ["availability", "extras", "offers", "periods"]); }
+  finally { release(); }
+  assert.equal((await response).status, 200);
+});
+
+test("invalid price dates are rejected without a database query", async () => {
+  const route = await loadRoute("../src/app/api/price/route.js", {
+    "@/lib/kuschelwochen": logic,
+    "@/lib/kuschelwochen-periods": {},
+    "@/lib/db": {},
+  });
+  assert.equal((await route.POST({ json: async () => ({ propertyId: 1, arrival: "invalid", departure: "2026-11-07" }) })).status, 400);
+});
+
+test("empty, incomplete and non-object price bodies do not cause server errors", async () => {
+  const route = await loadRoute("../src/app/api/price/route.js", {
+    "@/lib/kuschelwochen": logic,
+    "@/lib/kuschelwochen-periods": {},
+    "@/lib/db": {},
+  });
+  for (const json of [async () => { throw new SyntaxError("Unexpected end of JSON input"); }, async () => null, async () => [], async () => "bad", async () => ({})]) {
+    assert.equal((await route.POST({ json })).status, 400);
+  }
+  assert.equal((await route.POST({ signal: { aborted: true }, json: () => { throw Error("Must not read aborted body"); } })).status, 499);
+  const signal = { aborted: false };
+  assert.equal((await route.POST({ signal, json: async () => { signal.aborted = true; throw new SyntaxError("Unexpected end of JSON input"); } })).status, 499);
+});
 test("admin endpoint rejects unauthorized writes before changing periods", async () => {
   let changed = false;
   const route = await loadRoute("../src/app/api/admin/kuschelwochen/route.js", {

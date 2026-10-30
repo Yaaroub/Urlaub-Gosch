@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import prisma from "@/lib/db";
 
 import {
@@ -423,6 +424,9 @@ export async function POST(req) {
             price,
         },
       });
+
+    revalidatePath("/properties/[slug]", "page");
+    revalidatePath("/");
 
     return Response.json(
       created,

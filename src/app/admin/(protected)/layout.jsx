@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminFrame from "./AdminFrame";
 import { Suspense } from "react";
 import ObjectWorkspace from "./ObjectWorkspace";
 import DatabaseUnavailable from "./DatabaseUnavailable";
@@ -82,7 +83,7 @@ export default async function ProtectedAdminLayout({
     ) || 30;
 
   return (
-    <>
+    <AdminFrame>
       <div className="relative min-h-screen bg-[#f7f9fc] pb-28">
         <Suspense fallback={<div className="p-8">Verwaltung wird geladen …</div>}>
           <ObjectWorkspace>{children}</ObjectWorkspace>
@@ -117,7 +118,7 @@ export default async function ProtectedAdminLayout({
 
           <Link
             href="/admin"
-            title="Admin Dashboard"
+            title="Admin-Übersicht"
             className="
               flex h-11 w-11
               shrink-0
@@ -179,6 +180,6 @@ export default async function ProtectedAdminLayout({
           <AdminLogoutButton />
         </div>
       </div>
-    </>
+    </AdminFrame>
   );
 }

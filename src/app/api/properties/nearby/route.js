@@ -65,7 +65,7 @@ export async function GET(req) {
   }  catch (e) {
     console.error("nearby error:", e);
     return Response.json(
-      { error: "nearby failed", details: String(e?.message || e) },
+      { error: "nearby failed" },
       { status: 500 }
     );
   }

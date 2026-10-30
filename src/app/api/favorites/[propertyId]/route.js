@@ -1,13 +1,13 @@
 // src/app/api/favorites/[propertyId]/route.js
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { getVerifiedSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function DELETE(req, ctx) {
   try {
-    const session = await getSession(req);
+    const session = await getVerifiedSession(req);
     const userId = session?.userId || session?.user?.id;
     if (!userId) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });

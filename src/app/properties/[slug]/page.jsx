@@ -1,3 +1,5 @@
+import { getMinimumNightlyPrice } from "@/lib/min-nightly-price";
+import HuggedHeartIcon from "@/components/HuggedHeartIcon";
 import { getKuschelwochenPeriods, formatKuschelwochenPeriod } from "@/lib/kuschelwochen-periods";
 // src/app/properties/[slug]/page.jsx
 
@@ -11,7 +13,6 @@ import {
   ChevronLeft,
   Dog,
   Euro,
-  Heart,
   Images as ImagesIcon,
   MapPin,
   Users,
@@ -232,10 +233,9 @@ function KuschelwochenHeroBadge({ periods }) {
           focus-visible:ring-offset-slate-900
         "
       >
-        <Heart
+        <HuggedHeartIcon
           aria-hidden="true"
           className="h-3.5 w-3.5 shrink-0"
-          fill="currentColor"
         />
 
         Ostsee-Kuschelwochen
@@ -289,10 +289,9 @@ function KuschelwochenHeroBadge({ periods }) {
 
         <span className="relative block">
           <span className="flex items-center gap-2 text-sm font-bold text-slate-950">
-            <Heart
+            <HuggedHeartIcon
               aria-hidden="true"
               className="h-4 w-4 shrink-0 text-amber-700"
-              fill="currentColor"
             />
 
             Ostsee-Kuschelwochen
@@ -1016,16 +1015,7 @@ export default async function PropertyPage({
       }),
     );
 
-  const minNightlyPrice =
-    publicPricePeriods.length >
-    0
-      ? Math.min(
-          ...publicPricePeriods.map(
-            (period) =>
-              period.pricePerNight,
-          ),
-        )
-      : null;
+  const minNightlyPrice = getMinimumNightlyPrice(publicPricePeriods);
 
   /* --------------------------------------------------------------------------
      LAST MINUTE
@@ -1381,10 +1371,9 @@ export default async function PropertyPage({
                     ariaLabel="Ostsee-Kuschelwochen"
                     content="Ostsee-Kuschelwochen – 7 Nächte buchen, nur 6 bezahlen oder 14 Nächte buchen, nur 12 bezahlen"
                   >
-                    <Heart
+                    <HuggedHeartIcon
                       aria-hidden="true"
                       className="h-4 w-4"
-                      fill="currentColor"
                     />
                   </MobileHeroInfo>
                 )}

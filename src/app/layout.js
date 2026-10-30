@@ -6,6 +6,7 @@ import CookieConsent from "@/components/CookieConsent";
 import FavoritesProvider from "@/context/FavoritesProvider";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import PublicSiteChrome from "@/components/PublicSiteChrome";
 
 export const metadata = {
   title: "Urlaub-GOSCH",
@@ -17,7 +18,7 @@ export default function RootLayout({ children }) {
     <html lang="de" className="scroll-smooth">
       <body className="min-h-screen bg-slate-50 text-slate-800 antialiased">
         <FavoritesProvider>
-          <Header />
+          <PublicSiteChrome><Header /></PublicSiteChrome>
 
           <main
             id="main"
@@ -26,7 +27,7 @@ export default function RootLayout({ children }) {
             {children}
           </main>
 
-          <Footer />
+          <PublicSiteChrome><Footer /></PublicSiteChrome>
         </FavoritesProvider>
 
         <CookieConsent />

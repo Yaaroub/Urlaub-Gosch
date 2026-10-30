@@ -8,7 +8,7 @@ export async function POST(req) {
     if (!email || !password) return Response.json({ error: "Email & Passwort erforderlich" }, { status: 400 });
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return Response.json({ error: "Ungültige Zugangsdaten" }, { status: 401 });
+    if (!user || !user.isActive) return Response.json({ error: "Ungültige Zugangsdaten" }, { status: 401 });
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return Response.json({ error: "Ungültige Zugangsdaten" }, { status: 401 });

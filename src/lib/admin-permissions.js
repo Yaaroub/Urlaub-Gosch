@@ -213,6 +213,10 @@ export async function requireAdminPermission(
     };
   }
 
+  if (user.mustChangePassword) {
+    return { ok: false, status: 403, error: "Bitte zuerst das Passwort ändern.", user };
+  }
+
   if (
     user.role !== "SUPERADMIN" &&
     !user.permissions.includes(permission)

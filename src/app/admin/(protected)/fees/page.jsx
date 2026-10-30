@@ -427,7 +427,7 @@ export default function FeesPage() {
             Admin · Nebenkosten
           </p>
           <h1 className="text-2xl font-semibold text-slate-900">
-            Nebenkosten verwalten
+            Nebenkosten & Zuschläge
           </h1>
           <p className="mt-1 text-sm text-slate-600">
             Endreinigung, Kurtaxe und weitere Zusatzkosten für das ausgewählte

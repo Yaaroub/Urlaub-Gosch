@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import CustomerAlternatives from "@/components/CustomerAlternatives";
+import { getOverviewWindow } from "@/lib/availability-overview";
 import {
   ArrowRight,
   Building2,
@@ -1254,6 +1257,9 @@ export default async function HomePage(
                   </div>
                 ) : (
                   <PropertyGridClient
+                    arrival={getOverviewWindow(arrival, departure) ? arrival : undefined}
+                    departure={getOverviewWindow(arrival, departure) ? departure : undefined}
+                    showAvailabilityBadge={Boolean(getOverviewWindow(arrival, departure))}
                     items={
                       properties
                     }
@@ -1271,6 +1277,9 @@ export default async function HomePage(
                     }
                   />
                 )}
+                <Suspense fallback={<p className="mt-8 text-sm text-slate-500">Freie Teilzeiträume werden geprüft …</p>}>
+                  <CustomerAlternatives arrival={arrival} departure={departure} exactCount={properties.length} searchParams={searchParams} where={{ AND: [buildPropertyWhere({ location, persons, dogs, amenities: amenitiesSelected }), ...where.AND.slice(1)] }} />
+                </Suspense>
               </main>
             </HomePlanningRails>
           </div>

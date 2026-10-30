@@ -1,4 +1,5 @@
 import ical from "node-ical";
+import { fetchPublicCalendar } from "@/lib/safe-calendar-fetch";
 
 /**
  * Lädt eine ICS-Quelle (URL oder Buffer) und gibt Normalform zurück:
@@ -6,7 +7,8 @@ import ical from "node-ical";
  * Achtung: DTEND ist in iCal exklusiv – perfekt für unser Modell.
  */
 export async function parseIcsFromUrl(icsUrl) {
-  const data = await ical.async.fromURL(icsUrl);
+  const text = await fetchPublicCalendar(icsUrl);
+  const data = await ical.async.parseICS(text);
   return normalizeIcal(data);
 }
 

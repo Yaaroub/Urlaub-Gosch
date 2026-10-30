@@ -10,12 +10,12 @@ export const useObjectFocus = () => useContext(FocusContext);
 
 const sections = [
   ["properties", "Grunddaten", Pencil],
-  ["prices", "Preiszeiten", Euro],
+  ["prices", "Nachtpreise", Euro],
   ["fees", "Nebenkosten", Settings],
-  ["images", "Bilder", Images],
+  ["images", "Objektfotos", Images],
   ["availability", "Belegung", CalendarDays],
-  ["ical", "iCal", Upload],
-  ["lastminute", "Angebote", Tag],
+  ["ical", "Kalender-Sync", Upload],
+  ["lastminute", "Last-Minute", Tag],
 ];
 
 export default function ObjectWorkspace({ children }) {

@@ -1,8 +1,8 @@
 import prisma from "@/lib/db";
-import { getSession, createSession, sessionCookie } from "@/lib/auth";
+import { getVerifiedSession, createSession, sessionCookie } from "@/lib/auth";
 
 export async function PUT(req) {
-  const session = await getSession(req);
+  const session = await getVerifiedSession(req);
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
@@ -18,7 +18,7 @@ export async function PUT(req) {
     const user = await prisma.user.update({
       where: { id: session.userId },
       data: { name: name ?? null, email },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, sessionVersion: true },
     });
 
     // neue Session mit aktualisierter email

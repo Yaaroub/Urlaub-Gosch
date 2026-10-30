@@ -839,7 +839,7 @@ export default function HeaderWebcams({
 
       {/* WEBCAM PANEL */}
 
-      <section
+      {open && <section
         id="header-webcams-panel"
         aria-label="Aktuelle Strand-Webcams an der Ostsee"
         aria-hidden={!open}
@@ -1069,7 +1069,7 @@ export default function HeaderWebcams({
             aufgenommen und automatisch aktualisiert.
           </p>
         </div>
-      </section>
+      </section>}
     </div>
   );
 }

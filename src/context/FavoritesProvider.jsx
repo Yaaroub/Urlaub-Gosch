@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import {
   createContext,
   useCallback,
@@ -63,6 +65,8 @@ function runWhenIdle(callback) {
 export default function FavoritesProvider({
   children,
 }) {
+  const pathname = usePathname();
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
   const [ready, setReady] = useState(false);
 
   const [loggedIn, setLoggedIn] =
@@ -73,7 +77,9 @@ export default function FavoritesProvider({
   const [ids, setIds] = useState([]);
 
   useEffect(() => {
+    if (isAdmin) return;
     let cancelled = false;
+    const controller = new AbortController();
 
     // --------------------------------------------------
     // 1. Sofort lokale Favoriten anzeigen
@@ -89,7 +95,7 @@ export default function FavoritesProvider({
     // 2. Auth + Server-Favoriten erst im Idle-Fenster
     // --------------------------------------------------
 
-    return runWhenIdle(async () => {
+    const cancelIdle = runWhenIdle(async () => {
       try {
         // ----------------------------------------------
         // Benutzer prüfen
@@ -99,6 +105,7 @@ export default function FavoritesProvider({
           "/api/auth/me",
           {
             cache: "no-store",
+            signal: controller.signal,
           }
         );
 
@@ -140,6 +147,7 @@ export default function FavoritesProvider({
             "/api/favorites",
             {
               cache: "no-store",
+            signal: controller.signal,
             }
           );
 
@@ -178,8 +186,10 @@ export default function FavoritesProvider({
 
     return () => {
       cancelled = true;
+      cancelIdle?.();
+      controller.abort();
     };
-  }, []);
+  }, [isAdmin]);
 
   // ----------------------------------------------------
   // Set für schnelle Prüfung
