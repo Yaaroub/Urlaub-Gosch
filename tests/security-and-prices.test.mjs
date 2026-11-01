@@ -22,6 +22,31 @@ async function load(path, mocks) {
 }
 const deny = { ADMIN_PERMISSIONS: { AVAILABILITY_EDIT: "AVAILABILITY_EDIT", IMAGES_EDIT: "IMAGES_EDIT" }, requireAdminPermission: async () => ({ ok: false, status: 401, error: "Nicht angemeldet" }) };
 
+test("updated iCal parser preserves checkout and source timezone across DST", async () => {
+  const parser = await load("../src/lib/ical-import.js", {
+    "node-ical": require("node-ical"),
+    "@/lib/safe-calendar-fetch": {},
+  });
+  for (const [start, end, expectedStart, expectedEnd] of [
+    [";VALUE=DATE:20261114", ";VALUE=DATE:20261121", "2026-11-14", "2026-11-21"],
+    [";TZID=Europe/Berlin:20261024T003000", ";TZID=Europe/Berlin:20261026T003000", "2026-10-24", "2026-10-26"],
+    [";VALUE=DATE:20261231", ";VALUE=DATE:20270101", "2026-12-31", "2027-01-01"],
+  ]) {
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "BEGIN:VEVENT", "UID:date-test", `DTSTART${start}`, `DTEND${end}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    const events = await parser.parseIcsFromBuffer(Buffer.from(ics));
+    assert.equal(events.length, 1);
+    assert.equal(events[0].start.toISOString(), `${expectedStart}T00:00:00.000Z`);
+    assert.equal(events[0].end.toISOString(), `${expectedEnd}T00:00:00.000Z`);
+  }
+});
+
+test("updated mailer composes booking notices without contacting SMTP", async () => {
+  const transport = require("nodemailer").createTransport({ streamTransport: true, buffer: true, newline: "unix" });
+  const result = await transport.sendMail({ from: "admin@example.com", to: "admin@example.com", subject: "Neue Anfrage – Meerlächeln", text: "Anreise: 14.11.2026\nAbreise: 21.11.2026" });
+  assert.match(result.message.toString(), /21\.11\.2026/);
+  assert.deepEqual(result.envelope.to, ["admin@example.com"]);
+});
+
 test("Ab-price ignores expired, invalid and empty prices and uses cheapest current/future season", () => {
   const now = new Date("2026-10-29T12:00:00Z");
   const rate = (pricePerNight, startDate = "2026-10-01", endDate = "2027-01-01") => ({ pricePerNight, startDate, endDate });

@@ -41,5 +41,12 @@ function normalizeIcal(data) {
 function toDateOnly(x) {
   if (!x) return null;
   const d = new Date(x);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (Number.isNaN(d.getTime())) return null;
+  // Preserve the source calendar's day, independently of the server timezone.
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: x.tz || (x.dateOnly ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC"),
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(d);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return new Date(Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day)));
 }

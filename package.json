@@ -24,9 +24,9 @@
     "lucide-react": "^0.543.0",
     "mapbox-gl": "^3.18.1",
     "motion": "^12.27.5",
-    "next": "15.5.9",
-    "node-ical": "^0.20.1",
-    "nodemailer": "^7.0.10",
+    "next": "15.5.28",
+    "node-ical": "0.27.3",
+    "nodemailer": "10.3.1",
     "react": "19.1.0",
     "react-day-picker": "^9.9.0",
     "react-dom": "19.1.0",
@@ -34,7 +34,7 @@
     "react-map-gl": "^8.1.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
-    "sharp": "^0.34.5"
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -43,8 +43,22 @@
     "@types/react": "19.1.12",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
-    "eslint-config-next": "15.5.2",
+    "eslint-config-next": "15.5.28",
     "prisma": "^6.15.0",
     "tailwindcss": "^4"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.32"
+    },
+    "@vercel/cli-config": {
+      "zod": "4.6.6"
+    },
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.0"
+    }
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
