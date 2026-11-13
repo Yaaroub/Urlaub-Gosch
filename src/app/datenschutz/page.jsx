@@ -70,6 +70,10 @@ const sections = [
     label: "Hosting",
   },
   {
+    id: "domain",
+    label: "Domain & DNS",
+  },
+  {
     id: "logfiles",
     label: "Server-Logfiles",
   },
@@ -83,18 +87,18 @@ const sections = [
   },
   {
     id: "google-fonts",
-    label: "Google Fonts",
+    label: "Schriftarten",
   },
 ];
 
 const heroLinks = [
-  sections[3],
-  sections[6],
-  sections[7],
-  sections[9],
-  sections[10],
-  sections[13],
-];
+  "datenschutz",
+  "rechte",
+  "cookies",
+  "hosting",
+  "logfiles",
+  "google-fonts",
+].map((id) => sections.find((section) => section.id === id));
 
 export default function DatenschutzPage() {
   return (
@@ -1097,6 +1101,15 @@ export default function DatenschutzPage() {
                 angegeben, an Art. 4 der
                 Datenschutzgrundverordnung (DSGVO).
               </p>
+
+              <p>
+                <strong>Verantwortlich</strong> im Sinne der DSGVO ist: Ostsee-Ferienhausvermietung Birgit Gosch, Bahnhofstr. 25, 24217 Schönberg, Telefon{" "}
+                <a href="tel:+494344414415" className="underline">04344 414415</a>, E-Mail{" "}
+                <a href="mailto:info@urlaub-gosch.de" className="underline">info@urlaub-gosch.de</a>. Weitere Angaben finden Sie im{" "}
+                <Link href="/impressum" className="underline">Impressum</Link>.
+              </p>
+
+              <p className="text-sm text-slate-500">Stand: November 2026</p>
             </LegalCard>
 
             {/* =================================================
@@ -1121,7 +1134,8 @@ export default function DatenschutzPage() {
                   title="Betroffene Personen"
                   items={[
                     "Besucher unseres Onlineangebotes",
-                    "Nutzer der Webseite",
+                    "Gäste mit einer Buchungsanfrage",
+                    "Inhaber eines Kundenkontos",
                   ]}
                 />
 
@@ -1131,7 +1145,7 @@ export default function DatenschutzPage() {
                     "Bereitstellung des Onlineangebotes",
                     "Kommunikation mit Nutzern",
                     "Abwehr von Gefahren",
-                    "Reichweitenmessung und Marketing",
+                    "Bearbeitung von Unterkunftsanfragen",
                   ]}
                 />
 
@@ -1257,21 +1271,34 @@ export default function DatenschutzPage() {
               title="Cookies"
             >
               <p>
-                Unser Onlineangebot benutzt Cookies.
-                Cookies sind kleine Textdateien, die beim
-                Besuch unserer Webseite auf Ihrem Computer
-                gespeichert werden. Sie können dazu
-                dienen, Angaben des Nutzers während oder
-                nach einem Besuch zu speichern.
+                Wir setzen keine Analyse-, Werbe- oder Tracking-Cookies ein. Gespeichert werden nur die folgenden, technisch erforderlichen Informationen in Ihrem Browser (Cookie bzw. lokaler Speicher „localStorage“):
+              </p>
+
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  <strong>Cookie „session“</strong> – nur wenn Sie sich anmelden. Hält Ihre Anmeldung aufrecht (HttpOnly, nur über HTTPS). Laufzeit beim Kundenkonto bis zu 7 Tage bzw. bis zur Abmeldung; im Mitarbeiterbereich endet die Sitzung nach der eingestellten Inaktivitätszeit, spätestens nach 12 Stunden.
+                </li>
+                <li>
+                  <strong>„urlaub-gosch-consent-v1“</strong> (localStorage) – speichert Ihre Auswahl in den Cookie-Einstellungen, bis Sie sie ändern oder Ihre Browserdaten löschen.
+                </li>
+                <li>
+                  <strong>„fav:properties“</strong> (localStorage) – Ihre gemerkten Unterkünfte auf diesem Gerät. Sind Sie angemeldet, werden die Favoriten zusätzlich in Ihrem Kundenkonto gespeichert.
+                </li>
+                <li>
+                  <strong>„admin:lastActivity“</strong> und Ansichtseinstellungen (localStorage) – nur im internen Mitarbeiterbereich, für die automatische Abmeldung bei Inaktivität.
+                </li>
+              </ul>
+
+              <p>
+                Rechtsgrundlage für diese unbedingt erforderlichen Speicherungen ist § 25 Abs. 2 Nr. 2 TDDDG; die anschließende Verarbeitung erfolgt nach Art. 6 Abs. 1 lit. b DSGVO (Anmeldung, Kundenkonto) bzw. Art. 6 Abs. 1 lit. f DSGVO (funktionsfähige Website).
               </p>
 
               <p>
-                Sollten Sie keine Cookies wünschen, können
-                Sie die Speicherung in den Einstellungen
-                Ihres Browsers deaktivieren oder
-                bestehende Cookies löschen. Ein Ausschluss
-                von Cookies kann zu
-                Funktionseinschränkungen führen.
+                Externe Medien (Karten, Webcams) werden nur geladen, wenn Sie in den Cookie-Einstellungen zustimmen (§ 25 Abs. 1 TDDDG, Art. 6 Abs. 1 lit. a DSGVO). Ihre Einwilligung können Sie jederzeit mit Wirkung für die Zukunft über „Cookie-Einstellungen“ im Footer widerrufen; die Inhalte werden dann wieder entfernt.
+              </p>
+
+              <p>
+                Sie können gespeicherte Cookies und Websitedaten zudem jederzeit in Ihrem Browser löschen. Ohne den Sitzungs-Cookie ist eine Anmeldung nicht möglich.
               </p>
             </LegalCard>
 
@@ -1311,19 +1338,50 @@ export default function DatenschutzPage() {
               title="Hosting"
             >
               <p>
-                Um das Onlineangebot anbieten zu können,
-                nutzen wir Hosting-Dienstleistungen wie
-                Infrastruktur, Rechenkapazität,
-                Speicherplatz, Sicherheit und Wartung.
+                Diese Website wird bei der <strong>Vercel Inc.</strong>, 440 N Barranca Ave #4133, Covina, CA 91723, USA, gehostet. Vercel stellt die Server, das Auslieferungsnetz (CDN) und den Speicher für Objektbilder (Vercel Blob) bereit. Beim Aufruf der Website verarbeitet Vercel technische Zugriffsdaten, insbesondere IP-Adresse, Zeitpunkt des Abrufs, angeforderte Seite, Browser- und Geräteinformationen (siehe „Server-Logfiles“).
               </p>
 
               <p>
-                In diesem Rahmen können Inhaltsdaten,
-                Nutzungsdaten, Meta-/Kommunikationsdaten
-                und Kontaktdaten verarbeitet werden.
-                Grundlage ist das berechtigte Interesse an
-                einer sicheren und professionellen
-                Bereitstellung des Onlineangebotes.
+                Die serverseitige Verarbeitung ist der Vercel-Region Frankfurt am Main zugeordnet. Für Unterkunfts-, Konto- und Anfragedaten nutzen wir eine PostgreSQL-Datenbank der <strong>Neon Inc.</strong> (USA) in der Region Frankfurt am Main (AWS eu-central-1).
+              </p>
+
+              <p>
+                Mit beiden Anbietern bestehen Verträge zur Auftragsverarbeitung nach Art. 28 DSGVO. Da es sich um Unternehmen mit Sitz in den USA handelt, ist ein Zugriff aus den USA nicht auszuschließen. Übermittlungen erfolgen auf Grundlage des Angemessenheitsbeschlusses zum EU-US Data Privacy Framework, soweit der Anbieter dort zertifiziert ist, und im Übrigen auf Grundlage der EU-Standardvertragsklauseln (Art. 46 Abs. 2 lit. c DSGVO).
+              </p>
+
+              <p>
+                Rechtsgrundlage ist unser berechtigtes Interesse an einer sicheren, schnellen und zuverlässigen Bereitstellung der Website (Art. 6 Abs. 1 lit. f DSGVO) sowie, soweit Sie eine Anfrage stellen oder ein Konto nutzen, Art. 6 Abs. 1 lit. b DSGVO.
+              </p>
+
+              <p>
+                Weitere Informationen:{" "}
+                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung von Vercel</a>,{" "}
+                <a href="https://vercel.com/legal/dpa" target="_blank" rel="noopener noreferrer" className="underline">Vercel DPA</a>,{" "}
+                <a href="https://neon.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung von Neon</a>.
+              </p>
+            </LegalCard>
+
+            {/* =================================================
+                DOMAIN / DNS
+            ================================================== */}
+
+            <LegalCard
+              id="domain"
+              icon={Globe}
+              eyebrow="Domain"
+              title="Domain und DNS"
+            >
+              <p>
+                Unsere Domain urlaub-gosch.de ist bei der <strong>IONOS SE</strong>, Elgendorfer Str. 57, 56410 Montabaur, registriert. IONOS stellt die Namensauflösung (DNS) bereit, über die Ihr Browser die Adresse unserer Website ermittelt. Die Inhalte der Website selbst werden nicht über IONOS, sondern über Vercel ausgeliefert (siehe „Hosting“).
+              </p>
+
+              <p>
+                Bei einer DNS-Anfrage werden in der Regel nur der angefragte Domainname und die IP-Adresse des anfragenden DNS-Servers (meist Ihres Internetanbieters) verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse liegt in der Erreichbarkeit der Website unter unserer Domain.
+              </p>
+
+              <p>
+                Weitere Informationen:{" "}
+                <a href="https://www.ionos.de/terms-gtc/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung von IONOS</a>.
               </p>
             </LegalCard>
 
@@ -1338,22 +1396,11 @@ export default function DatenschutzPage() {
               title="Erhebung von Zugriffsdaten und Logfiles"
             >
               <p>
-                Der Hosting-Anbieter speichert Daten von
-                jedem Zugriff auf den Server. Dazu können
-                Name der abgerufenen Webseite, Datei,
-                Datum und Uhrzeit des Abrufs, übertragene
-                Datenmenge, Browsertyp, Betriebssystem,
-                Referrer URL, IP-Adresse sowie der
-                anfragende Provider gehören.
+                Bei jedem Aufruf der Website erfasst unser Hosting-Anbieter Vercel automatisch Zugriffsdaten: IP-Adresse, Datum und Uhrzeit, aufgerufene Seite bzw. Datei, HTTP-Statuscode, übertragene Datenmenge, Referrer-URL, Browsertyp und Betriebssystem.
               </p>
 
               <p>
-                Diese Informationen dienen der stabilen
-                Bereitstellung des Onlineangebotes sowie
-                der Gefahrenabwehr und werden nur für eine
-                bestimmte Zeit gespeichert, sofern keine
-                längere Aufbewahrung zu Beweiszwecken
-                erforderlich ist.
+                Diese Daten dienen der Auslieferung der Website, der Fehleranalyse und der Abwehr von Angriffen (z. B. Begrenzung übermäßiger Anmeldeversuche). Sie werden nicht mit anderen Daten zusammengeführt und nach den Fristen des Hosting-Anbieters automatisch gelöscht, sofern keine längere Aufbewahrung zur Aufklärung eines Sicherheitsvorfalls erforderlich ist. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO.
               </p>
             </LegalCard>
 
@@ -1368,17 +1415,19 @@ export default function DatenschutzPage() {
               title="Kontaktaufnahme"
             >
               <p>
-                Erfolgt eine Kontaktaufnahme per E-Mail,
-                Kontaktformular, Telefon oder über soziale
-                Medien, werden die Angaben des Nutzers zur
-                Bearbeitung der Anfrage verarbeitet.
+                Wenn Sie uns per E-Mail oder Telefon kontaktieren, verarbeiten wir Ihre Angaben zur Bearbeitung Ihres Anliegens (Art. 6 Abs. 1 lit. b DSGVO bei Bezug zu einer Buchung, sonst Art. 6 Abs. 1 lit. f DSGVO).
               </p>
 
               <p>
-                Die Daten der Anfragen werden gelöscht,
-                sofern sie nicht mehr erforderlich sind.
-                Darüber hinaus können gesetzliche
-                Archivierungspflichten gelten.
+                <strong>Unverbindliche Buchungsanfrage:</strong> Über das Anfrageformular einer Unterkunft verarbeiten wir Vor- und Nachname, E-Mail-Adresse, optional Telefonnummer und Nachricht sowie die gewünschte Unterkunft und den Reisezeitraum. Die Anfrage wird in unserer Datenbank (Neon, siehe „Hosting“) gespeichert; zusätzlich erhalten wir eine Benachrichtigung per E-Mail über einen E-Mail-Versanddienst (SMTP), die verschlüsselt übertragen wird. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen). Zum Schutz vor Missbrauch wird die Zahl der Anfragen je IP-Adresse und E-Mail-Adresse kurzzeitig begrenzt (Art. 6 Abs. 1 lit. f DSGVO).
+              </p>
+
+              <p>
+                <strong>Kundenkonto:</strong> Wenn Sie ein Konto anlegen, speichern wir E-Mail-Adresse, optional Ihren Namen, Ihr Passwort ausschließlich als sicheren Hash sowie Ihre Favoriten (Art. 6 Abs. 1 lit. b DSGVO). Sie können Ihr Konto jederzeit unter „Konto & Einstellungen“ selbst löschen.
+              </p>
+
+              <p>
+                Anfragen löschen wir, sobald sie erledigt sind und keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Kommt ein Mietvertrag zustande, gelten die handels- und steuerrechtlichen Aufbewahrungsfristen (bis zu 10 Jahre).
               </p>
             </LegalCard>
 
@@ -1394,17 +1443,25 @@ export default function DatenschutzPage() {
               title="Einbindung von Diensten und Inhalten Dritter"
             >
               <p>
-                Innerhalb des Onlineangebotes können
-                Inhalte oder Dienste von Drittanbietern
-                eingebunden werden, etwa Karten,
-                Schriftarten oder externe Inhalte.
+                Analyse- oder Marketingdienste sind nicht eingebunden. Die folgenden externen Inhalte werden erst geladen, wenn Sie der Kategorie „Externe Medien“ zustimmen. Dabei erhält der jeweilige Anbieter Ihre IP-Adresse und technische Browserdaten und kann eigene Cookies setzen. Rechtsgrundlage ist Ihre Einwilligung (§ 25 Abs. 1 TDDDG, Art. 6 Abs. 1 lit. a DSGVO), die Sie jederzeit über „Cookie-Einstellungen“ im Footer widerrufen können.
               </p>
 
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  <strong>Google Maps</strong> – Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland. Eine Übermittlung an Google LLC (USA) ist möglich; Google ist unter dem EU-US Data Privacy Framework zertifiziert.{" "}
+                  <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung</a>
+                </li>
+                <li>
+                  <strong>Mapbox</strong> (interaktive Karten) – Mapbox, Inc., USA.{" "}
+                  <a href="https://www.mapbox.com/legal/privacy" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung</a>
+                </li>
+                <li>
+                  <strong>Strand-Webcams</strong> – aktuelle Bilder werden direkt von den Servern der Webcam-Betreiber geladen (www.baltic-sea-webcam.de und www.ostsee-blick.com). Angaben zum jeweiligen Betreiber finden Sie in dessen Impressum.
+                </li>
+              </ul>
+
               <p>
-                Für die Darstellung solcher Inhalte kann
-                es technisch erforderlich sein, dass
-                Drittanbieter die IP-Adresse des Nutzers
-                wahrnehmen.
+                <strong>Wetterdaten</strong> rufen wir serverseitig bei Open-Meteo ab. Dabei wird nur die Position des ausgewählten Ortes übermittelt, nicht Ihre IP-Adresse.
               </p>
             </LegalCard>
 
@@ -1416,68 +1473,9 @@ export default function DatenschutzPage() {
               id="google-fonts"
               icon={Globe}
               eyebrow="Schriftarten"
-              title="Google Fonts"
+              title="Schriftarten"
             >
-              <p>
-                Im Onlineangebot können Schriftarten des
-                Anbieters Google LLC, 1600 Amphitheatre
-                Parkway, Mountain View, CA 94043, USA,
-                genutzt werden.
-              </p>
-
-              <p>
-                Datenschutzerklärung des Anbieters:
-                <br />
-
-                <a
-                  href="https://www.google.com/policies/privacy/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="
-                    break-all
-
-                    font-semibold
-                    text-[#07131f]
-
-                    underline
-                    decoration-[#c99a43]/40
-                    underline-offset-4
-
-                    transition-colors
-
-                    hover:decoration-[#c99a43]
-                  "
-                >
-                  https://www.google.com/policies/privacy/
-                </a>
-              </p>
-
-              <p>
-                Opt-Out des Anbieters:
-                <br />
-
-                <a
-                  href="https://adssettings.google.com/authenticated"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="
-                    break-all
-
-                    font-semibold
-                    text-[#07131f]
-
-                    underline
-                    decoration-[#c99a43]/40
-                    underline-offset-4
-
-                    transition-colors
-
-                    hover:decoration-[#c99a43]
-                  "
-                >
-                  https://adssettings.google.com/authenticated
-                </a>
-              </p>
+              <p>Die Website lädt keine Schriftarten über das Google-Fonts-CDN. Für die Darstellung werden die im Browser verfügbaren Schriftarten beziehungsweise lokal bereitgestellte Ressourcen verwendet.</p>
             </LegalCard>
           </div>
         </section>

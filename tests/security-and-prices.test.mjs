@@ -56,7 +56,7 @@ test("Ab-price ignores expired, invalid and empty prices and uses cheapest curre
   assert.equal(getMinimumNightlyPrice([rate(50, "2026-10-01", "2026-10-30")], new Date("2026-10-29T23:30:00Z")), null);
 });
 test("anonymous booking POST cannot reach the database", async () => {
-  const route = await load("../src/app/api/bookings/route.js", { "@/lib/db": {}, "@/lib/admin-permissions": deny });
+  const route = await load("../src/app/api/bookings/route.js", { "@/lib/db": {}, "@/lib/admin-permissions": deny, "@/lib/booking-lock": { withPropertyBookingLock: async () => { throw new Error("Lock must not be reached"); }, overlapWhere: () => ({}) } });
   assert.equal((await route.POST({ json: () => { throw new Error("Body must not be processed"); } })).status, 401);
 });
 test("public property writes use the protected admin implementation", async () => {
@@ -79,6 +79,7 @@ test("public calendar JSON does not select guest names", async () => {
   let selection;
   const route = await load("../src/app/api/bookings/route.js", {
     "@/lib/db": { booking: { findMany: async (args) => { selection = args.select; return []; } } }, "@/lib/admin-permissions": deny,
+    "@/lib/booking-lock": { withPropertyBookingLock: async () => { throw new Error("Lock must not be reached"); }, overlapWhere: () => ({}) },
   });
   await route.GET({ url: "http://localhost/api/bookings?propertyId=1" });
   assert.equal(selection.guestName, undefined);

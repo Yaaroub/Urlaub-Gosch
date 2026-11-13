@@ -12,6 +12,7 @@ export default function AccountPage() {
   // Profile form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [profilePw, setProfilePw] = useState("");
 
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -20,7 +21,6 @@ export default function AccountPage() {
   const [pwErr, setPwErr] = useState("");
 
   // Delete form state
-  const [confirmText, setConfirmText] = useState("");
   const [delPw, setDelPw] = useState("");
   const [delErr, setDelErr] = useState("");
 
@@ -41,10 +41,12 @@ export default function AccountPage() {
     const r = await fetch("/api/account/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email }),
+      body: JSON.stringify({ name, email, currentPassword: profilePw || undefined }),
     });
     const data = await r.json();
     if (!r.ok) { setErr(data.error || "Speichern fehlgeschlagen"); return; }
+    setProfilePw("");
+    if (data.user) { setMe((prev) => ({ ...prev, ...data.user })); setEmail(data.user.email || ""); }
     setMsg("Profil aktualisiert.");
   }
 
@@ -67,7 +69,7 @@ export default function AccountPage() {
     const r = await fetch("/api/account/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ confirmText, password: delPw || undefined }),
+      body: JSON.stringify({ password: delPw }),
     });
     const data = await r.json();
     if (!r.ok) { setDelErr(data.error || "Löschen fehlgeschlagen"); return; }
@@ -93,6 +95,13 @@ export default function AccountPage() {
             <span className="text-xs text-slate-500">E-Mail</span>
             <input type="email" className="border rounded-xl px-3 py-2" value={email} onChange={e=>setEmail(e.target.value)} />
           </label>
+          {me && email.trim().toLowerCase() !== String(me.email || "").toLowerCase() && (
+            <label className="grid gap-1 md:col-span-2">
+              <span className="text-xs text-slate-500">Aktuelles Passwort (zum Ändern der E-Mail erforderlich)</span>
+              <input type="password" autoComplete="current-password" className="border rounded-xl px-3 py-2"
+                value={profilePw} onChange={e=>setProfilePw(e.target.value)} />
+            </label>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button className="rounded-xl px-4 py-2 bg-sky-600 text-white">Speichern</button>
@@ -114,6 +123,7 @@ export default function AccountPage() {
           <label className="grid gap-1">
             <span className="text-xs text-slate-500">Neues Passwort</span>
             <input type="password" className="border rounded-xl px-3 py-2"
+              minLength={10} maxLength={72} autoComplete="new-password"
               value={newPassword} onChange={e=>setNewPassword(e.target.value)} />
           </label>
         </div>
@@ -122,7 +132,7 @@ export default function AccountPage() {
           {pwMsg && <span className="text-sm text-emerald-700">{pwMsg}</span>}
           {pwErr && <span className="text-sm text-rose-700">{pwErr}</span>}
         </div>
-        <p className="text-xs text-slate-500">Mindestens 8 Zeichen empfohlen: Satz + Zahl + Sonderzeichen.</p>
+        <p className="text-xs text-slate-500">Mindestens 10 Zeichen, z. B. ein kurzer Satz mit Zahl.</p>
       </form>
 
       {/* Konto löschen */}
@@ -133,18 +143,14 @@ export default function AccountPage() {
         </p>
         <div className="grid md:grid-cols-2 gap-3">
           <label className="grid gap-1">
-            <span className="text-xs text-slate-500">Zur Sicherheit tippe: DELETE ME</span>
-            <input className="border rounded-xl px-3 py-2" value={confirmText} onChange={e=>setConfirmText(e.target.value)} />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs text-slate-500">Oder bestätige mit Passwort (optional)</span>
-            <input type="password" className="border rounded-xl px-3 py-2" value={delPw} onChange={e=>setDelPw(e.target.value)} />
+            <span className="text-xs text-slate-500">Zur Bestätigung dein Passwort</span>
+            <input type="password" autoComplete="current-password" className="border rounded-xl px-3 py-2" value={delPw} onChange={e=>setDelPw(e.target.value)} />
           </label>
         </div>
         <div className="flex items-center gap-3">
           <button
             className="rounded-xl px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white"
-            disabled={!(confirmText === "DELETE ME" || delPw)}
+            disabled={!delPw}
           >
             Konto unwiderruflich löschen
           </button>

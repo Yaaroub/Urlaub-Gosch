@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 function LoginContent() {
   const [email, setEmail] = useState("");
@@ -10,7 +11,7 @@ function LoginContent() {
 
   const router = useRouter();
   const sp = useSearchParams();
-  const next = sp.get("next") || "/";
+  const next = safeNextPath(sp.get("next"));
 
   async function submit(e) {
     e.preventDefault();

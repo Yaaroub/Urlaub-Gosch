@@ -111,7 +111,8 @@ export default function CookieConsent() {
     const nextConsent = {
       necessary: true,
       externalMedia: true,
-      statistics: true,
+      // No statistics service is integrated: never store consent for one.
+      statistics: false,
     };
 
     setConsent(nextConsent);
@@ -358,13 +359,16 @@ export default function CookieConsent() {
                     sm:leading-7
                   "
                 >
-                  Wir verwenden notwendige Technologien,
+                  Wir verwenden nur notwendige Technologien,
                   damit Urlaub-GOSCH zuverlässig
-                  funktioniert. Externe Medien und
-                  Statistik werden nur verwendet, wenn
-                  du zustimmst. Deine Entscheidung kannst
-                  du jederzeit über die
-                  Cookie-Einstellungen ändern.
+                  funktioniert – kein Tracking, keine
+                  Werbung. Externe Medien (Karten von
+                  Google Maps und Mapbox, Strand-Webcams)
+                  laden wir nur, wenn du zustimmst. Dabei
+                  wird deine IP-Adresse an den jeweiligen
+                  Anbieter übertragen, teils in die USA.
+                  Deine Entscheidung kannst du jederzeit
+                  über die Cookie-Einstellungen ändern.
                 </p>
 
                 {/* Links */}
@@ -485,7 +489,7 @@ export default function CookieConsent() {
                 <ConsentRow
                   icon={ShieldCheck}
                   title="Notwendig"
-                  description="Erforderlich für grundlegende Funktionen der Webseite und zum Speichern deiner Datenschutzauswahl."
+                  description="Erforderlich für grundlegende Funktionen: Speichern deiner Datenschutzauswahl, deiner Favoriten und – nur nach Anmeldung – der Sitzungs-Cookie. Kann nicht deaktiviert werden."
                   checked
                   locked
                 />
@@ -495,7 +499,7 @@ export default function CookieConsent() {
                 <ConsentRow
                   icon={Map}
                   title="Externe Medien"
-                  description="Erlaubt externe Karten und Inhalte wie Mapbox oder Google Maps."
+                  description="Lädt Karten von Google Maps (Google Ireland) und Mapbox (USA) sowie Live-Bilder der Strand-Webcams. Dabei erhalten diese Anbieter deine IP-Adresse."
                   checked={consent.externalMedia}
                   onChange={(checked) => {
                     setConsent((current) => ({
@@ -505,20 +509,6 @@ export default function CookieConsent() {
                   }}
                 />
 
-                {/* Statistik */}
-
-                <ConsentRow
-                  icon={BarChart3}
-                  title="Statistik"
-                  description="Erlaubt Reichweitenmessung, sofern ein Statistikdienst eingesetzt wird."
-                  checked={consent.statistics}
-                  onChange={(checked) => {
-                    setConsent((current) => ({
-                      ...current,
-                      statistics: checked,
-                    }));
-                  }}
-                />
               </div>
             ) : null}
           </div>

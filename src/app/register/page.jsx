@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 function RegisterContent() {
   const [email, setEmail] = useState("");
@@ -11,7 +12,7 @@ function RegisterContent() {
 
   const router = useRouter();
   const sp = useSearchParams();
-  const next = sp.get("next") || "/";
+  const next = safeNextPath(sp.get("next"));
 
   async function submit(e) {
     e.preventDefault();
@@ -56,6 +57,9 @@ function RegisterContent() {
           className="border rounded-xl px-3 py-2 w-full"
           placeholder="Passwort"
           type="password"
+          minLength={10}
+          maxLength={72}
+          autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

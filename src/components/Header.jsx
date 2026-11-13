@@ -175,16 +175,8 @@ export default function Header() {
       try {
         setWeatherLoading(true);
 
-        const params = new URLSearchParams({
-          latitude: String(headerWeatherPlace.latitude),
-          longitude: String(headerWeatherPlace.longitude),
-          current: "temperature_2m,weather_code,wind_speed_10m,is_day",
-          timezone: "auto",
-          forecast_days: "1",
-        });
-
         const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
+          `/api/weather?lat=${headerWeatherPlace.latitude}&lon=${headerWeatherPlace.longitude}`,
           {
             signal: controller.signal,
             cache: "no-store",
@@ -442,7 +434,10 @@ export default function Header() {
         <div
           className={[
             `
-              mx-auto flex max-w-7xl
+              mx-auto flex
+              max-[1799px]:max-w-7xl
+              min-[1800px]:max-[2199px]:max-w-[1680px]
+              min-[2200px]:max-w-[2000px]
               items-center justify-between
               transition-all duration-300
             `,

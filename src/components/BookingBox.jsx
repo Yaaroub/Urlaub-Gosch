@@ -154,6 +154,7 @@ export default function BookingBox({ propertyId }) {
         body: JSON.stringify({
           propertyId,
           requestType,
+          website: new FormData(e.target).get("website") || "",
           arrival,
           departure,
           firstName: firstName.trim(),
@@ -211,6 +212,7 @@ export default function BookingBox({ propertyId }) {
       </div>
 
       <form onSubmit={submit} className="grid gap-5">
+        <label aria-hidden="true" className="absolute -left-[10000px]">Website<input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
         <fieldset>
           <legend className="mb-2 text-xs font-semibold text-slate-700">
             Art der Anfrage *

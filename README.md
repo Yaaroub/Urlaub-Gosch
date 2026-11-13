@@ -1,38 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Urlaub-GOSCH
 
-## Getting Started
+Ferienunterkünfte mit öffentlicher Suche, Preisberechnung und geschützter Verwaltung.
 
-First, run the development server:
+## Lokal arbeiten
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Node.js ab Version 22 verwenden. Zugangsdaten gehören ausschließlich in lokale Umgebungsvariablen oder die Hosting-Konfiguration.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- npm ci: Abhängigkeiten installieren und Prisma Client erzeugen.
+- npm run dev: Entwicklungsserver starten.
+- npm test: automatisierte Funktions- und Sicherheitstests ausführen.
+- npm run lint: Quellcode prüfen.
+- npm run build: Produktionsbuild einschließlich Prisma Client erstellen.
+- npm start: den fertigen Produktionsbuild starten.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Projektstruktur
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- src/app: Seiten, Layouts und API-Endpunkte. Admin-Seiten liegen unter admin/(protected); Berechtigungen werden zusätzlich in den Admin-APIs geprüft.
+- src/components: gemeinsam verwendete Oberflächenelemente. Bereichsspezifische Admin-Komponenten bleiben bei ihren Seiten.
+- src/lib: Geschäftslogik, Datenbankzugriff, Authentifizierung und Validierung.
+- src/data: redaktionelle JSON-Inhalte für die Anwendung.
+- src/context und src/hooks: gemeinsam genutzter Zustand und React-Hooks.
+- prisma/schema.prisma: Datenmodell; prisma/migrations: erforderliche Datenbankmigrationen.
+- prisma.config.ts: zentrale Prisma-Konfiguration einschließlich Seed-Befehl.
+- scripts: separat ausgeführte Import-, Pflege- und Administrationswerkzeuge. Diese können Daten verändern; vor Ausführung prüfen.
+- tests: Tests für Preise, Kalender, Suche und Sicherheitsgrenzen.
+- docs: Sicherheitsbefunde und offene Punkte vor Veröffentlichung.
+- public: statische Dateien.
 
-## Learn More
+## Speicherung
 
-To learn more about Next.js, take a look at the following resources:
+Die Anwendung verwendet Prisma für den Zugriff auf PostgreSQL bei Neon. DATABASE_URL ist der Anwendungszugang, DIRECT_DATABASE_URL der direkte Datenbankzugang. Bilder werden über Vercel Blob gespeichert. Die Website wird auf Vercel betrieben. Produktionswerte werden separat im Hosting verwaltet; lokale Werte belegen nicht die Produktionseinstellungen.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Änderungen prüfen
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Vor Veröffentlichung Tests, Codeprüfung und Build ausführen. Migrationen und Importdaten nicht als temporäre Dateien löschen. Die offenen Datenschutz- und Produktionspunkte stehen in docs/privacy-release-checklist.md und docs/production-check-2026-11-04.md.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-to start npx prisma studio
+Automatisch erzeugte Dateien wie .next und node_modules gehören nicht in Git. Sicherheitsprüfungen bei Bedarf neu ausführen (npm audit beziehungsweise npm audit --omit=dev); alte JSON-Berichte sind kein aktueller Sicherheitsnachweis.

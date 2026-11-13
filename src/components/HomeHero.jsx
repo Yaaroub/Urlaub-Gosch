@@ -19,7 +19,7 @@ const trustItems = [
   {
     icon: Home,
     title: "Ausgewählte Unterkünfte",
-    text: "Sorgfältig kuratiert an Nord- und Ostsee.",
+    text: "Sorgfältig ausgewählt an der Ostsee.",
   },
   {
     icon: UserRound,
@@ -28,8 +28,8 @@ const trustItems = [
   },
   {
     icon: ShieldCheck,
-    title: "Sicher & fair",
-    text: "Transparente Abläufe und direkte Buchung.",
+    title: "Unverbindlich anfragen",
+    text: "Persönliche Bestätigung statt Klick-Buchung.",
   },
 ];
 
@@ -126,7 +126,7 @@ export default function HomeHero({
             fill
             priority
             fetchPriority="high"
-            quality={80}
+            quality={90}
             sizes="100vw"
             className="
               object-cover
@@ -256,7 +256,7 @@ export default function HomeHero({
           mx-auto
           flex
           w-full
-          max-w-[1680px]
+          max-[1799px]:max-w-[1344px]
           flex-col
 
           px-4
@@ -268,24 +268,21 @@ export default function HomeHero({
           sm:pt-24
 
           md:min-h-[min(100svh,820px)]
-          md:px-8
           md:pb-7
           md:pt-24
 
           lg:min-h-[min(94svh,860px)]
-          lg:px-10
+          lg:px-8
           lg:pb-8
           lg:pt-24
 
           xl:min-h-[min(92svh,880px)]
-          xl:px-12
           xl:pt-28
 
           2xl:min-h-[min(88svh,900px)]
-          2xl:max-w-[1840px]
-          2xl:px-16
 
-          min-[1800px]:px-20
+          min-[1800px]:max-[2199px]:max-w-[1744px]
+          min-[2200px]:max-w-[2064px]
 
           [@media(min-width:768px)_and_(max-height:780px)]:min-h-[100svh]
           [@media(min-width:768px)_and_(max-height:780px)]:pb-5
@@ -365,7 +362,7 @@ export default function HomeHero({
                 [@media(min-width:768px)_and_(max-height:700px)]:text-[10px]
               "
             >
-              Nordsee · Ostsee ·
+              Ostsee · Probstei ·
               Ferienunterkünfte
             </motion.p>
 
@@ -472,7 +469,7 @@ export default function HomeHero({
             >
               Entdecke handverlesene
               Ferienhäuser und Apartments
-              an Nord- und Ostsee –
+              an der Ostsee –
               persönlich ausgewählt,
               übersichtlich geplant und
               perfekt für Familie, Hund

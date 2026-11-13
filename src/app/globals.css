@@ -88,3 +88,48 @@ body {
     background-position: 0% 50%;
   }
 }
+/* ===== Aktivitäten: dezente Einblend-Animation + Rendering-Optimierung ===== */
+@keyframes activity-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.activity-rise { animation: activity-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+/* Off-screen cards are not laid out/painted until they scroll into view. */
+.activity-grid > li { content-visibility: auto; contain-intrinsic-size: auto 340px; }
+@media (prefers-reduced-motion: reduce) {
+  .activity-rise { animation: none; }
+}
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ===== Live-Wetter: dezente Wetter-Animationen (nur CSS) ===== */
+@keyframes wx-spin { to { transform: rotate(360deg); } }
+@keyframes wx-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes wx-drift { 0%, 100% { transform: translateX(-12px); } 50% { transform: translateX(14px); } }
+@keyframes wx-fall { 0% { transform: translateY(-20px); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(460px); opacity: 0; } }
+@keyframes wx-snow { 0% { transform: translate(0, -10px); opacity: 0; } 15% { opacity: 1; } 50% { transform: translate(10px, 200px); } 100% { transform: translate(-6px, 460px); opacity: 0; } }
+@keyframes wx-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@keyframes wx-flash { 0%, 90%, 100% { opacity: 0; } 91%, 93% { opacity: 0.35; } 92% { opacity: 0.1; } }
+@keyframes wx-gust { 0% { transform: translateX(-80px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateX(380px); opacity: 0; } }
+@keyframes wx-waves { to { transform: translateX(-50%); } }
+@keyframes wx-ping { 75%, 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes wx-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wx-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.wx-spin { animation: wx-spin 40s linear infinite; }
+.wx-pulse { animation: wx-pulse 6s ease-in-out infinite; }
+.wx-drift { animation: wx-drift 14s ease-in-out infinite; }
+.wx-drift-slow { animation: wx-drift 22s ease-in-out infinite reverse; }
+.wx-fall { animation: wx-fall 0.9s linear infinite; }
+.wx-snow { animation: wx-snow 4s linear infinite; }
+.wx-twinkle { animation: wx-twinkle 3s ease-in-out infinite; }
+.wx-flash { animation: wx-flash 7s linear infinite; }
+.wx-gust { animation: wx-gust 3s ease-in infinite; }
+.wx-waves { animation: wx-waves 12s linear infinite; }
+.wx-ping { animation: wx-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.wx-fade { animation: wx-fade 0.6s ease-out both; }
+.wx-rise { animation: wx-rise 0.45s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .wx-spin, .wx-pulse, .wx-drift, .wx-drift-slow, .wx-fall, .wx-snow, .wx-twinkle, .wx-flash,
+  .wx-gust, .wx-waves, .wx-ping, .wx-fade, .wx-rise { animation: none !important; }
+  .wx-fall, .wx-snow, .wx-gust, .wx-flash { display: none; }
+}

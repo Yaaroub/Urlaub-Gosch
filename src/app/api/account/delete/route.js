@@ -1,36 +1,47 @@
 import prisma from "@/lib/db";
-import { getVerifiedSession, clearSessionCookie } from "@/lib/auth";
-import bcrypt from "bcrypt";
+import { requireCustomerSession, clearSessionCookie } from "@/lib/auth";
+import { checkLoginLimit, recordLoginFailure, verifyPasswordConstantTime } from "@/lib/rate-limit";
 
 export async function POST(req) {
-  const session = await getVerifiedSession(req);
-  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireCustomerSession(req);
+  if (!auth.ok) return auth.response;
+  const { session } = auth;
 
   try {
-    const { confirmText, password } = await req.json();
+    const body = await req.json().catch(() => null);
+    const password = typeof body?.password === "string" ? body.password : "";
 
-    // Entweder Sicherheitswort oder Passwort verlangen (entscheide frei)
-    if (!password && confirmText !== "DELETE ME") {
-      return Response.json({ error: "Bestätigung erforderlich (Passwort oder 'DELETE ME')" }, { status: 400 });
+    // Deleting an account is irreversible: always require the current password.
+    if (!password) {
+      return Response.json({ error: "Bitte zur Bestätigung das Passwort eingeben." }, { status: 400 });
     }
 
-    if (password) {
-      const user = await prisma.user.findUnique({ where: { id: session.userId } });
-      if (!user) return Response.json({ error: "User nicht gefunden" }, { status: 404 });
-      const ok = await bcrypt.compare(password, user.password);
-      if (!ok) return Response.json({ error: "Passwort falsch" }, { status: 401 });
+    const limited = checkLoginLimit(req, "account-delete", String(session.userId));
+    if (limited) return limited;
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, password: true, role: true },
+    });
+    if (!user || user.role !== "USER") return Response.json({ error: "User nicht gefunden" }, { status: 404 });
+
+    if (!(await verifyPasswordConstantTime(password, user.password))) {
+      recordLoginFailure("account-delete", String(session.userId));
+      return Response.json({ error: "Passwort falsch" }, { status: 401 });
     }
 
-    // Reihenfolge: abh. Daten löschen (Favorites), dann User
-    await prisma.favorite.deleteMany({ where: { userId: session.userId } });
-    await prisma.user.delete({ where: { id: session.userId } });
+    // Favorites are removed by onDelete: Cascade; deleteMany kept for clarity in one transaction.
+    await prisma.$transaction([
+      prisma.favorite.deleteMany({ where: { userId: user.id } }),
+      prisma.user.delete({ where: { id: user.id } }),
+    ]);
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
-      headers: { "Set-Cookie": clearSessionCookie(), "Content-Type": "application/json" },
+      headers: { "Set-Cookie": clearSessionCookie(), "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
   } catch (e) {
-    console.error(e);
+    console.error("POST /api/account/delete failed:", e);
     return Response.json({ error: "Konto löschen fehlgeschlagen" }, { status: 500 });
   }
 }

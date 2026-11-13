@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { overlapWhere, withPropertyBookingLock } from "@/lib/booking-lock";
 import { NextResponse } from "next/server";
 
 import {
@@ -51,7 +52,18 @@ export async function PUT(req, context) {
       );
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        {
+          error: "Ungültige Anfrage.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     const startDate = body.startDate
       ? new Date(body.startDate)
@@ -98,6 +110,7 @@ export async function PUT(req, context) {
 
         select: {
           id: true,
+          propertyId: true,
         },
       });
 
@@ -113,30 +126,80 @@ export async function PUT(req, context) {
       );
     }
 
-    const updated =
-      await prisma.booking.update({
-        where: {
-          id,
-        },
+    // Moving a booking must not create an overlap with another one
+    // (previously unchecked). Runs under the per-property lock.
+    const result =
+      await withPropertyBookingLock(
+        existing.propertyId,
+        async (tx) => {
+          const conflict =
+            await tx.booking.findFirst({
+              where: overlapWhere(
+                existing.propertyId,
+                startDate,
+                endDate,
+                id
+              ),
 
-        data: {
-          startDate,
-          endDate,
+              select: {
+                id: true,
+                startDate: true,
+                endDate: true,
+              },
+            });
 
-          guestName:
-            body.guestName?.trim() ||
-            "(Admin)",
-        },
+          if (conflict) {
+            return { conflict };
+          }
 
-        select: {
-          id: true,
-          startDate: true,
-          endDate: true,
-          guestName: true,
-          propertyId: true,
-          createdAt: true,
+          const updated =
+            await tx.booking.update({
+              where: {
+                id,
+              },
+
+              data: {
+                startDate,
+                endDate,
+
+                guestName:
+                  (typeof body.guestName === "string"
+                    ? body.guestName.trim().slice(0, 200)
+                    : "") ||
+                  "(Admin)",
+              },
+
+              select: {
+                id: true,
+                startDate: true,
+                endDate: true,
+                guestName: true,
+                propertyId: true,
+                createdAt: true,
+              },
+            });
+
+          return { updated };
+        }
+      );
+
+    if (result.conflict) {
+      return NextResponse.json(
+        {
+          error:
+            "Der Zeitraum überschneidet sich mit einer bestehenden Belegung.",
+
+          conflict:
+            result.conflict,
         },
-      });
+        {
+          status: 409,
+        }
+      );
+    }
+
+    const { updated } =
+      result;
 
     return NextResponse.json(
       updated,

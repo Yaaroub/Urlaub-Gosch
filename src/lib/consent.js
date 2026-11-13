@@ -77,7 +77,7 @@ export function normalizeConsent(consent = {}) {
       consent?.externalMedia === true,
 
     statistics:
-      consent?.statistics === true,
+      false,
   };
 }
 
@@ -220,7 +220,7 @@ export function acceptAllConsent() {
   return saveConsent({
     necessary: true,
     externalMedia: true,
-    statistics: true,
+    statistics: false,
   });
 }
 

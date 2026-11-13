@@ -1,436 +1,409 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import ActivityMapClient from "@/components/ActivityMapClient";
 import {
-  ACTIVITY_GROUPS,
-  getActivityGroup,
-  getGoogleMapsUrl,
-} from "@/lib/activity-groups";
-import {
+  CloudRain,
   ExternalLink,
   Home,
+  LayoutGrid,
+  Map as MapIcon,
   MapPin,
-  Navigation,
-  PawPrint,
-  SlidersHorizontal,
+  RotateCcw,
+  Search,
   Users,
+  X,
 } from "lucide-react";
+import ActivityMapClient from "@/components/ActivityMapClient";
+import ActivityCard from "@/components/activities/ActivityCard";
+import { GROUP_VISUALS, GroupArtwork, VISIBLE_GROUPS, getGroupVisual } from "@/components/activities/activity-visuals";
+import { ACTIVITY_GROUPS, getGoogleMapsUrl } from "@/lib/activity-groups";
 
-const FILTERS = ACTIVITY_GROUPS;
+const RADIUS_OPTIONS = [10, 25, 50];
 
-const FILTER_STYLES = Object.fromEntries(
-  ACTIVITY_GROUPS.map((group) => [
-    group,
-    {
-      active: "bg-[#050b1f] text-white ring-[#050b1f]",
-      idle:
-        "bg-white text-slate-600 ring-[#dbeafe] hover:bg-[#eaf7fb]/60 hover:text-[#050b1f]",
-    },
-  ])
-);
+function normalize(value) {
+  return String(value ?? "")
+    .toLocaleLowerCase("de-DE")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
 
-export default function ActivitiesExploreClient({
-  activities = [],
-  defaultRadiusKm = 25,
-}) {
+/**
+ * Activity explorer. Receives slim objects only (lib/activity-view.js).
+ * The Mapbox map is loaded only when the map view is opened.
+ */
+export default function ActivitiesExploreClient({ activities = [], counts = {} }) {
   const [category, setCategory] = useState("Alle");
-  const [radiusKm, setRadiusKm] = useState(defaultRadiusKm);
+  const [query, setQuery] = useState("");
+  const [rainOnly, setRainOnly] = useState(false);
+  const [view, setView] = useState("list");
+  const [radiusKm, setRadiusKm] = useState(25);
   const [active, setActive] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [nearby, setNearby] = useState([]);
+  const [nearby, setNearby] = useState({ status: "idle", items: [] });
+  const requestRef = useRef(0);
 
-  const normalizedActivities = useMemo(() => {
-    return activities
-      .filter((activity) => isValidCoordinate(activity.lat, activity.lng))
-      .map((activity) => ({
-        ...activity,
-        group: getActivityGroup(activity),
-      }));
-  }, [activities]);
+  const deferredQuery = useDeferredValue(query);
 
-  const counts = useMemo(() => {
-    const result = {
-      Alle: normalizedActivities.length,
-      Familie: 0,
-      Natur: 0,
-      Sport: 0,
-      Restaurant: 0,
-      Kultur: 0,
-    };
-
-    for (const activity of normalizedActivities) {
-      if (result[activity.group] !== undefined) {
-        result[activity.group] += 1;
-      }
-    }
-
-    return result;
-  }, [normalizedActivities]);
-
-  const filtered = useMemo(() => {
-    if (category === "Alle") return normalizedActivities;
-
-    return normalizedActivities.filter(
-      (activity) => activity.group === category
-    );
-  }, [normalizedActivities, category]);
-
-  const onSelectActivity = useCallback(
-    async (activity) => {
-      setActive(activity);
-      setLoading(true);
-      setNearby([]);
-
-      try {
-        const res = await fetch(
-          `/api/properties/nearby?lat=${activity.lat}&lng=${activity.lng}&radius=${radiusKm}`,
-          { cache: "no-store" }
-        );
-
-        const json = await res.json();
-
-        if (!res.ok) {
-          throw new Error(json?.error || "Fehler beim Laden der Unterkünfte");
-        }
-
-        setNearby(Array.isArray(json.items) ? json.items : []);
-      } catch (error) {
-        console.error(error);
-        setNearby([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [radiusKm]
+  const searchIndex = useMemo(
+    () =>
+      new Map(
+        activities.map((activity) => [
+          activity.slug,
+          normalize([activity.title, activity.town, activity.category, activity.shortDescription].join(" ")),
+        ])
+      ),
+    [activities]
   );
 
-  const mapItems = useMemo(() => {
-    return filtered.map((activity) => ({
-      ...activity,
-      onClick: () => onSelectActivity(activity),
-    }));
-  }, [filtered, onSelectActivity]);
+  const filtered = useMemo(() => {
+    const needle = normalize(deferredQuery.trim());
+    return activities.filter((activity) => {
+      if (category !== "Alle" && activity.group !== category) return false;
+      if (rainOnly && !(activity.weather === "indoor" || activity.weather === "all-weather")) return false;
+      if (needle && !searchIndex.get(activity.slug)?.includes(needle)) return false;
+      return true;
+    });
+  }, [activities, category, rainOnly, deferredQuery, searchIndex]);
+
+  const hasFilters = category !== "Alle" || rainOnly || query.trim() !== "";
+
+  const loadNearby = useCallback(async (activity, radius) => {
+    const requestId = ++requestRef.current;
+    setNearby({ status: "loading", items: [] });
+    try {
+      const res = await fetch(
+        `/api/properties/nearby?lat=${activity.lat}&lng=${activity.lng}&radius=${radius}`
+      );
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error || "Fehler beim Laden");
+      if (requestId !== requestRef.current) return;
+      setNearby({ status: "done", items: Array.isArray(json?.items) ? json.items : [] });
+    } catch {
+      if (requestId !== requestRef.current) return;
+      setNearby({ status: "error", items: [] });
+    }
+  }, []);
+
+  const selectActivity = useCallback(
+    (activity) => {
+      setActive(activity);
+      loadNearby(activity, radiusKm);
+    },
+    [loadNearby, radiusKm]
+  );
+
+  const mapItems = useMemo(
+    () => filtered.map((activity) => ({ ...activity, onClick: () => selectActivity(activity) })),
+    [filtered, selectActivity]
+  );
+
+  function resetFilters() {
+    setCategory("Alle");
+    setRainOnly(false);
+    setQuery("");
+  }
 
   return (
-    <div className="space-y-8">
-      <section className="overflow-hidden rounded-[2rem] border border-[#dbeafe] bg-white shadow-2xl shadow-[#050b1f]/10">
-        <div className="border-b border-[#eaf7fb] bg-white px-5 py-6 md:px-7 md:py-7">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#c49a3a]">
-                Ausflugsziele
-              </p>
-
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#050b1f] md:text-4xl">
-                Aktivitäten entdecken
-              </h1>
-
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
-                Wähle ein Ziel auf der Karte. Danach zeigen wir dir passende
-                Ferienunterkünfte in der Nähe.
-              </p>
-            </div>
-
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#dbeafe] bg-[#eaf7fb] px-4 py-2 text-sm font-bold text-[#075985]">
-              <Navigation className="h-4 w-4" />
-              Radius {radiusKm} km
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            {FILTERS.map((filter) => {
-              const activeFilter = category === filter;
-              const styles = FILTER_STYLES[filter] || FILTER_STYLES.Alle;
-
+    <div className="relative mx-auto -mt-12 max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+      {/* Toolbar */}
+      <div className="relative z-20 rounded-[1.75rem] lg:sticky lg:top-24 border border-slate-200/80 bg-white/95 p-3 shadow-[0_18px_60px_rgba(15,23,42,0.10)] backdrop-blur sm:p-4">
+        <div className="flex flex-col gap-3">
+          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 lg:flex-wrap lg:overflow-visible" role="group" aria-label="Nach Kategorie filtern">
+            {ACTIVITY_GROUPS.map((group) => {
+              const visual = getGroupVisual(group);
+              const Icon = visual.icon;
+              const selected = category === group;
               return (
                 <button
-                  key={filter}
+                  key={group}
                   type="button"
-                  onClick={() => {
-                    setCategory(filter);
-                    setActive(null);
-                    setNearby([]);
-                  }}
+                  aria-pressed={selected}
+                  onClick={() => setCategory(group)}
                   className={[
-                    "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-bold ring-1 transition",
-                    activeFilter ? styles.active : styles.idle,
+                    "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition",
+                    selected
+                      ? "bg-[#07131f] text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-950",
                   ].join(" ")}
                 >
-                  <span>{filter}</span>
-
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {visual.label}
                   <span
                     className={[
                       "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
-                      activeFilter
-                        ? "bg-white/20 text-white"
-                        : "bg-white/90 text-slate-500",
+                      selected ? "bg-white/15 text-white" : "bg-white text-slate-500",
                     ].join(" ")}
                   >
-                    {counts[filter] ?? 0}
+                    {counts[group] ?? 0}
                   </span>
                 </button>
               );
             })}
           </div>
 
-          <div className="mt-5 max-w-md rounded-2xl border border-[#dbeafe] bg-[#eaf7fb]/45 p-4">
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <div className="inline-flex items-center gap-2 text-sm font-bold text-[#050b1f]">
-                <SlidersHorizontal className="h-4 w-4 text-[#0077b6]" />
-                Suchradius
-              </div>
+          <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center">
+            <label className="relative block sm:flex-1 lg:max-w-md">
+              <span className="sr-only">Ausflugsziele durchsuchen</span>
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Ort oder Ziel suchen …"
+                className="min-h-11 w-full rounded-full border border-slate-200 bg-[#f7fafc] py-2.5 pl-10 pr-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+              />
+            </label>
 
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#075985] shadow-sm">
-                {radiusKm} km
-              </span>
-            </div>
-
-            <input
-              className="w-full accent-[#0077b6]"
-              type="range"
-              min={5}
-              max={80}
-              step={5}
-              value={radiusKm}
-              onChange={(event) => {
-                setRadiusKm(Number(event.target.value));
-                setNearby([]);
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="bg-[#eaf7fb]/45 p-3 md:p-4">
-          <div className="relative overflow-hidden rounded-[1.5rem] border border-[#dbeafe] bg-[#eaf7fb] shadow-inner">
-            <ActivityMapClient
-              items={mapItems}
-              center={[54.35, 10.13]}
-              zoom={8}
-              className="h-[430px] sm:h-[520px] lg:h-[620px]"
-            />
-
-            <div className="pointer-events-none absolute left-4 top-4 hidden rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-xl shadow-[#050b1f]/10 backdrop-blur-xl sm:block">
-              <p className="text-xs font-bold text-[#050b1f]">
-                {filtered.length} Ziele sichtbar
-              </p>
-              <p className="mt-0.5 text-[11px] text-slate-500">
-                Klick auf einen Pin für Unterkünfte
-              </p>
-            </div>
-
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#050b1f]/10 to-transparent" />
-          </div>
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="activity-directory-title"
-        className="rounded-[2rem] border border-[#dbeafe] bg-white p-5 shadow-sm md:p-7"
-      >
-        <div className="mb-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#c49a3a]">
-            Schleswig-Holstein entdecken
-          </p>
-          <h2
-            id="activity-directory-title"
-            className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#050b1f] md:text-3xl"
-          >
-            Ausflugsziele im Überblick
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            Alle sichtbaren Ziele sind direkt verlinkt. So bleiben die Inhalte auch ohne
-            Karteninteraktion schnell erreichbar und sauber intern vernetzt.
-          </p>
-        </div>
-
-        <ul className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((activity) => (
-            <li key={activity.id || activity.slug || activity.title}>
-              {activity.slug ? (
-                <Link
-                  href={`/aktivitaeten/${activity.slug}`}
-                  className="group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-[#eaf7fb]/50 hover:text-[#050b1f]"
-                >
-                  <span className="line-clamp-1">{activity.title}</span>
-                  <span className="shrink-0 text-[#0077b6] transition group-hover:translate-x-0.5">→</span>
-                </Link>
-              ) : (
-                <span className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500">
-                  {activity.title}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="rounded-[2rem] border border-[#dbeafe] bg-white p-5 shadow-xl shadow-[#050b1f]/5 md:p-7">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#c49a3a]">
-              Unterkünfte
-            </p>
-
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#050b1f] md:text-3xl">
-              Unterkünfte in der Nähe
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {active ? (
-                <>
-                  Für{" "}
-                  <span className="font-bold text-[#050b1f]">
-                    {active.title}
-                  </span>{" "}
-                  im {radiusKm} km Umkreis.
-                </>
-              ) : (
-                "Wähle zuerst ein Ziel auf der Karte."
-              )}
-            </p>
-          </div>
-
-          {active ? (
-            <div className="flex flex-wrap gap-2">
-              {active.slug ? (
-                <Link
-                  href={`/aktivitaeten/${active.slug}`}
-                  className="inline-flex w-fit items-center rounded-full bg-[#050b1f] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#050b1f]/15 transition hover:-translate-y-0.5 hover:bg-[#0f172a] hover:shadow-xl"
-                >
-                  Mehr erfahren →
-                </Link>
-              ) : null}
-
-              <a
-                href={getGoogleMapsUrl(active)}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-fit items-center gap-2 rounded-full border border-[#dbeafe] bg-white px-5 py-3 text-sm font-bold text-[#075985] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0077b6]/40 hover:bg-[#eaf7fb] hover:shadow-md"
+            <div className="flex gap-2 sm:ml-auto">
+              <button
+                type="button"
+                aria-pressed={rainOnly}
+                onClick={() => setRainOnly((value) => !value)}
+                className={[
+                  "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition sm:flex-none",
+                  rainOnly
+                    ? "bg-sky-700 text-white"
+                    : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950",
+                ].join(" ")}
               >
-                Google Maps
-                <ExternalLink className="h-4 w-4" />
-              </a>
+                <CloudRain className="h-4 w-4" aria-hidden="true" />
+                Bei Regen
+              </button>
+
+              <div className="inline-flex rounded-full bg-slate-100 p-1" role="group" aria-label="Ansicht wählen">
+                <ViewButton current={view} value="list" onSelect={setView} icon={LayoutGrid} label="Liste" />
+                <ViewButton current={view} value="map" onSelect={setView} icon={MapIcon} label="Karte" />
+              </div>
             </div>
-          ) : null}
-        </div>
-
-        {loading ? (
-          <Notice text="Lädt Unterkünfte…" />
-        ) : active && nearby.length === 0 ? (
-          <Notice text="Keine Unterkünfte im Umkreis gefunden." />
-        ) : !active ? (
-          <Notice text="Noch kein Ziel ausgewählt." />
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {nearby.map((property) => (
-              <NearbyProperty key={property.id} property={property} />
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
-
-function NearbyProperty({ property }) {
-  const image =
-    property.coverImage ||
-    property.image ||
-    property.images?.[0]?.url ||
-    property.images?.[0]?.src ||
-    property.images?.[0]?.path ||
-    null;
-
-  const distance =
-    typeof property.distanceKm !== "undefined" && property.distanceKm !== null
-      ? `${Number(property.distanceKm).toFixed(1)} km`
-      : null;
-
-  return (
-    <Link
-      href={`/properties/${property.slug}`}
-      className={[
-        "group overflow-hidden rounded-[1.5rem] border border-[#dbeafe] bg-white shadow-sm",
-        "transition-[border-color,box-shadow,background-color] duration-200 ease-out",
-        "hover:border-[#0077b6]/35 hover:bg-white hover:shadow-[0_16px_42px_rgba(5,11,31,0.07)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0077b6]/30",
-      ].join(" ")}
-    >
-      <div className="grid gap-0 sm:grid-cols-[190px_minmax(0,1fr)]">
-        <div className="relative aspect-[4/3] overflow-hidden bg-[#eaf7fb] sm:h-full sm:min-h-[170px] sm:aspect-auto">
-          {image ? (
-            <Image
-              src={image}
-              alt={property.title || "Ferienunterkunft"}
-              fill
-              sizes="(max-width: 768px) 100vw, 190px"
-              className="object-cover transition-[filter] duration-200 ease-out group-hover:brightness-[0.97]"
-            />
-          ) : (
-            <div className="grid h-full w-full place-items-center text-[#0077b6]">
-              <Home className="h-7 w-7" />
-            </div>
-          )}
-
-          {distance ? (
-            <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-[#075985] shadow-sm backdrop-blur">
-              <MapPin className="h-3 w-3" />
-              {distance}
-            </span>
-          ) : null}
-        </div>
-
-        <div className="flex min-w-0 flex-col p-4">
-          <div className="min-w-0">
-            <h3 className="line-clamp-2 text-base font-semibold leading-6 tracking-[-0.02em] text-[#050b1f]">
-              {property.title}
-            </h3>
-
-            {property.location ? (
-              <p className="mt-1 line-clamp-1 text-sm text-slate-500">
-                {property.location}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-            {typeof property.maxPersons !== "undefined" ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#eaf7fb] px-2.5 py-1 text-[#075985] ring-1 ring-[#bae6fd]">
-                <Users className="h-3.5 w-3.5" />
-                bis {property.maxPersons} Pers.
-              </span>
-            ) : null}
-
-            {typeof property.dogsAllowed !== "undefined" ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#f7f1e5] px-2.5 py-1 text-[#7a5b18] ring-1 ring-[#ead9b6]">
-                <PawPrint className="h-3.5 w-3.5" />
-                {property.dogsAllowed ? "Hunde erlaubt" : "Keine Hunde"}
-              </span>
-            ) : null}
-          </div>
-
-          <div className="mt-auto pt-4">
-            <span className="text-sm font-bold text-[#0077b6]">
-              Unterkunft ansehen →
-            </span>
           </div>
         </div>
       </div>
-    </Link>
-  );
-}
 
-function Notice({ text }) {
-  return (
-    <div className="rounded-3xl border border-dashed border-[#bae6fd] bg-[#eaf7fb]/45 px-5 py-8 text-center text-sm font-medium text-slate-600">
-      {text}
+      {/* Result header */}
+      <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700">
+            {category === "Alle" ? "Schleswig-Holstein entdecken" : getGroupVisual(category).label}
+          </p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl" aria-live="polite">
+            {filtered.length} {filtered.length === 1 ? "Ausflugsziel" : "Ausflugsziele"}
+          </h2>
+        </div>
+        {hasFilters ? (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:text-slate-950"
+          >
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            Filter zurücksetzen
+          </button>
+        ) : null}
+      </div>
+
+      {view === "map" ? (
+        <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white p-2 shadow-sm">
+            <ActivityMapClient
+              items={mapItems}
+              center={[54.35, 10.4]}
+              zoom={8}
+              className="h-[460px] sm:h-[560px] lg:h-[640px]"
+            />
+          </div>
+
+          <MapPanel
+            active={active}
+            nearby={nearby}
+            radiusKm={radiusKm}
+            onRadius={(radius) => {
+              setRadiusKm(radius);
+              if (active) loadNearby(active, radius);
+            }}
+            onClose={() => {
+              requestRef.current++;
+              setActive(null);
+              setNearby({ status: "idle", items: [] });
+            }}
+          />
+        </div>
+      ) : filtered.length ? (
+        <ul className="activity-grid mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filtered.map((activity, index) => (
+            <li key={activity.slug} className="activity-rise" style={{ animationDelay: `${Math.min(index, 11) * 35}ms` }}>
+              <ActivityCard activity={activity} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="mt-6 rounded-[2rem] border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+          <h3 className="text-xl font-bold text-slate-950">Keine passenden Ausflugsziele</h3>
+          <p className="mt-2 text-sm text-slate-600">Probiere einen anderen Ort oder setze die Filter zurück.</p>
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#07131f] px-5 py-2.5 text-sm font-bold text-white"
+          >
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            Filter zurücksetzen
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-function isValidCoordinate(lat, lng) {
-  return Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+function ViewButton({ current, value, onSelect, icon: Icon, label }) {
+  const selected = current === value;
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={() => onSelect(value)}
+      className={[
+        "inline-flex min-h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition",
+        selected ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-950",
+      ].join(" ")}
+    >
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      {label}
+    </button>
+  );
+}
+
+function MapPanel({ active, nearby, radiusKm, onRadius, onClose }) {
+  if (!active) {
+    return (
+      <aside className="flex flex-col justify-center rounded-[1.75rem] border border-slate-200/80 bg-white p-7 text-center shadow-sm">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#07131f] text-[#f4d59d]">
+          <MapPin className="h-6 w-6" aria-hidden="true" />
+        </div>
+        <h3 className="mt-5 text-lg font-bold text-slate-950">Ziel auf der Karte wählen</h3>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Klicke auf einen Punkt. Hier erscheinen dann Details und Ferienunterkünfte in der Nähe.
+        </p>
+        <div className="mt-6 grid grid-cols-2 gap-2 text-left">
+          {VISIBLE_GROUPS.map((group) => {
+            const visual = GROUP_VISUALS[group];
+            return (
+              <span key={group} className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
+                <span className={`h-3 w-3 rounded-full bg-gradient-to-br ${visual.gradient}`} aria-hidden="true" />
+                {visual.label}
+              </span>
+            );
+          })}
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white shadow-sm" aria-live="polite">
+      <GroupArtwork group={active.group} className="h-28">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute left-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/40"
+          aria-label="Auswahl schließen"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </GroupArtwork>
+
+      <div className="p-5">
+        {active.town ? (
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-sky-700">{active.town}</p>
+        ) : null}
+        <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-950">{active.title}</h3>
+        {active.shortDescription ? (
+          <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{active.shortDescription}</p>
+        ) : null}
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            href={`/aktivitaeten/${active.slug}`}
+            className="inline-flex items-center rounded-full bg-[#07131f] px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
+          >
+            Details ansehen →
+          </Link>
+          <a
+            href={getGoogleMapsUrl(active)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
+          >
+            Route <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
+        </div>
+
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="flex items-center justify-between gap-3">
+            <h4 className="text-sm font-bold text-slate-950">Unterkünfte in der Nähe</h4>
+            <div className="inline-flex rounded-full bg-slate-100 p-0.5" role="group" aria-label="Umkreis">
+              {RADIUS_OPTIONS.map((radius) => (
+                <button
+                  key={radius}
+                  type="button"
+                  aria-pressed={radiusKm === radius}
+                  onClick={() => onRadius(radius)}
+                  className={[
+                    "rounded-full px-2.5 py-1 text-xs font-semibold transition",
+                    radiusKm === radius ? "bg-white text-slate-950 shadow-sm" : "text-slate-500",
+                  ].join(" ")}
+                >
+                  {radius} km
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 max-h-[360px] space-y-2 overflow-y-auto pr-1">
+            {nearby.status === "loading" ? (
+              [0, 1, 2].map((key) => <div key={key} className="h-[72px] animate-pulse rounded-2xl bg-slate-100" />)
+            ) : nearby.status === "error" ? (
+              <p className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">Unterkünfte konnten nicht geladen werden.</p>
+            ) : nearby.items.length === 0 ? (
+              <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">Keine Unterkünfte im Umkreis von {radiusKm} km.</p>
+            ) : (
+              nearby.items.slice(0, 12).map((property) => <CompactProperty key={property.id} property={property} />)
+            )}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function CompactProperty({ property }) {
+  const image = property.images?.[0]?.url || null;
+  return (
+    <Link
+      href={`/properties/${property.slug}`}
+      className="flex items-center gap-3 rounded-2xl border border-slate-100 p-2 transition hover:border-slate-200 hover:bg-slate-50"
+    >
+      <span className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+        {image ? (
+          <Image src={image} alt="" fill sizes="64px" className="object-cover" />
+        ) : (
+          <Home className="absolute inset-0 m-auto h-5 w-5 text-slate-400" aria-hidden="true" />
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold text-slate-950">{property.title}</span>
+        <span className="mt-0.5 flex items-center gap-3 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3 w-3" aria-hidden="true" />
+            {Number(property.distanceKm).toFixed(1)} km
+          </span>
+          {property.maxPersons ? (
+            <span className="inline-flex items-center gap-1">
+              <Users className="h-3 w-3" aria-hidden="true" />
+              {property.maxPersons} Pers.
+            </span>
+          ) : null}
+        </span>
+      </span>
+    </Link>
+  );
 }

@@ -1,5 +1,6 @@
 import { ADMIN_PERMISSIONS, requireAdminPermission } from "@/lib/admin-permissions";
 import prisma from "@/lib/db";
+import { overlapWhere, withPropertyBookingLock } from "@/lib/booking-lock";
 
 /** Utils */
 function dateOnly(input) {
@@ -77,40 +78,39 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Overlap NUR für dieses Haus prüfen
-    const overlap = await prisma.booking.findFirst({
-      where: {
-        propertyId: pid,
-        startDate: { lt: end }, // beginnt vor neuem Ende
-        endDate: { gt: start }, // endet nach neuem Start
-      },
-      select: { id: true, startDate: true, endDate: true },
+    // Overlap check and insert run under a per-property lock (no double bookings on concurrent requests).
+    const result = await withPropertyBookingLock(pid, async (tx) => {
+      const overlap = await tx.booking.findFirst({
+        where: overlapWhere(pid, start, end),
+        select: { id: true, startDate: true, endDate: true },
+      });
+      if (overlap) return { overlap };
+      const booking = await tx.booking.create({
+        data: {
+          propertyId: pid,
+          startDate: start,
+          endDate: end,
+          guestName: guestName?.trim() || "(Admin)",
+        },
+        select: { id: true, startDate: true, endDate: true, guestName: true },
+      });
+      return { booking };
     });
 
-    if (overlap) {
+    if (result.overlap) {
       return Response.json(
         {
           error: "Zeitraum ist bereits belegt.",
           conflict: {
-            id: overlap.id,
-            startDate: overlap.startDate,
-            endDate: overlap.endDate,
+            id: result.overlap.id,
+            startDate: result.overlap.startDate,
+            endDate: result.overlap.endDate,
           },
         },
         { status: 409 }
       );
     }
-
-    // ❗ KEINE Preisberechnung mehr hier – Admin will nur blocken
-    const booking = await prisma.booking.create({
-      data: {
-        propertyId: pid,
-        startDate: start,
-        endDate: end,
-        guestName: guestName?.trim() || "(Admin)",
-      },
-      select: { id: true, startDate: true, endDate: true, guestName: true },
-    });
+    const { booking } = result;
 
     return Response.json({ ok: true, booking });
   } catch (e) {

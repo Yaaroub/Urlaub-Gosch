@@ -44,3 +44,7 @@ next-env.d.ts
 public/uploads
 /public/objects/
 .vercel
+
+# local logs
+*.log
+/.next-verify/

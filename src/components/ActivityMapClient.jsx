@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import ExternalMediaConsent from "@/components/ExternalMediaConsent";
 
 const ActivityMap = dynamic(() => import("@/components/ActivityMap"), {
   ssr: false,
@@ -40,7 +41,7 @@ export default function ActivityMapClient({
 
   return (
     <div ref={rootRef} className={`relative w-full ${className}`}>
-      {shouldLoad ? <ActivityMap {...props} /> : <MapSkeleton />}
+      <ExternalMediaConsent provider="Mapbox">{shouldLoad ? <ActivityMap {...props} /> : <MapSkeleton />}</ExternalMediaConsent>
     </div>
   );
 }

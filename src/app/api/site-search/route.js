@@ -1,6 +1,6 @@
 import prisma from "@/lib/db";
 import { activities } from "@/lib/activities";
-import inspirationArticles from "@/lib/inspiration-articles.json";
+import inspirationArticles from "@/data/inspiration-articles.json";
 
 export const dynamic = "force-dynamic";
 

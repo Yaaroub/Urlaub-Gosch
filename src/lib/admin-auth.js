@@ -52,6 +52,12 @@ export async function getSuperAdmin(req = null) {
     return null;
   }
 
+  // Same rule as requireAdminPermission: no admin actions before the
+  // mandatory password change has been completed.
+  if (user.mustChangePassword) {
+    return null;
+  }
+
   return user;
 }
 

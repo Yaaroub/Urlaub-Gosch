@@ -73,6 +73,36 @@ export default function AdminIdleTimeout({
   const lastWriteRef =
     useRef(0);
 
+  // Server-side token renewal (the staff token itself expires after the
+  // inactivity timeout, so it must be renewed while the user is active).
+  const lastRefreshRef =
+    useRef(Date.now());
+
+  const refreshInFlightRef =
+    useRef(false);
+
+  const refreshServerSession =
+    useCallback(async (force = false) => {
+      const now = Date.now();
+      const interval = Math.min(60 * 1000, timeoutMs / 4);
+      if (refreshInFlightRef.current) return;
+      if (!force && now - lastRefreshRef.current < interval) return;
+      refreshInFlightRef.current = true;
+      lastRefreshRef.current = now;
+      try {
+        const res = await fetch("/api/admin/session", { method: "POST", cache: "no-store" });
+        if (res.status === 401) {
+          try { localStorage.removeItem(STORAGE_KEY); } catch {}
+          window.location.href = "/admin/login?reason=timeout";
+        }
+      } catch {
+        // Network errors: try again with the next activity.
+        lastRefreshRef.current = 0;
+      } finally {
+        refreshInFlightRef.current = false;
+      }
+    }, [timeoutMs]);
+
   useEffect(() => {
     warningRef.current =
       showWarning;
@@ -145,7 +175,9 @@ export default function AdminIdleTimeout({
           String(now)
         );
       } catch {}
-    }, []);
+
+      refreshServerSession();
+    }, [refreshServerSession]);
 
   // ============================================================
   // Logout
@@ -192,7 +224,9 @@ export default function AdminIdleTimeout({
       setShowWarning(
         false
       );
-    }, [setActivityNow]);
+
+      refreshServerSession(true);
+    }, [setActivityNow, refreshServerSession]);
 
   // ============================================================
   // Timer

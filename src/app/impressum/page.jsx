@@ -188,9 +188,7 @@ export default function ImpressumPage() {
               title="Hinweis zur Vertraulichkeit"
             >
               <p>
-                Wir behandeln Ihre Daten vertraulich, geben sie von unserer
-                Seite nicht an Dritte weiter und halten uns an die geltenden
-                Datenschutzbestimmungen.
+                Wir behandeln Ihre Daten vertraulich. Für den Betrieb der Website und die Bearbeitung Ihrer Anliegen setzen wir Dienstleister ein. Einzelheiten zu Empfängern und Verarbeitungszwecken finden Sie in unserer Datenschutzerklärung.
               </p>
 
               <p>

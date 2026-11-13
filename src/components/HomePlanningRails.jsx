@@ -10,7 +10,7 @@ import {
   Waves,
 } from "lucide-react";
 
-import LazyWeatherWidget from "@/components/LazyWeatherWidget";
+import WeatherWidget from "@/components/WeatherWidget";
 
 const DESKTOP_BREAKPOINT = 1280;
 
@@ -32,7 +32,9 @@ export default function HomePlanningRails({ children }) {
         relative
         mx-auto
         w-full
-        max-w-[1536px]
+        max-[1799px]:max-w-[1536px]
+        min-[1800px]:max-[2199px]:max-w-[1728px]
+        min-[2200px]:max-w-[2048px]
 
         px-4
         sm:px-5
@@ -56,6 +58,8 @@ export default function HomePlanningRails({ children }) {
 
           min-[1700px]:grid-cols-[215px_minmax(0,1fr)_325px]
           min-[1700px]:gap-8
+
+          min-[2200px]:grid-cols-[240px_minmax(0,1fr)_340px]
         "
       >
         {/* =====================================================
@@ -746,7 +750,7 @@ function WeatherCard() {
           overflow-hidden
         "
       >
-        <LazyWeatherWidget />
+        <WeatherWidget />
       </div>
     </div>
   );

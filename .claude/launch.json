@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "urlaub-gosch-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "-p", "3011"],
+      "env": { "NEXT_DIST_DIR": ".next-preview" },
+      "port": 3011
+    }
+  ]
+}

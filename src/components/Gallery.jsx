@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export default function Gallery({ images = [] }) {
   const [openIndex, setOpenIndex] = useState(null);
+  const openAt = useCallback((idx) => setOpenIndex(idx), []);
+  const close = useCallback(() => setOpenIndex(null), []);
 
   if (!images?.length) {
     return (
@@ -16,10 +18,6 @@ export default function Gallery({ images = [] }) {
   const hero = images[0];
   const rest = images.slice(1);
 
-  const openAt = useCallback((idx) => setOpenIndex(idx), []);
-  const close = useCallback(() => setOpenIndex(null), []);
-
-  // Show a nice set under hero (looks premium)
   const grid = rest.slice(0, 8);
   const remaining = Math.max(0, rest.length - grid.length);
 

@@ -5,6 +5,7 @@ export const ACTIVITY_GROUPS = [
   "Sport",
   "Restaurant",
   "Kultur",
+  "Service",
 ];
 
 export const ACTIVITY_GROUP_META = {
@@ -38,9 +39,19 @@ export const ACTIVITY_GROUP_META = {
     mapKey: "kultur",
     mapColor: "#475569",
   },
+  Service: {
+    label: "Service",
+    mapKey: "service",
+    mapColor: "#64748b",
+  },
 };
 
 export function getActivityGroup(activity = {}) {
+  // Slim client objects carry a precomputed group (see lib/activity-view.js).
+  if (activity.group && activity.group !== "Alle" && ACTIVITY_GROUP_META[activity.group]) {
+    return activity.group;
+  }
+
   const category = normalize(activity.category);
   const title = normalize(activity.title);
   const shortDescription = normalize(activity.shortDescription);
@@ -81,7 +92,6 @@ export function getActivityGroup(activity = {}) {
     hasAny(category, [
       "museum",
       "historischer platz",
-      "information",
     ])
   ) {
     return "Kultur";
@@ -96,9 +106,120 @@ export function getActivityGroup(activity = {}) {
     return "Sport";
   }
 
-  if (hasAny(category, ["gesundheit"])) {
+  // Strong nature signals in the name win over category/description
+  // (e.g. ship-watching spots on the canal, boat trips, nature reserves).
+  if (
+    hasAny(title, [
+      "nord-ostsee-kanal",
+      "seen-fahrt",
+      "talfahrt",
+      "reservat",
+      "forst",
+      "botanisch",
+      "naturpark",
+      "naturschutz",
+      "meeresbiolog",
+    ])
+  ) {
+    return "Natur";
+  }
+
+  // Supermarkets, pharmacies, doctors, tourist information: useful, but not excursions.
+  if (hasAny(category, ["gesundheit", "information", "einkaufen"])) {
+    return "Service";
+  }
+
+  // Title + short description are specific; full descriptions mention
+  // "Familien" almost everywhere, so they are only used as a fallback below.
+  const headline = [title, shortDescription].join(" ");
+
+  if (
+    hasAny(headline, [
+      "golf",
+      "kanu",
+      "kajak",
+      "sup",
+      "surf",
+      "segel",
+      "kite",
+      "tauch",
+      "kletter",
+      "hochseil",
+      "reit",
+      "geocaching",
+      "eisstock",
+      "bowling",
+      "minigolf",
+      "wassersport",
+    ])
+  ) {
+    return "Sport";
+  }
+
+  if (hasAny(headline, ["museum", "schloss", "kirche", "kloster", "galerie", "ausstellung", "historisch", "denkmal", "altstadt", "theater", "planetarium"])) {
+    return "Kultur";
+  }
+
+  if (
+    hasAny(headline, [
+      "familie",
+      "kinder",
+      "freizeitpark",
+      "erlebnispark",
+      "erlebniswelt",
+      "tierpark",
+      "wildpark",
+      "zoo",
+      "aquarium",
+      "spiel",
+      "therme",
+      "schwimm",
+      "erlebnisbad",
+      "barfuss",
+      "barfuß",
+      "hansa-park",
+      "abenteuer",
+      "indoor",
+      "pirat",
+      "erlebnis",
+      "irrgarten",
+      "landspielhof",
+    ])
+  ) {
     return "Familie";
   }
+
+  if (
+    hasAny(headline, [
+      "strand",
+      "natur",
+      "wald",
+      "see ",
+      "seen",
+      "steilkueste",
+      "steilküste",
+      "duene",
+      "düne",
+      "moor",
+      "vogel",
+      "botanisch",
+      "garten",
+      "park ",
+      "wanderweg",
+      "radweg",
+      "aussicht",
+      "leuchtturm",
+      "kueste",
+      "küste",
+      "landschaft",
+      "schifffahrt",
+      "hafen",
+    ]) &&
+    !hasAny(headline, ["freizeitpark", "erlebnispark", "hansa-park", "tierpark", "wildpark"])
+  ) {
+    return "Natur";
+  }
+
 
   if (
     hasAny(text, [

@@ -1,4 +1,5 @@
 import InspirationCard from "@/components/InspirationCard";
+import { safeJsonLd } from "@/lib/activity-seo";
 import InspirationExplorer from "@/components/InspirationExplorer";
 import {
   inspirationArticles,
@@ -42,7 +43,7 @@ export default function InspirationPage() {
     <main className="min-h-screen bg-[#f7fafc]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(collectionJsonLd) }}
       />
 
       <section className="bg-[#07131f] px-4 pb-20 pt-28 text-white sm:px-6 lg:px-8 lg:pb-24 lg:pt-32">

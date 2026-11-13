@@ -72,7 +72,8 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <form className="grid gap-5">
+            <div className="grid gap-5">
+              <p role="status" className="rounded-xl bg-sky-50 p-4 text-sm text-slate-700">Das Kontaktformular ist noch nicht freigeschaltet. Bitte kontaktieren Sie uns telefonisch oder über die angegebene E-Mail-Adresse.</p>
               {/*
                 Standardmäßig handelt es sich um eine allgemeine Anfrage.
 
@@ -191,7 +192,7 @@ export default function ContactPage() {
                 <span>
                   Ich habe die{" "}
                   <Link
-                    href="/privacy"
+                    href="/datenschutz"
                     className="font-semibold text-slate-950 underline underline-offset-4"
                   >
                     Datenschutzerklärung
@@ -202,13 +203,13 @@ export default function ContactPage() {
               </label>
 
               <button
-                type="submit"
+                type="button" disabled
                 className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#07131f] px-7 py-4 text-sm font-bold text-white shadow-[0_18px_55px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 hover:bg-slate-800 sm:w-fit"
               >
-                Anfrage senden
+                Versand noch nicht verfügbar
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </button>
-            </form>
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -229,14 +230,14 @@ export default function ContactPage() {
                 <ContactRow
                   icon={Phone}
                   label="Telefon"
-                  value="+49 000 000000"
-                  href="tel:+490000000000"
+                  value="04344 / 414415"
+                  href="tel:+494344414415"
                 />
 
                 <ContactRow
                   icon={MapPin}
                   label="Region"
-                  value="Nordsee & Ostsee"
+                  value="Ostsee · Probstei & Hohwachter Bucht"
                 />
 
                 <ContactRow

@@ -21,7 +21,7 @@ const trustItems = [
   {
     icon: Home,
     title: "Handverlesen",
-    text: "Ausgewählte Ferienunterkünfte an Nord- und Ostsee.",
+    text: "Ausgewählte Ferienunterkünfte an der Ostsee.",
   },
   {
     icon: UserRound,
@@ -246,7 +246,7 @@ export default function Footer() {
                 text-white/43
               "
             >
-              Ferienunterkünfte an Nord- und Ostsee entdecken und den Urlaub
+              Ferienunterkünfte an der Ostsee entdecken und den Urlaub
               mit regionalen Tipps, Ausflugszielen und persönlichem Service
               genießen.
             </p>

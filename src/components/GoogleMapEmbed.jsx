@@ -1,3 +1,4 @@
+import ExternalMediaConsent from "@/components/ExternalMediaConsent";
 export default function GoogleMapEmbed({ query, title = "Karte", height = 320 }) {
     const q = String(query || "").trim();
     if (!q) return null;
@@ -12,16 +13,16 @@ export default function GoogleMapEmbed({ query, title = "Karte", height = 320 })
         </div>
   
         <div className="px-6 pb-6 pt-4">
-          <iframe
+          <ExternalMediaConsent provider="Google Maps"><iframe
             title={title}
             src={src}
             width="100%"
             height={height}
             loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
+            referrerPolicy="no-referrer"
             className="w-full rounded-xl border border-slate-200"
             allowFullScreen
-          />
+          /></ExternalMediaConsent>
         </div>
       </div>
     );

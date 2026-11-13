@@ -3,34 +3,49 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Building2,
-  Calendar,
-  Dog,
-  PawPrint,
   Ban,
+  Building2,
+  ChevronDown,
+  Dog,
   MapPin,
+  Minus,
+  PawPrint,
+  Plus,
   RotateCcw,
   Search,
-  Users,
+  SlidersHorizontal,
 } from "lucide-react";
 import {
   getAmenityIcon,
   normalizeAmenityName,
 } from "@/lib/amenity-icons";
 
+/** "24217 Schönberger Strand" -> "Schönberger Strand" (value stays unchanged). */
+function placeLabel(place) {
+  return String(place).replace(/^\d{5}\s+/, "").trim() || String(place);
+}
+
+function isUnknownPlace(place) {
+  return /^(\d{5}\s+)?unbekannt$/i.test(String(place).trim());
+}
+
+/**
+ * Compact search: the four things guests actually decide on (dates, place,
+ * guests) plus dog preference. Object name, street and amenities live under
+ * "Mehr Filter" so the first accommodations are visible much sooner on mobile.
+ */
 export default function SearchForm({
   initialParams = {},
   amenities = [],
   locations = [],
+  objects = [],
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const [arrival, setArrival] = useState(initialParams.arrival || "");
   const [departure, setDeparture] = useState(initialParams.departure || "");
-  const [objectName, setObjectName] = useState(
-    initialParams.objectName || ""
-  );
+  const [objectName, setObjectName] = useState(initialParams.objectName || "");
   const [street, setStreet] = useState(initialParams.street || "");
   const [location, setLocation] = useState(initialParams.location || "");
   const [persons, setPersons] = useState(initialParams.persons || "");
@@ -40,46 +55,52 @@ export default function SearchForm({
   const [amenityValues, setAmenityValues] = useState(() => {
     const value = initialParams?.amenity;
     const values = Array.isArray(value) ? value : value ? [value] : [];
-
-    return values
-      .map((item) => normalizeAmenityName(item))
-      .filter(Boolean);
+    return values.map((item) => normalizeAmenityName(item)).filter(Boolean);
   });
+
+  const advancedCount = Number(Boolean(street.trim())) + amenityValues.length;
+  const [showMore, setShowMore] = useState(advancedCount > 0);
+
+  // Dropdown of existing objects (requested by Urlaub Gosch). A value from an
+  // older free-text search stays selectable.
+  const objectOptions = useMemo(() => {
+    const list = (Array.isArray(objects) ? objects : []).map((title) => String(title).trim()).filter(Boolean);
+    if (objectName && !list.includes(objectName)) list.push(objectName);
+    return [...new Set(list)].sort((a, b) => a.localeCompare(b, "de", { sensitivity: "base" }));
+  }, [objects, objectName]);
 
   const amenitiesSorted = useMemo(() => {
     const values = Array.isArray(amenities) ? amenities : [];
-
     return [...values].sort((a, b) =>
-      String(a?.name || "").localeCompare(String(b?.name || ""), "de", {
-        sensitivity: "base",
-      })
+      String(a?.name || "").localeCompare(String(b?.name || ""), "de", { sensitivity: "base" })
     );
   }, [amenities]);
 
   const locationsSorted = useMemo(() => {
     const values = Array.isArray(locations) ? locations : [];
+    const normalized = values
+      .map((item) => (typeof item === "string" ? item.trim() : String(item?.location || "").trim()))
+      .filter((place) => place && !isUnknownPlace(place));
 
-    const normalizedLocations = values
-      .map((item) => {
-        if (typeof item === "string") return item.trim();
-        return String(item?.location || "").trim();
-      })
-      .filter(Boolean);
+    // A place already in the URL stays selectable.
+    if (location) normalized.push(String(location).trim());
 
-    // Falls eine Ortschaft bereits in der URL steht, bleibt sie auswählbar.
-    if (location) normalizedLocations.push(String(location).trim());
-
-    return [...new Set(normalizedLocations)].sort((a, b) =>
-      a.localeCompare(b, "de", { sensitivity: "base" })
+    return [...new Set(normalized)].sort((a, b) =>
+      placeLabel(a).localeCompare(placeLabel(b), "de", { sensitivity: "base" })
     );
   }, [locations, location]);
 
   function toggleAmenity(value) {
-    setAmenityValues((currentValues) =>
-      currentValues.includes(value)
-        ? currentValues.filter((item) => item !== value)
-        : [...currentValues, value]
+    setAmenityValues((current) =>
+      current.includes(value) ? current.filter((item) => item !== value) : [...current, value]
     );
+  }
+
+  function changePersons(delta) {
+    setPersons((current) => {
+      const next = Math.min(20, Math.max(0, (Number(current) || 0) + delta));
+      return next === 0 ? "" : String(next);
+    });
   }
 
   function resetForm() {
@@ -98,10 +119,7 @@ export default function SearchForm({
     });
 
     window.setTimeout(() => {
-      document.getElementById("suche")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      document.getElementById("suche")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 150);
   }
 
@@ -121,263 +139,254 @@ export default function SearchForm({
     if (cleanStreet) params.set("street", cleanStreet);
     if (cleanLocation) params.set("location", cleanLocation);
 
-    if (persons) {
-      const numberOfPersons = Number(persons);
-
-      if (Number.isFinite(numberOfPersons) && numberOfPersons > 0) {
-        params.set("persons", String(numberOfPersons));
-      }
+    const numberOfPersons = Number(persons);
+    if (Number.isFinite(numberOfPersons) && numberOfPersons > 0) {
+      params.set("persons", String(numberOfPersons));
     }
 
     if (dogs) params.set("dogs", "true");
     if (petFree) params.set("dogs", "false");
 
-    amenityValues.forEach((amenity) => {
-      params.append("amenity", amenity);
-    });
+    amenityValues.forEach((amenity) => params.append("amenity", amenity));
 
     const queryString = params.toString();
 
     startTransition(() => {
-      router.replace(queryString ? `/?${queryString}` : "/", {
-        scroll: false,
-      });
+      router.replace(queryString ? `/?${queryString}` : "/", { scroll: false });
     });
 
     window.setTimeout(() => {
-      document.getElementById("unterkuenfte")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      document.getElementById("unterkuenfte")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 150);
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <div className="grid gap-3">
-        {/* Anreise und Abreise */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="CHECK-IN" htmlFor="arrival" icon={Calendar}>
-            <input
-              id="arrival"
-              name="arrival"
-              type="date"
-              value={arrival}
-              onChange={(event) => {
-                const nextArrival = event.target.value;
-                setArrival(nextArrival);
+    <form onSubmit={submit} className="space-y-3">
+      {/* Main fields: 2 columns on phones, 4 on desktop */}
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-3">
+        <Field label="Anreise" htmlFor="arrival">
+          <input
+            id="arrival"
+            name="arrival"
+            type="date"
+            value={arrival}
+            onChange={(event) => {
+              const nextArrival = event.target.value;
+              setArrival(nextArrival);
+              if (departure && nextArrival && departure <= nextArrival) setDeparture("");
+            }}
+            className={inputClass}
+          />
+        </Field>
 
-                if (
-                  departure &&
-                  nextArrival &&
-                  departure <= nextArrival
-                ) {
-                  setDeparture("");
-                }
-              }}
-              className={inputClass}
-            />
-          </Field>
+        <Field label="Abreise" htmlFor="departure">
+          <input
+            id="departure"
+            name="departure"
+            type="date"
+            value={departure}
+            min={arrival || undefined}
+            onChange={(event) => setDeparture(event.target.value)}
+            className={inputClass}
+          />
+        </Field>
 
-          <Field label="CHECK-OUT" htmlFor="departure" icon={Calendar}>
-            <input
-              id="departure"
-              name="departure"
-              type="date"
-              value={departure}
-              min={arrival || undefined}
-              onChange={(event) => setDeparture(event.target.value)}
-              className={inputClass}
-            />
-          </Field>
-        </div>
+        <Field label="Ort" htmlFor="location">
+          <select
+            id="location"
+            name="location"
+            value={location}
+            onChange={(event) => setLocation(event.target.value)}
+            className={inputClass}
+          >
+            <option value="">Alle Orte</option>
+            {locationsSorted.map((place) => (
+              <option key={place} value={place}>
+                {placeLabel(place)}
+              </option>
+            ))}
+          </select>
+        </Field>
 
-        {/* Objektname und Straße */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="OBJEKTNAME" htmlFor="objectName" icon={Building2}>
-            <input
-              id="objectName"
-              name="objectName"
-              type="search"
-              value={objectName}
-              onChange={(event) => setObjectName(event.target.value)}
-              placeholder="z. B. Haus Seestern"
-              autoComplete="off"
-              className={inputClass}
-            />
-          </Field>
-
-          <Field label="STRASSENNAME" htmlFor="street" icon={MapPin}>
-            <input
-              id="street"
-              name="street"
-              type="search"
-              value={street}
-              onChange={(event) => setStreet(event.target.value)}
-              placeholder="z. B. Strandstraße"
-              autoComplete="street-address"
-              className={inputClass}
-            />
-          </Field>
-        </div>
-
-        {/* Ortschaft und Gäste */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="ORTSCHAFT" htmlFor="location" icon={MapPin}>
-            <select
-              id="location"
-              name="location"
-              value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              className={inputClass}
+        <Field label="Gäste" htmlFor="persons">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => changePersons(-1)}
+              disabled={!persons}
+              aria-label="Eine Person weniger"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700 transition hover:bg-slate-200 disabled:opacity-40"
             >
-              <option value="">Alle Ortschaften</option>
-
-              {locationsSorted.map((place) => (
-                <option key={place} value={place}>
-                  {place}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="GÄSTE" htmlFor="persons" icon={Users}>
+              <Minus className="h-4 w-4" />
+            </button>
             <input
               id="persons"
               name="persons"
               type="number"
               min={1}
+              max={20}
               inputMode="numeric"
+              placeholder="Alle"
               value={persons}
               onChange={(event) => {
                 const value = event.target.value;
-
-                if (value === "") {
-                  setPersons("");
-                  return;
-                }
-
-                const numberOfPersons = Math.max(1, Number(value || 1));
-                setPersons(String(numberOfPersons));
+                if (value === "") return setPersons("");
+                setPersons(String(Math.min(20, Math.max(1, Number(value) || 1))));
               }}
-              className={inputClass}
+              className="h-9 w-full min-w-0 bg-transparent text-center text-sm font-semibold text-slate-900 outline-none [appearance:textfield] placeholder:font-normal placeholder:text-slate-400 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
+            <button
+              type="button"
+              onClick={() => changePersons(1)}
+              aria-label="Eine Person mehr"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </Field>
+
+        <div className="col-span-2">
+          <Field label="Unterkunft" htmlFor="objectName" icon={Building2}>
+            <select
+              id="objectName"
+              name="objectName"
+              value={objectName}
+              onChange={(event) => setObjectName(event.target.value)}
+              className={inputClass}
+            >
+              <option value="">Alle Unterkünfte</option>
+              {objectOptions.map((title) => (
+                <option key={title} value={title}>
+                  {title}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
 
-        {/* Hund */}
-        <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-          <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-800">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200">
-              <Dog className="h-4 w-4 text-slate-700" />
+        {/* Pets + more filters (next to the object dropdown on desktop) */}
+        <div className="col-span-2 flex flex-wrap items-center gap-2">
+
+        <TogglePill
+          active={dogs}
+          onClick={() => {
+            setDogs((value) => !value);
+            setPetFree(false);
+          }}
+          icon={<Dog className="h-4 w-4" aria-hidden="true" />}
+          label="Mit Hund"
+        />
+        <TogglePill
+          active={petFree}
+          onClick={() => {
+            setPetFree((value) => !value);
+            setDogs(false);
+          }}
+          icon={
+            <span className="relative inline-flex h-4 w-4 items-center justify-center" aria-hidden="true">
+              <PawPrint className="h-3.5 w-3.5" />
+              <Ban className="absolute h-4 w-4" />
             </span>
-            Hund erlaubt
-          </span>
-
-          <span className="inline-flex items-center gap-2">
-            <span className="text-xs text-slate-500">nur anzeigen</span>
-            <input
-              type="checkbox"
-              checked={dogs}
-              onChange={(event) => {
-                setDogs(event.target.checked);
-                if (event.target.checked) setPetFree(false);
-              }}
-              className="h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-              aria-label="Nur Unterkünfte anzeigen, in denen Hunde erlaubt sind"
-            />
-          </span>
-        </label>
-
-        <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-          <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-800">
-            <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200" aria-hidden="true">
-              <PawPrint className="h-4 w-4 text-slate-700" />
-              <Ban className="absolute h-6 w-6 text-slate-700" />
-            </span>
-            Tierfrei
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="text-xs text-slate-500">nur anzeigen</span>
-            <input
-              type="checkbox"
-              checked={petFree}
-              onChange={(event) => {
-                setPetFree(event.target.checked);
-                if (event.target.checked) setDogs(false);
-              }}
-              className="h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-              aria-label="Nur tierfreie Unterkünfte anzeigen"
-            />
-          </span>
-        </label>
-
-        {/* Ausstattung */}
-        {amenitiesSorted.length > 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                Ausstattung
-              </p>
-
-              {amenityValues.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setAmenityValues([])}
-                  className="inline-flex min-h-10 items-center text-xs font-medium text-slate-500 hover:text-slate-700"
-                >
-                  Auswahl löschen
-                </button>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {amenitiesSorted.map((amenity) => {
-                const value = normalizeAmenityName(amenity.name);
-                const isActive = amenityValues.includes(value);
-                const Icon = getAmenityIcon(amenity.name);
-
-                return (
-                  <button
-                    type="button"
-                    key={amenity.id}
-                    onClick={() => toggleAmenity(value)}
-                    className={[
-                      "inline-flex min-h-10 items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition",
-                      isActive
-                        ? "border-sky-500 bg-sky-50 text-sky-900"
-                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-                    ].join(" ")}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {amenity.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+          }
+          label="Tierfrei"
+        />
+        <button
+          type="button"
+          onClick={() => setShowMore((value) => !value)}
+          aria-expanded={showMore}
+          aria-controls="search-more-filters"
+          className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-slate-600 transition hover:text-slate-950"
+        >
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+          Mehr Filter
+          {advancedCount > 0 ? (
+            <span className="rounded-full bg-sky-600 px-1.5 text-[10px] font-bold text-white">{advancedCount}</span>
+          ) : null}
+          <ChevronDown className={`h-4 w-4 transition ${showMore ? "rotate-180" : ""}`} aria-hidden="true" />
+        </button>
+        </div>
       </div>
 
-      {/* Aktionen */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+      {showMore ? (
+        <div id="search-more-filters" className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3">
+          <div className="grid gap-2 sm:max-w-sm">
+            <Field label="Straße" htmlFor="street" icon={MapPin}>
+              <input
+                id="street"
+                name="street"
+                type="search"
+                value={street}
+                onChange={(event) => setStreet(event.target.value)}
+                placeholder="z. B. Strandstraße"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </Field>
+          </div>
+
+          {amenitiesSorted.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Ausstattung</p>
+                {amenityValues.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAmenityValues([])}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-800"
+                  >
+                    Auswahl löschen
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {amenitiesSorted.map((amenity) => {
+                  const value = normalizeAmenityName(amenity.name);
+                  const isActive = amenityValues.includes(value);
+                  const Icon = getAmenityIcon(amenity.name);
+                  return (
+                    <button
+                      type="button"
+                      key={amenity.id}
+                      onClick={() => toggleAmenity(value)}
+                      aria-pressed={isActive}
+                      className={[
+                        "inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition",
+                        isActive
+                          ? "border-sky-300 bg-sky-50 text-sky-900"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+                      ].join(" ")}
+                    >
+                      <Icon className="h-4 w-4" aria-hidden="true" />
+                      {amenity.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {/* Actions */}
+      <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={resetForm}
           disabled={isPending}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 text-xs font-semibold text-slate-500 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <RotateCcw className="h-4 w-4" />
-          Filter zurücksetzen
+          <RotateCcw className="h-4 w-4" aria-hidden="true" />
+          Zurücksetzen
         </button>
 
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-amber-400 px-5 py-2.5 text-sm font-extrabold uppercase tracking-[0.14em] text-slate-900 shadow-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/70 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-400 px-6 text-sm font-extrabold uppercase tracking-[0.12em] text-slate-900 shadow-md hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/70 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
-          <Search className="h-4 w-4" />
-          {isPending ? "Suche läuft …" : "Ergebnisse anzeigen"}
+          <Search className="h-4 w-4" aria-hidden="true" />
+          {isPending ? "Suche läuft …" : "Unterkünfte finden"}
         </button>
       </div>
     </form>
@@ -386,24 +395,37 @@ export default function SearchForm({
 
 function Field({ label, htmlFor, icon: Icon, children }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <label
-          htmlFor={htmlFor}
-          className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500"
-        >
-          {label}
-        </label>
-
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-50 ring-1 ring-slate-200">
-          <Icon className="h-4 w-4 text-slate-700" />
-        </span>
-      </div>
-
-      {children}
+    <div className="min-w-0 rounded-2xl bg-white px-3 pb-2 pt-2.5 ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-sky-400">
+      <label
+        htmlFor={htmlFor}
+        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500"
+      >
+        {Icon ? <Icon className="h-3.5 w-3.5" aria-hidden="true" /> : null}
+        {label}
+      </label>
+      <div className="mt-0.5">{children}</div>
     </div>
   );
 }
 
+function TogglePill({ active, onClick, icon, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={[
+        "inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-xs font-semibold transition",
+        active
+          ? "border-sky-300 bg-sky-50 text-sky-900"
+          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50",
+      ].join(" ")}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 const inputClass =
-  "min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/50";
+  "h-9 w-full min-w-0 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-400";

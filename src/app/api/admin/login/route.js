@@ -1,11 +1,16 @@
-import bcrypt from "bcrypt";
-
 import prisma from "@/lib/db";
 
 import {
   createSession,
   sessionCookie,
 } from "@/lib/auth";
+
+import {
+  checkLoginLimit,
+  recordLoginFailure,
+  recordLoginSuccess,
+  verifyPasswordConstantTime,
+} from "@/lib/rate-limit";
 
 const STAFF_ROLES = [
   "EDITOR",
@@ -16,7 +21,7 @@ const STAFF_ROLES = [
 export async function POST(req) {
   try {
     const body =
-      await req.json();
+      await req.json().catch(() => null);
 
     const email =
       String(
@@ -32,7 +37,9 @@ export async function POST(req) {
 
     if (
       !email ||
-      !password
+      !password ||
+      email.length > 254 ||
+      password.length > 1024
     ) {
       return Response.json(
         {
@@ -43,6 +50,13 @@ export async function POST(req) {
           status: 400,
         }
       );
+    }
+
+    const limited =
+      checkLoginLimit(req, "admin", email);
+
+    if (limited) {
+      return limited;
     }
 
     const user =
@@ -66,12 +80,21 @@ export async function POST(req) {
         },
       });
 
-    if (
-      !user ||
-      !STAFF_ROLES.includes(
-        user.role
-      )
-    ) {
+    const isStaff =
+      Boolean(user) &&
+      STAFF_ROLES.includes(user.role);
+
+    // Always run bcrypt (also for unknown e-mails) so response time
+    // does not reveal which staff accounts exist.
+    const passwordMatches =
+      await verifyPasswordConstantTime(
+        password,
+        isStaff ? user.password : null
+      );
+
+    if (!isStaff || !passwordMatches) {
+      recordLoginFailure("admin", email);
+
       return Response.json(
         {
           error:
@@ -79,10 +102,12 @@ export async function POST(req) {
         },
         {
           status: 401,
+          headers: { "Cache-Control": "no-store" },
         }
       );
     }
 
+    // Only reveal the lock state after a correct password.
     if (!user.isActive) {
       return Response.json(
         {
@@ -95,23 +120,7 @@ export async function POST(req) {
       );
     }
 
-    const passwordMatches =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
-
-    if (!passwordMatches) {
-      return Response.json(
-        {
-          error:
-            "E-Mail oder Passwort ist falsch.",
-        },
-        {
-          status: 401,
-        }
-      );
-    }
+    recordLoginSuccess("admin", email);
 
     const updated =
       await prisma.user.update({

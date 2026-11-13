@@ -23,6 +23,7 @@ const MAP_COLORS = {
   sport: ACTIVITY_GROUP_META?.Sport?.mapColor || "#0f2742",
   restaurant: ACTIVITY_GROUP_META?.Restaurant?.mapColor || "#d97706",
   kultur: ACTIVITY_GROUP_META?.Kultur?.mapColor || "#6d5b8c",
+  service: ACTIVITY_GROUP_META?.Service?.mapColor || "#64748b",
 };
 
 const pointLayer = {
@@ -55,6 +56,8 @@ const pointLayer = {
       MAP_COLORS.restaurant,
       "kultur",
       MAP_COLORS.kultur,
+      "service",
+      MAP_COLORS.service,
       MAP_COLORS.natur,
     ],
     "circle-opacity": 1,

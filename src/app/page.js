@@ -13,6 +13,7 @@ import {
 
 import prisma from "@/lib/db";
 import { buildPropertyWhere } from "@/lib/search-utils";
+import { getMinimumNightlyPrice } from "@/lib/min-nightly-price";
 
 import HomeHero from "@/components/HomeHero";
 import HomePlanningRails from "@/components/HomePlanningRails";
@@ -335,6 +336,21 @@ export default async function HomePage(
               alt: true,
             },
           },
+
+          // For the automatic "ab X € / Nacht" price (same rule as the detail page).
+          pricePeriods: {
+            where: {
+              endDate: {
+                gt: today,
+              },
+            },
+
+            select: {
+              startDate: true,
+              endDate: true,
+              pricePerNight: true,
+            },
+          },
         },
       }),
 
@@ -377,6 +393,8 @@ export default async function HomePage(
       prisma.property.findMany({
         select: {
           location: true,
+          // For the "Unterkunft" dropdown in the search (all objects, unfiltered).
+          title: true,
         },
 
         orderBy: {
@@ -384,6 +402,39 @@ export default async function HomePage(
         },
       }),
     ]);
+
+
+  const allObjectTitles =
+    Array.from(
+      new Set(
+        locationRows
+          .map((row) =>
+            String(row.title || "").trim(),
+          )
+          .filter(Boolean),
+      ),
+    ).sort((a, b) =>
+      a.localeCompare(b, "de", {
+        sensitivity: "base",
+      }),
+    );
+
+
+  /* --------------------------------------------------------------------------
+     AB-PREIS (nur die Zahl geht an den Browser, nicht die Preiszeiträume)
+  -------------------------------------------------------------------------- */
+
+  const propertiesWithPrice =
+    properties.map(
+      ({ pricePeriods, ...property }) => ({
+        ...property,
+        minNightlyPrice:
+          getMinimumNightlyPrice(
+            pricePeriods,
+            today,
+          ),
+      }),
+    );
 
 
   /* --------------------------------------------------------------------------
@@ -763,7 +814,8 @@ export default async function HomePage(
           <div
             className="
               mx-auto
-              max-w-6xl
+              max-[2199px]:max-w-6xl
+              min-[2200px]:max-w-[1400px]
               px-3
               pb-7
               pt-10
@@ -926,6 +978,9 @@ export default async function HomePage(
                     }
                     locations={
                       allLocations
+                    }
+                    objects={
+                      allObjectTitles
                     }
                   />
                 </div>
@@ -1261,7 +1316,7 @@ export default async function HomePage(
                     departure={getOverviewWindow(arrival, departure) ? departure : undefined}
                     showAvailabilityBadge={Boolean(getOverviewWindow(arrival, departure))}
                     items={
-                      properties
+                      propertiesWithPrice
                     }
                     lastMinuteDiscounts={
                       lastMinuteDiscounts

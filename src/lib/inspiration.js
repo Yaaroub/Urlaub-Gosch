@@ -1,4 +1,4 @@
-import articles from "./inspiration-articles.json";
+import articles from "../data/inspiration-articles.json";
 
 export const inspirationArticles = articles;
 

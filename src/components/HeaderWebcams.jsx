@@ -1,4 +1,5 @@
 "use client";
+import ExternalMediaConsent from "@/components/ExternalMediaConsent";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -326,6 +327,9 @@ function WebcamCard({
             ) : null}
 
 
+            {/* External live webcam image (changing URL, loaded only after consent):
+                deliberately not proxied through next/image. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imageSrc}
               alt={`Aktuelles Webcam-Bild vom ${webcam.location} an der Ostsee`}
@@ -892,6 +896,7 @@ export default function HeaderWebcams({
               `,
         ].join(" ")}
       >
+        <ExternalMediaConsent provider="Die Strand-Webcams">
         {/* PANEL HEADER */}
 
         <div
@@ -1069,7 +1074,7 @@ export default function HeaderWebcams({
             aufgenommen und automatisch aktualisiert.
           </p>
         </div>
-      </section>}
+      </ExternalMediaConsent></section>}
     </div>
   );
 }

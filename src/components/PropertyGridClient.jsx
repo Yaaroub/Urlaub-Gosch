@@ -12,7 +12,7 @@ import Image from "next/image";
 import CustomerStayPrice from "./CustomerStayPrice";
 import Link from "next/link";
 
-import { MapPin, Heart, Tag, Check, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { MapPin, Heart, Tag, Check, RotateCcw, SlidersHorizontal, PawPrint, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getQuickFilterResults } from "@/lib/quick-filters";
 
@@ -215,11 +215,11 @@ export default function PropertyGridClient({
   const gridClassName =
     desktopColumns === 3
       ? "grid grid-cols-1 gap-5 sm:grid-cols-2"
-      : "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3";
+      : "grid grid-cols-1 gap-5 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 min-[2200px]:grid-cols-4";
 
   const imageSizes =
     desktopColumns === 2
-      ? "(min-width: 1536px) 520px, (min-width: 1280px) 380px, (min-width: 640px) 50vw, 100vw"
+      ? "(min-width: 2200px) 340px, (min-width: 1800px) 360px, (min-width: 1536px) 320px, (min-width: 1280px) 380px, (min-width: 640px) 50vw, 100vw"
       : "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
 
   useEffect(() => {
@@ -429,8 +429,8 @@ export default function PropertyGridClient({
             {activeCount > 0 && <button type="button" onClick={resetQuickFilters} disabled={isUpdating} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-slate-500 hover:bg-slate-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"><RotateCcw className="h-3.5 w-3.5" />Zurücksetzen</button>}
           </div>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,190px),1fr))] gap-2">
-            <QuickFilter checked={onlyFavs} onChange={(value) => { setOnlyFavs(value); refreshFavoriteOrder(); }} label="Favoriten" description="Ihre gemerkten Unterkünfte" count={ready ? counts.favorites : null} icon={Heart} disabled={!ready} />
-            <QuickFilter checked={onlyLastMinute} onChange={(value) => { setOnlyLastMinute(value); refreshFavoriteOrder(); }} label="Last-Minute" description="Unterkünfte mit Angebot" count={counts.lastMinute} icon={Tag} />
+            {(onlyFavs || !ready || counts.favorites > 0) && <QuickFilter checked={onlyFavs} onChange={(value) => { setOnlyFavs(value); refreshFavoriteOrder(); }} label="Favoriten" description="Ihre gemerkten Unterkünfte" count={ready ? counts.favorites : null} icon={Heart} disabled={!ready} />}
+            {(onlyLastMinute || counts.lastMinute > 0) && <QuickFilter checked={onlyLastMinute} onChange={(value) => { setOnlyLastMinute(value); refreshFavoriteOrder(); }} label="Last-Minute" description="Unterkünfte mit Angebot" count={counts.lastMinute} icon={Tag} />}
             <QuickFilter checked={onlyKuschelwochen} onChange={(value) => { setOnlyKuschelwochen(value); refreshFavoriteOrder(); if (!value) clearKuschelwochenQuery(); }} label="Kuschelwochen" description="Teilnehmende Unterkünfte" count={counts.kuschelwochen} icon={HuggedHeartIcon} disabled={isUpdating} />
           </div>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-slate-100 pt-3">
@@ -576,12 +576,6 @@ export default function PropertyGridClient({
                         }
                       </h3>
 
-                      {property.kuschelwochenEnabled === true && (
-                        <span className="mt-2 inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
-                          Ostsee-Kuschelwochen
-                        </span>
-                      )}
-
                       {/* STRASSENNAME OHNE HAUSNUMMER */}
 
                       {streetName ? (
@@ -623,6 +617,7 @@ export default function PropertyGridClient({
                           ).map(
                             (
                               amenity,
+                              index,
                             ) => {
                               const Icon =
                                 getAmenityIcon(
@@ -630,40 +625,42 @@ export default function PropertyGridClient({
                                 );
 
                               return (
-                                <span
+                                <IconWithTip
                                   key={
                                     amenity.id ??
                                     amenity.name
                                   }
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-50 text-slate-500 ring-1 ring-slate-200/80"
-                                  title={
-                                    amenity.name
-                                  }
-                                  aria-label={
-                                    amenity.name
-                                  }
+                                  label={amenity.name}
+                                  align={index < 3 ? "left" : "right"}
                                 >
                                   <Icon className="h-4 w-4" />
-                                </span>
+                                </IconWithTip>
                               );
                             },
                           )}
                         </div>
                       )}
 
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                        <span>
-                          {typeof property.maxPersons !==
-                          "undefined"
-                            ? `bis ${property.maxPersons} Pers.`
-                            : ""}
-                        </span>
-
-                        <span>
-                          {property.dogsAllowed
-                            ? "Hunde erlaubt"
-                            : "Keine Hunde"}
-                        </span>
+                      <div className="mt-4 flex items-end justify-between gap-3 border-t border-slate-100 pt-3">
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          {property.maxPersons ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Users className="h-3.5 w-3.5" aria-hidden="true" />
+                              bis {property.maxPersons}
+                            </span>
+                          ) : null}
+                          {property.dogsAllowed ? (
+                            <IconWithTip label="Hunde erlaubt" align="left" tone="amber">
+                              <PawPrint className="h-3.5 w-3.5" />
+                            </IconWithTip>
+                          ) : null}
+                          {property.kuschelwochenEnabled === true ? (
+                            <IconWithTip label="Ostsee-Kuschelwochen: Gratisnächte bei 7 oder 14 Nächten" align="left" tone="rose">
+                              <HuggedHeartIcon className="h-3.5 w-3.5" />
+                            </IconWithTip>
+                          ) : null}
+                        </div>
+                        <PriceFrom value={property.minNightlyPrice} />
                       </div>
                     </div>
                   </Link>
@@ -735,4 +732,47 @@ function uniqueAmenities(
   }
 
   return list;
+}
+
+/** Small round icon with a text label shown on hover (and to screen readers). */
+function IconWithTip({ label, children, align = "left", tone = "slate" }) {
+  const tones = {
+    slate: "bg-slate-50 text-slate-500 ring-slate-200/80",
+    amber: "bg-amber-50 text-amber-700 ring-amber-200/80",
+    rose: "bg-rose-50 text-rose-600 ring-rose-200/80",
+  };
+  return (
+    <span
+      className={"group/tip relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ring-1 " + (tones[tone] || tones.slate)}
+      aria-label={label}
+      role="img"
+    >
+      {children}
+      <span
+        aria-hidden="true"
+        className={[
+          "pointer-events-none absolute bottom-full z-30 mb-2 w-max max-w-[220px] rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-medium leading-4 text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover/tip:opacity-100",
+          align === "right" ? "right-0" : "left-0",
+        ].join(" ")}
+      >
+        {label}
+      </span>
+    </span>
+  );
+}
+
+function PriceFrom({ value }) {
+  const price = Number(value);
+  if (!Number.isFinite(price) || price <= 0) {
+    return <span className="text-xs font-medium text-slate-500">Preis auf Anfrage</span>;
+  }
+  return (
+    <span className="text-right leading-tight">
+      <span className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">ab</span>
+      <span className="text-lg font-bold tabular-nums text-slate-950">
+        {new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round(price))} €
+      </span>
+      <span className="text-xs font-medium text-slate-500"> / Nacht</span>
+    </span>
+  );
 }

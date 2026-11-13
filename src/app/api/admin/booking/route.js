@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { overlapWhere, withPropertyBookingLock } from "@/lib/booking-lock";
 
 import {
   ADMIN_PERMISSIONS,
@@ -270,35 +271,68 @@ export async function POST(req) {
     // = erlaubt
     // ========================================================
 
-    const conflict =
-      await prisma.booking.findFirst({
-        where: {
-          propertyId,
+    // Overlap check and insert under a per-property lock, so two
+    // simultaneous requests cannot create overlapping bookings.
+    const result =
+      await withPropertyBookingLock(
+        propertyId,
+        async (tx) => {
+          const conflict =
+            await tx.booking.findFirst({
+              where: overlapWhere(
+                propertyId,
+                startDate,
+                endDate
+              ),
 
-          startDate: {
-            lt: endDate,
-          },
+              select: {
+                id: true,
+                startDate: true,
+                endDate: true,
+                guestName: true,
+              },
+            });
 
-          endDate: {
-            gt: startDate,
-          },
-        },
+          if (conflict) {
+            return { conflict };
+          }
 
-        select: {
-          id: true,
-          startDate: true,
-          endDate: true,
-          guestName: true,
-        },
-      });
+          const created =
+            await tx.booking.create({
+              data: {
+                propertyId,
 
-    if (conflict) {
+                startDate,
+
+                endDate,
+
+                guestName:
+                  guestName ||
+                  "(Admin)",
+              },
+
+              select: {
+                id: true,
+                propertyId: true,
+                startDate: true,
+                endDate: true,
+                guestName: true,
+                createdAt: true,
+              },
+            });
+
+          return { created };
+        }
+      );
+
+    if (result.conflict) {
       return Response.json(
         {
           error:
             "Der Zeitraum überschneidet sich mit einer bestehenden Belegung.",
 
-          conflict,
+          conflict:
+            result.conflict,
         },
         {
           status: 409,
@@ -306,33 +340,8 @@ export async function POST(req) {
       );
     }
 
-    // ========================================================
-    // Eintrag anlegen
-    // ========================================================
-
-    const created =
-      await prisma.booking.create({
-        data: {
-          propertyId,
-
-          startDate,
-
-          endDate,
-
-          guestName:
-            guestName ||
-            "(Admin)",
-        },
-
-        select: {
-          id: true,
-          propertyId: true,
-          startDate: true,
-          endDate: true,
-          guestName: true,
-          createdAt: true,
-        },
-      });
+    const { created } =
+      result;
 
     return Response.json(
       created,
