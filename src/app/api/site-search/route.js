@@ -121,7 +121,8 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const rawQuery = searchParams.get("q") ?? "";
+    // Capped: the term goes into several database searches.
+    const rawQuery = (searchParams.get("q") ?? "").trim().slice(0, 80);
     const query = normalize(rawQuery);
 
     if (query.length < 2) {

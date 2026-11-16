@@ -11,7 +11,9 @@ export async function GET(request) {
         user: null,
       },
       {
-        status: 401,
+        // 200 on purpose: "not signed in" is the normal case for visitors and
+        // must not show up as an error in every visitor's browser console.
+        status: 200,
         headers: {
           "Cache-Control": "no-store",
         },

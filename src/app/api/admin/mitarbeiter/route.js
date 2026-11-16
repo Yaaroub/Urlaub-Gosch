@@ -267,12 +267,13 @@ export async function POST(
   }
 
   if (
-    password.length < 10
+    password.length < 10 ||
+      Buffer.byteLength(password, "utf8") > 72
   ) {
     return Response.json(
       {
         error:
-          "Das Passwort muss mindestens 10 Zeichen lang sein.",
+          "Das Passwort muss mindestens 10 und höchstens 72 Zeichen lang sein.",
       },
       {
         status: 400,

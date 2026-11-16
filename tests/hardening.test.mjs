@@ -44,3 +44,36 @@ test("password policy and constant-time verification for unknown accounts", asyn
   assert.equal(passwordProblem("lang-genug-123"), null);
   assert.equal(await verifyPasswordConstantTime("whatever", null), false);
 });
+
+test("image URLs are limited to our own image storage and local paths", async () => {
+  const { isAllowedImageUrl, BLOB_IMAGE_HOST } = await import("../src/lib/image-hosts.js");
+  assert.equal(isAllowedImageUrl(`https://${BLOB_IMAGE_HOST}/objects/property-1/a.jpg`), true);
+  assert.equal(isAllowedImageUrl("/hero/hero.jpeg"), true);
+  for (const bad of [
+    "https://evil.example/a.jpg",
+    `http://${BLOB_IMAGE_HOST}/a.jpg`,
+    `https://${BLOB_IMAGE_HOST}.evil.example/a.jpg`,
+    `https://user:pw@${BLOB_IMAGE_HOST}/a.jpg`,
+    `https://${BLOB_IMAGE_HOST}:8443/a.jpg`,
+    "//evil.example/a.jpg",
+    "javascript:alert(1)",
+    "data:image/png;base64,AAAA",
+    "",
+    null,
+  ]) {
+    assert.equal(isAllowedImageUrl(bad), false, String(bad));
+  }
+});
+
+test("content security policy restricts sources and blocks indexing of the vercel.app host", async () => {
+  const { default: config } = await import("../next.config.mjs");
+  const rules = await config.headers();
+  const csp = Object.fromEntries(rules[0].headers.map((h) => [h.key, h.value]))["Content-Security-Policy"];
+  for (const part of ["default-src 'self'", "object-src 'none'", "base-uri 'self'", "frame-ancestors 'none'", "form-action 'self'"]) {
+    assert.ok(csp.includes(part), part);
+  }
+  assert.ok(!/script-src[^;]*\*/.test(csp), "no wildcard script source");
+  const vercelRule = rules.find((rule) => rule.has?.some((h) => h.type === "host"));
+  assert.match(vercelRule.headers[0].value, /noindex/);
+  assert.equal(config.images.remotePatterns.some((p) => /unsplash|googleusercontent|\*/.test(p.hostname)), false);
+});

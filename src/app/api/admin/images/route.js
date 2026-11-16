@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 
 import {
   ADMIN_PERMISSIONS,
@@ -210,6 +211,28 @@ export async function POST(req) {
       return Response.json(
         {
           error: "Keine Bilder angegeben.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // Only our own image storage is allowed. A foreign address would make
+    // every page that shows this picture fail (next/image rejects unknown
+    // hosts) and could be abused for tracking.
+    if (
+      images.length > 100 ||
+      images.some(
+        (image) =>
+          !isAllowedImageUrl(image.url) ||
+          (image.alt && image.alt.length > 300)
+      )
+    ) {
+      return Response.json(
+        {
+          error:
+            "Ungültige Bildadresse. Erlaubt sind nur Bilder aus dem eigenen Bildspeicher.",
         },
         {
           status: 400,

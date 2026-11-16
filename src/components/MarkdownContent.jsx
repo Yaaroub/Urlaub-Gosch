@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 
 export default function MarkdownContent({
   content = "",
@@ -110,6 +111,14 @@ export default function MarkdownContent({
                 {children}
               </blockquote>
             );
+          },
+
+          // Images in descriptions may only come from our own image storage
+          // (no external tracking pixels, no broken foreign images).
+          img({ src, alt }) {
+            if (!isAllowedImageUrl(src)) return null;
+            // eslint-disable-next-line @next/next/no-img-element
+            return <img src={src} alt={alt || ""} loading="lazy" className="my-4 max-w-full rounded-xl" />;
           },
 
           a({ href, children }) {

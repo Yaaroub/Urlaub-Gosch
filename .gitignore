@@ -47,4 +47,6 @@ public/uploads
 
 # local logs
 *.log
-/.next-verify/
+
+# every Next build/preview folder (.next, .next-preview, .next-verify …)
+/.next*/

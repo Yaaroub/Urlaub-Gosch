@@ -762,6 +762,14 @@ const getProperty = cache(
           slug,
         },
 
+        // Private calendar subscription data is never loaded on the public page,
+        // so it can never end up in the HTML by accident.
+        omit: {
+          icalUrl: true,
+          icalUpdatedAt: true,
+          icalLastRunAt: true,
+        },
+
         include: {
           amenities: true,
 

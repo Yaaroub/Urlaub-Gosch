@@ -13,6 +13,8 @@ import {
   Upload,
 } from "lucide-react";
 
+const PUBLIC_SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/+$/, "");
+
 function formatDateTime(value) {
   if (!value) return "—";
 
@@ -72,7 +74,10 @@ export default function AdminIcalPage() {
    * /admin/ical?propertyId=21
    */
   useEffect(() => {
-    setSiteOrigin(window.location.origin);
+    // Export links handed to booking portals must always use the public main
+    // domain (NEXT_PUBLIC_SITE_URL), never the address the admin happens to be
+    // opened on (e.g. the technical *.vercel.app address).
+    setSiteOrigin(PUBLIC_SITE_ORIGIN || window.location.origin);
 
     const searchParams = new URLSearchParams(window.location.search);
     const propertyIdFromUrl = searchParams.get("propertyId");
@@ -709,6 +714,13 @@ export default function AdminIcalPage() {
                     className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none"
                   />
                 </label>
+
+                {/\.vercel\.app$/i.test(siteOrigin.replace(/^https?:\/\//, "")) ? (
+                  <p role="alert" className="mt-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                    Achtung: Dieser Link zeigt auf die technische Vercel-Adresse. Bitte nicht an Portale weitergeben,
+                    solange die Hauptdomain nicht eingerichtet ist (Umgebungsvariable NEXT_PUBLIC_SITE_URL).
+                  </p>
+                ) : null}
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button

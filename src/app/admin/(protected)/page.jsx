@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CalendarSearch, Euro, Home, Images, Settings, RefreshCw, Tag, Users, ExternalLink } from "lucide-react";
+import { ArrowRight, CalendarDays, CalendarSearch, Euro, Home, Images, KeyRound, Settings, RefreshCw, Tag, Users, ExternalLink } from "lucide-react";
 import HuggedHeartIcon from "@/components/HuggedHeartIcon";
 import { getAdminUser } from "@/lib/admin-auth";
 
@@ -42,7 +42,10 @@ export default async function AdminHome() {
   return <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-6">
       <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Urlaub GOSCH · Verwaltung</p><h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Admin-Übersicht</h1><p className="mt-2 text-sm text-slate-500">Hallo {name}. Was steht heute an?</p></div>
-      <Link href="/" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 hover:border-sky-300 hover:text-sky-700">Website ansehen <ExternalLink className="h-4 w-4" aria-hidden="true" /></Link>
+      <div className="flex flex-wrap gap-2">
+        <Link href="/admin/mein-passwort" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 hover:border-sky-300 hover:text-sky-700"><KeyRound className="h-4 w-4" aria-hidden="true" /> Passwort ändern</Link>
+        <Link href="/" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 hover:border-sky-300 hover:text-sky-700">Website ansehen <ExternalLink className="h-4 w-4" aria-hidden="true" /></Link>
+      </div>
     </header>
 
     <section aria-labelledby="daily-tasks" className="mb-10">

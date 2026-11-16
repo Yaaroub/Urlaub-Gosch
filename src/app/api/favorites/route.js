@@ -56,6 +56,9 @@ export async function POST(req) {
 
     return Response.json({ ok: true }, { status: 201 });
   } catch (err) {
+    if (err?.code === "P2003") {
+      return Response.json({ error: "Unterkunft nicht gefunden" }, { status: 404 });
+    }
     console.error("POST /favorites failed:", err);
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
