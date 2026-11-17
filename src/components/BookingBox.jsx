@@ -186,7 +186,9 @@ export default function BookingBox({ propertyId }) {
       setMessage({
         type: "ok",
         text:
-          requestType === "booking"
+          data.notificationSent === false
+            ? "Ihre Anfrage wurde gespeichert. Die E-Mail-Benachrichtigung konnte derzeit nicht versendet werden. Bitte nennen Sie bei Rückfragen die Anfrage-Nr. " + data.requestId + "."
+            : requestType === "booking"
             ? "Ihre Buchungsanfrage wurde erfolgreich übermittelt. Die ausgewählten Tage sind noch nicht fest gebucht – wir prüfen Ihre Anfrage und melden uns."
             : "Ihre Informationsanfrage wurde erfolgreich übermittelt. Wir melden uns schnellstmöglich bei Ihnen.",
       });

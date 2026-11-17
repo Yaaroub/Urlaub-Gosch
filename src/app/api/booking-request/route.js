@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import nodemailer from "nodemailer";
+import { sendInquiryMail } from "@/lib/resend-mail";
 import { checkInquiryRequest, readInquiryJson, validInquiry } from "@/lib/public-inquiry";
 
 function dateOnly(input) {
@@ -109,28 +109,8 @@ Nachricht: ${message || "-"}
       },
     });
 
-    // Admin-Mail. The request is already stored: a mail failure must not
-    // produce an error for the guest (otherwise they resubmit -> duplicates).
-    const adminEmail = process.env.BOOKING_ADMIN_EMAIL;
-    if (adminEmail && process.env.SMTP_HOST) {
-      try {
-        const smtpPort = Number(process.env.SMTP_PORT || 587);
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: smtpPort,
-          // 465 = implicit TLS; otherwise STARTTLS is mandatory (no plaintext fallback).
-          secure: smtpPort === 465,
-          requireTLS: smtpPort !== 465,
-          tls: { minVersion: "TLSv1.2" },
-          connectionTimeout: 10000,
-          greetingTimeout: 10000,
-          socketTimeout: 15000,
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          },
-        });
-
+    let notificationSent = false;
+    try {
         const text = `
 Neue unverbindliche Anfrage (PENDING)
 
@@ -154,20 +134,13 @@ Hinweis:
 Die Tage sind im Kalender NOCH NICHT blockiert.
 Bitte im Admin-Bereich prüfen und ggf. Buchung anlegen.
         `.trim();
-
-        await transporter.sendMail({
-          from: `"Urlaub-GOSCH" <${process.env.SMTP_FROM || adminEmail}>`,
-          to: adminEmail,
-          replyTo: { name: fullName, address: email.trim() },
-          subject: `Neue Anfrage – ${property.title}`,
-          text,
-        });
-      } catch (mailError) {
-        console.error("POST /api/booking-request: admin mail failed (request saved):", request.id, mailError?.message);
-      }
+      await sendInquiryMail({ subject: `Neue Anfrage – ${property.title}`, text, replyTo: email.trim(), idempotencyKey: `booking-request-${request.id}` });
+      notificationSent = true;
+    } catch (error) {
+      console.error("Booking notification failed; request saved:", request.id, error.message);
     }
 
-    return Response.json({ ok: true, requestId: request.id });
+    return Response.json({ ok: true, requestId: request.id, notificationSent });
   } catch (e) {
     console.error("POST /api/booking-request error:", e);
     return Response.json(

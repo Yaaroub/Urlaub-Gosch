@@ -1419,9 +1419,12 @@ export default function DatenschutzPage() {
               </p>
 
               <p>
-                <strong>Unverbindliche Buchungsanfrage:</strong> Über das Anfrageformular einer Unterkunft verarbeiten wir Vor- und Nachname, E-Mail-Adresse, optional Telefonnummer und Nachricht sowie die gewünschte Unterkunft und den Reisezeitraum. Die Anfrage wird in unserer Datenbank (Neon, siehe „Hosting“) gespeichert; zusätzlich erhalten wir eine Benachrichtigung per E-Mail über einen E-Mail-Versanddienst (SMTP), die verschlüsselt übertragen wird. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen). Zum Schutz vor Missbrauch wird die Zahl der Anfragen je IP-Adresse und E-Mail-Adresse kurzzeitig begrenzt (Art. 6 Abs. 1 lit. f DSGVO).
+                <strong>Unverbindliche Buchungsanfrage:</strong> Über das Anfrageformular einer Unterkunft verarbeiten wir Vor- und Nachname, E-Mail-Adresse, optional Telefonnummer und Nachricht sowie die gewünschte Unterkunft und den Reisezeitraum. Die Anfrage wird in unserer Datenbank (Neon, siehe „Hosting“) gespeichert; zusätzlich erhalten wir eine Benachrichtigung per E-Mail über Resend, an den die Nachricht über eine verschlüsselte HTTPS-Verbindung übertragen wird. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen). Zum Schutz vor Missbrauch wird die Zahl der Anfragen je IP-Adresse und E-Mail-Adresse kurzzeitig begrenzt (Art. 6 Abs. 1 lit. f DSGVO).
               </p>
 
+              <p>
+                <strong>Kontaktformular:</strong> Für allgemeine Anfragen und Vermieterinteressenten übermitteln wir Name, E-Mail-Adresse, optional Telefonnummer und Betreff sowie die Nachricht über Resend an unser Postfach. Kontaktanfragen werden nicht zusätzlich in der Website-Datenbank gespeichert. Informationen zum Anbieter finden Sie unter <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline">Resend Datenschutz</a>.
+              </p>
               <p>
                 <strong>Kundenkonto:</strong> Wenn Sie ein Konto anlegen, speichern wir E-Mail-Adresse, optional Ihren Namen, Ihr Passwort ausschließlich als sicheren Hash sowie Ihre Favoriten (Art. 6 Abs. 1 lit. b DSGVO). Sie können Ihr Konto jederzeit unter „Konto & Einstellungen“ selbst löschen.
               </p>

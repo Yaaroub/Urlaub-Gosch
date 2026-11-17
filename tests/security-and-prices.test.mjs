@@ -6,6 +6,8 @@ import { createRequire } from "node:module";
 import { getMinimumNightlyPrice } from "../src/lib/min-nightly-price.js";
 import { publicPropertySelect } from "../src/lib/public-property-select.js";
 import { isPublicCalendarAddress, validateCalendarUrl } from "../src/lib/safe-calendar-fetch.js";
+import * as publicInquiry from "../src/lib/public-inquiry.js";
+import * as publicCalendar from "../src/lib/public-calendar.js";
 
 const require = createRequire(import.meta.url);
 const { transform } = require("next/dist/build/swc");
@@ -40,12 +42,6 @@ test("updated iCal parser preserves checkout and source timezone across DST", as
   }
 });
 
-test("updated mailer composes booking notices without contacting SMTP", async () => {
-  const transport = require("nodemailer").createTransport({ streamTransport: true, buffer: true, newline: "unix" });
-  const result = await transport.sendMail({ from: "admin@example.com", to: "admin@example.com", subject: "Neue Anfrage – Meerlächeln", text: "Anreise: 14.11.2026\nAbreise: 21.11.2026" });
-  assert.match(result.message.toString(), /21\.11\.2026/);
-  assert.deepEqual(result.envelope.to, ["admin@example.com"]);
-});
 
 test("Ab-price ignores expired, invalid and empty prices and uses cheapest current/future season", () => {
   const now = new Date("2026-10-29T12:00:00Z");
@@ -56,7 +52,7 @@ test("Ab-price ignores expired, invalid and empty prices and uses cheapest curre
   assert.equal(getMinimumNightlyPrice([rate(50, "2026-10-01", "2026-10-30")], new Date("2026-10-29T23:30:00Z")), null);
 });
 test("anonymous booking POST cannot reach the database", async () => {
-  const route = await load("../src/app/api/bookings/route.js", { "@/lib/db": {}, "@/lib/admin-permissions": deny, "@/lib/booking-lock": { withPropertyBookingLock: async () => { throw new Error("Lock must not be reached"); }, overlapWhere: () => ({}) } });
+  const route = await load("../src/app/api/bookings/route.js", { "@/lib/db": {}, "@/lib/admin-permissions": deny, "@/lib/public-calendar": publicCalendar, "@/lib/booking-lock": { withPropertyBookingLock: async () => { throw new Error("Lock must not be reached"); }, overlapWhere: () => ({}) } });
   assert.equal((await route.POST({ json: () => { throw new Error("Body must not be processed"); } })).status, 401);
 });
 test("public property writes use the protected admin implementation", async () => {
@@ -73,25 +69,39 @@ test("public property selection does not expose iCal source tokens or guest info
   await route.GET();
   assert.equal(selection.icalUrl, undefined);
   assert.equal(selection.requests, undefined);
-  assert.equal(selection.bookings.select.guestName, undefined);
+  // No occupancy at all in the public property list.
+  assert.equal(selection.bookings, undefined);
 });
-test("public calendar JSON does not select guest names", async () => {
-  let selection;
+test("public calendar JSON returns only current date ranges, without ids or names", async () => {
+  let args;
   const route = await load("../src/app/api/bookings/route.js", {
-    "@/lib/db": { booking: { findMany: async (args) => { selection = args.select; return []; } } }, "@/lib/admin-permissions": deny,
+    "@/lib/db": { booking: { findMany: async (a) => { args = a; return [{ id: 7, startDate: new Date("2026-12-01"), endDate: new Date("2026-12-08"), guestName: "TEST_GUEST_NOT_PUBLIC" }]; } } }, "@/lib/admin-permissions": deny,
+    "@/lib/public-calendar": publicCalendar,
     "@/lib/booking-lock": { withPropertyBookingLock: async () => { throw new Error("Lock must not be reached"); }, overlapWhere: () => ({}) },
   });
-  await route.GET({ url: "http://localhost/api/bookings?propertyId=1" });
-  assert.equal(selection.guestName, undefined);
+  const body = await (await route.GET({ url: "http://localhost/api/bookings?propertyId=1" })).json();
+  assert.equal(args.select.guestName, undefined);
+  assert.equal(args.select.id, undefined);
+  assert.ok(args.where.endDate?.gt instanceof Date, "past bookings are filtered out");
+  assert.deepEqual(Object.keys(body[0]).sort(), ["endDate", "startDate"]);
 });
-test("public iCal never serializes guest names", async () => {
+test("public iCal exports bookings only: no names, no requests, no internal numbers", async () => {
   let events;
+  let bookingArgs;
   const route = await load("../src/app/api/ical/[slug]/route.js", {
-    "@/lib/db": { property: { findUnique: async () => ({ title: "Test", bookings: [{ id: 1, startDate: new Date("2026-11-01"), endDate: new Date("2026-11-08"), guestName: "TEST_GUEST_NOT_PUBLIC" }], requests: [] }) } },
+    "@/lib/db": {
+      property: { findUnique: async (a) => { assert.equal(a.select.requests, undefined); return { id: 3, title: "Test" }; } },
+      booking: { findMany: async (a) => { bookingArgs = a; return [{ id: 257, startDate: new Date("2026-12-01"), endDate: new Date("2026-12-08"), guestName: "TEST_GUEST_NOT_PUBLIC" }]; } },
+    },
+    "@/lib/public-calendar": publicCalendar,
     ics: { createEvents: (data) => { events = data; return { value: "BEGIN:VCALENDAR" }; } },
   });
   assert.equal((await route.GET(null, { params: Promise.resolve({ slug: "test" }) })).status, 200);
-  assert(!JSON.stringify(events).includes("TEST_GUEST_NOT_PUBLIC"));
+  const serialized = JSON.stringify(events);
+  assert(!serialized.includes("TEST_GUEST_NOT_PUBLIC"));
+  assert(!/booking-257|request-/.test(serialized), "no internal numbers, no requests");
+  assert.equal(bookingArgs.select.guestName, undefined);
+  assert.ok(bookingArgs.where.endDate?.gt instanceof Date, "past bookings are filtered out");
 });
 test("anonymous upload cannot receive a Blob upload token", async () => {
   const route = await load("../src/app/api/admin/upload/route.js", {
@@ -118,4 +128,97 @@ test("revoked sessions cannot be reused for account APIs", async () => {
   const request = { headers: new Headers({ cookie: "session=test-token" }) };
   assert.equal(await auth.getVerifiedSession(request), null);
   assert.equal(lookupCount, 1);
+});
+
+test("contact only reports success after mail acceptance and rejects missing consent", async () => {
+  let sends = 0;
+  let fail = false;
+  const data = { name: "Ada", email: "ada@example.com", message: "Hallo", privacyAccepted: true, submissionId: "12345678-1234-1234-1234-123456789abc" };
+  const route = await load("../src/app/api/contact/route.js", {
+    "node:crypto": require("node:crypto"),
+    "@/lib/public-inquiry": { checkInquiryRequest: () => null, readInquiryJson: req => req.json() },
+    "@/lib/resend-mail": { sendInquiryMail: async () => { sends++; if(fail) throw Error("MAIL_PROVIDER_503"); } },
+  });
+  const req = body => ({ json: async () => body });
+  assert.equal((await route.POST(req({...data,privacyAccepted:false}))).status,400);
+  assert.equal(sends,0);
+  assert.equal((await route.POST(req(data))).status,200);
+  fail=true;
+  assert.equal((await route.POST(req(data))).status,503);
+});
+
+test("contact accepts a real form request, trims surrounding spaces and keeps retry identity", async () => {
+  const sent = [];
+  const route = await load("../src/app/api/contact/route.js", {
+    "node:crypto": require("node:crypto"),
+    "@/lib/public-inquiry": publicInquiry,
+    "@/lib/resend-mail": { sendInquiryMail: async message => { sent.push(message); } },
+  });
+  const fields = new FormData();
+  for (const [name, value] of Object.entries({ name: " Ada ", email: " ada@example.com ", message: " Hallo\nOstsee! ", privacyAccepted: "on", website: "" })) fields.set(name, value);
+  const body = { ...Object.fromEntries(fields), privacyAccepted: fields.has("privacyAccepted"), isLandlordProspect: fields.has("isLandlordProspect"), submissionId: "12345678-1234-1234-1234-123456789abc" };
+  for (let i = 0; i < 2; i++) {
+    const response = await route.POST(new Request("http://localhost:3000/api/contact", {
+      method: "POST", headers: { "Content-Type": "application/json", Origin: "http://localhost:3000", "x-real-ip": "contact-valid-test" }, body: JSON.stringify(body),
+    }));
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { ok: true });
+  }
+  assert.equal(sent[0].replyTo, "ada@example.com");
+  assert.equal(sent[0].subject, "Kontaktanfrage – Ada");
+  assert.match(sent[0].text, /Telefon: -\nBetreff: -\n\nHallo\nOstsee!$/);
+  assert.equal(sent[0].idempotencyKey, sent[1].idempotencyKey);
+});
+
+test("contact explains invalid fields without sending mail or weakening request protection", async () => {
+  let sends = 0;
+  const route = await load("../src/app/api/contact/route.js", {
+    "node:crypto": require("node:crypto"),
+    "@/lib/public-inquiry": publicInquiry,
+    "@/lib/resend-mail": { sendInquiryMail: async () => { sends++; } },
+  });
+  const data = { name: "Ada", email: "ada@example.com", message: "Hallo", privacyAccepted: true, submissionId: "12345678-1234-1234-1234-123456789abc" };
+  const cases = [
+    [{ privacyAccepted: false }, "PRIVACY_REQUIRED", "privacyAccepted"],
+    [{ privacyAccepted: "on" }, "PRIVACY_REQUIRED", "privacyAccepted"],
+    [{ website: "https://example.com" }, "SPAM_CHECK_FAILED"],
+    [{ email: "ada@example" }, "INVALID_EMAIL", "email"],
+    [{ submissionId: "" }, "INVALID_SUBMISSION"],
+    [{ submissionId: {} }, "INVALID_SUBMISSION"],
+    [{ name: "   " }, "REQUIRED_FIELD", "name"],
+    [{ message: "\n " }, "REQUIRED_FIELD", "message"],
+    [{ name: "A".repeat(201) }, "FIELD_TOO_LONG", "name"],
+    [{ message: "A".repeat(5001) }, "FIELD_TOO_LONG", "message"],
+    [{ email: "ada@example.com\r\nBcc: other@example.com" }, "INVALID_FIELD", "email"],
+    [{ customSubject: "Hallo\nBcc: other@example.com" }, "INVALID_FIELD", "customSubject"],
+    [{ name: {} }, "INVALID_FIELD", "name"],
+  ];
+  for (const [index, [changes, code, field]] of cases.entries()) {
+    const response = await route.POST(new Request("http://localhost:3000/api/contact", {
+      method: "POST", headers: { "Content-Type": "application/json", "x-real-ip": `contact-invalid-${index}` }, body: JSON.stringify({ ...data, ...changes }),
+    }));
+    assert.equal(response.status, 400, code);
+    const result = await response.json();
+    assert.equal(result.code, code);
+    assert.equal(result.field, field);
+    assert.ok(result.error);
+  }
+  const malformed = await route.POST(new Request("http://localhost:3000/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{" }));
+  assert.equal(malformed.status, 400);
+  const crossSite = await route.POST(new Request("http://localhost:3000/api/contact", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://other.example" }, body: JSON.stringify(data) }));
+  assert.equal(crossSite.status, 403);
+  assert.equal(sends, 0);
+});
+
+test("booking remains saved when Resend fails, without reporting successful notification", async () => {
+  let saves = 0;
+  const route = await load("../src/app/api/booking-request/route.js", {
+    "@/lib/public-inquiry": { checkInquiryRequest: () => null, readInquiryJson: req => req.json(), validInquiry: () => true },
+    "@/lib/resend-mail": { sendInquiryMail: async () => { throw Error("MAIL_PROVIDER_503"); } },
+    "@/lib/db": { bookingRequest: { count: async()=>0, create: async()=>{saves++;return {id:123};} }, property: { findUnique: async()=>({id:1,title:"Test",slug:"test"}) }, booking: { findFirst: async()=>null } },
+  });
+  const response = await route.POST({ json: async()=>({propertyId:1,arrival:"2099-11-01",departure:"2099-11-08",firstName:"Ada",lastName:"Test",email:"ada@example.com"}) });
+  assert.equal(response.status,200);
+  assert.equal(saves,1);
+  assert.deepEqual(await response.json(),{ok:true,requestId:123,notificationSent:false});
 });

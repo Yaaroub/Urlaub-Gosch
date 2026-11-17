@@ -1,6 +1,6 @@
 import Link from "next/link";
+import ContactForm from "@/components/ContactForm";
 import {
-  ArrowRight,
   Mail,
   MapPin,
   Phone,
@@ -72,26 +72,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="grid gap-5">
-              <p role="status" className="rounded-xl bg-sky-50 p-4 text-sm text-slate-700">Das Kontaktformular ist noch nicht freigeschaltet. Bitte kontaktieren Sie uns telefonisch oder über die angegebene E-Mail-Adresse.</p>
-              {/*
-                Standardmäßig handelt es sich um eine allgemeine Anfrage.
-
-                Im API-Handler:
-                const isLandlordProspect =
-                  formData.get("isLandlordProspect") === "true";
-
-                const subject = isLandlordProspect
-                  ? "Interessent"
-                  : "Allgemeine Anfrage";
-              */}
-
-              <input
-                type="hidden"
-                name="defaultSubject"
-                value="Allgemeine Anfrage"
-              />
-
+            <ContactForm>
               {/* Vermieter-Interessent */}
               <label className="group block cursor-pointer">
                 <input
@@ -135,6 +116,8 @@ export default function ContactPage() {
                 <Field
                   label="Name"
                   name="name"
+                  maxLength={200}
+                  autoComplete="name"
                   placeholder="Ihr vollständiger Name"
                   required
                 />
@@ -142,6 +125,8 @@ export default function ContactPage() {
                 <Field
                   label="E-Mail"
                   name="email"
+                  maxLength={254}
+                  autoComplete="email"
                   type="email"
                   placeholder="name@example.de"
                   required
@@ -152,6 +137,8 @@ export default function ContactPage() {
                 <Field
                   label="Telefon"
                   name="phone"
+                  maxLength={50}
+                  autoComplete="tel"
                   type="tel"
                   placeholder="Optional"
                 />
@@ -159,6 +146,7 @@ export default function ContactPage() {
                 <Field
                   label="Betreff"
                   name="customSubject"
+                  maxLength={150}
                   placeholder="Worum geht es?"
                 />
               </div>
@@ -174,6 +162,7 @@ export default function ContactPage() {
                 <textarea
                   id="message"
                   name="message"
+                  maxLength={5000}
                   rows={8}
                   required
                   placeholder="Wie können wir Ihnen helfen?"
@@ -202,14 +191,7 @@ export default function ContactPage() {
                 </span>
               </label>
 
-              <button
-                type="button" disabled
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#07131f] px-7 py-4 text-sm font-bold text-white shadow-[0_18px_55px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 hover:bg-slate-800 sm:w-fit"
-              >
-                Versand noch nicht verfügbar
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </button>
-            </div>
+            </ContactForm>
           </div>
 
           {/* Sidebar */}
@@ -302,6 +284,8 @@ function Field({
   type = "text",
   placeholder,
   required = false,
+  maxLength,
+  autoComplete,
 }) {
   return (
     <div>
@@ -322,6 +306,8 @@ function Field({
         type={type}
         placeholder={placeholder}
         required={required}
+        maxLength={maxLength}
+        autoComplete={autoComplete}
         className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#c99a43] focus:bg-white focus:ring-4 focus:ring-[#c99a43]/10"
       />
     </div>

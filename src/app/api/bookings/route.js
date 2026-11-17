@@ -1,6 +1,7 @@
 import { ADMIN_PERMISSIONS, requireAdminPermission } from "@/lib/admin-permissions";
 import prisma from "@/lib/db";
 import { overlapWhere, withPropertyBookingLock } from "@/lib/booking-lock";
+import { currentBookingsWhere } from "@/lib/public-calendar";
 
 /** Utils */
 function dateOnly(input) {
@@ -18,21 +19,26 @@ function fmtISODate(d) {
 
 /**
  * GET /api/bookings?propertyId=1
- * -> Liste aller Buchungen (ISO-Strings)
+ * Public availability for the booking calendar on the property page.
+ * Intentionally without login (visitors must see booked days), therefore
+ * reduced to the minimum: date ranges only, from today on, no ids, no names.
  */
 export async function GET(req) {
   try {
     const sp = new URL(req.url).searchParams;
     const pid = Number(sp.get("propertyId"));
-    if (!pid) return Response.json([]);
+    if (!Number.isSafeInteger(pid) || pid <= 0) return Response.json([]);
 
     const rows = await prisma.booking.findMany({
-      where: { propertyId: pid },
+      where: currentBookingsWhere(pid),
       orderBy: { startDate: "asc" },
-      select: { id: true, startDate: true, endDate: true },
+      select: { startDate: true, endDate: true },
     });
 
-    return Response.json(rows);
+    return Response.json(
+      rows.map(({ startDate, endDate }) => ({ startDate, endDate })),
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch (e) {
     console.error("GET /api/bookings error:", e);
     return Response.json([], { status: 200 });

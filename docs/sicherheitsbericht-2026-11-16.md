@@ -154,3 +154,29 @@ Eigene, alte Website auf einem anderen Server. Sie läuft noch unter der Hauptdo
 - Lokaler Produktions-Build, von außen getestet: 39 geschützte Endpunkte, gefälschte Cookies, Datenfelder öffentlicher Antworten, XSS in der Adresszeile, Bildoptimierer mit fremden Adressen (400), Header je Host (`noindex` nur für `*.vercel.app`).
 - Live `urlaub-gosch.vercel.app`: TLS, Header, 123 Kalender-Exporte, öffentliche und geschützte Schnittstellen (nur lesend).
 - `www.urlaub-gosch.de`: Technik, typische Drupal-Pfade, Anfrage-Speicher, TLS, Header (nur lesend).
+
+---
+
+## 8. Nachtrag 17.11.2026: Hinweis von fewoFlow
+
+fewoFlow hat beim Auslesen von `urlaub-gosch.vercel.app` für den Objekt-Import am **06.10.2026** dieselben Stellen gefunden, die in Abschnitt 2 beschrieben sind: `/api/properties` mit Buchungen samt `guestName` und den `icalUrl`-Feldern sowie `/api/ical/<objekt>` mit „Gast: <Name>“ und „Anfrage von <Name>“.
+
+**Wichtig für die Datenschutz-Bewertung:** Laut fewoFlow standen dort am 06.10. bei fast allen Belegungen nur „(Admin)“ und zwei Testeinträge, auch die Anfragen waren erkennbar Tests. **Echte Gästenamen hat fewoFlow nicht gesehen und nicht gespeichert.** Ob zu einem anderen Zeitpunkt im betroffenen Zeitraum (26.11.2025 bis zur Korrektur) echte Namen eingetragen waren und abgerufen wurden, muss der Betreiber anhand der Datenbank (Eintragsdatum der Buchungen mit echten Namen) und der Vercel-Protokolle prüfen.
+
+### Umsetzung der Empfehlungen von fewoFlow (lokal, noch nicht veröffentlicht)
+
+| Empfehlung | Umsetzung |
+| --- | --- |
+| `/api/bookings` antwortet ohne Anmeldung | Die Adresse wird vom **öffentlichen Belegungskalender** auf jeder Objektseite gebraucht und bleibt deshalb ohne Login erreichbar. Sie liefert jetzt nur noch **Anreise und Abreise ab heute**: keine Buchungsnummern, keine Namen, keine vergangenen Belegungen. Geprüft: Der Kalender zeigt weiter alle belegten Tage. |
+| Weitere Adressen unter `/api/` prüfen | Alle 19 öffentlichen Adressen ohne Login aufgerufen. Keine liefert Gästedaten, Buchungsnummern, Anfragen oder Kalender-Links. Übrig sind nur Objekt-, Ausstattungs- und Preis-IDs aus dem öffentlichen Katalog. |
+| `/api/properties` | Enthält **keine Belegungen** mehr (bisher Anreise/Abreise aller Buchungen). Die Belegung gibt es nur noch über den Kalender und den iCal-Export. Objektdaten für den fewoFlow-Import bleiben verfügbar. |
+| Anfragen im iCal-Export | **Entfernt.** Der Export enthält nur noch feste Belegungen. Eine unverbindliche Anfrage blockiert damit bei Portalen keine Tage mehr. |
+| Interne Buchungsnummern im iCal-Export | **Entfernt.** Statt `booking-257@urlaub-gosch` steht eine nicht zählbare, gleichbleibende Kennung. Portale sehen beim nächsten Abgleich einmalig alle Einträge als neu. Das ist normal. |
+| Vergangene Belegungen im iCal-Export | **Entfernt.** Nur noch Belegungen mit Abreise ab heute. |
+| Rückblick in den Zugriffsprotokollen | Offen, nur durch den Betreiber in Vercel möglich (siehe Abschnitt 2). |
+
+Prüfung: 62 von 62 Tests bestanden (neue Tests für Kalender-JSON und iCal-Export), Lint ohne Befund, Produktions-Build erfolgreich, alle öffentlichen Adressen lokal ohne Login abgefragt.
+
+### Hinweis zum neuen Kontaktformular
+
+Parallel wurde ein Kontaktformular mit dem Versanddienst **Resend** angelegt (`src/app/api/contact`, `src/lib/resend-mail.js`). Es ist technisch sauber abgesichert: Herkunftsprüfung, Größen- und Anzahlbegrenzung, Spam-Feld, keine Zeilenumbrüche in Kopfzeilen, Fehlermeldungen ohne Kundendaten in den Logs. Resend ist allerdings ein **zusätzlicher Auftragsverarbeiter** mit Sitz in den USA. Dafür braucht es einen AV-Vertrag und eine Angabe in der Datenschutzerklärung. Das weicht vom besprochenen Weg über Microsoft 365 ab. Die Entscheidung liegt beim Betreiber.

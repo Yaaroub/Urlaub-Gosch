@@ -3,7 +3,9 @@ import { publicPropertySelect } from "@/lib/public-property-select";
 
 export async function GET() {
   const items = await prisma.property.findMany({
-    select: { ...publicPropertySelect, bookings: { select: { startDate: true, endDate: true } } },
+    // No occupancy here: availability is only published via the booking
+    // calendar (/api/bookings) and the iCal export, both without names or ids.
+    select: publicPropertySelect,
     orderBy: { id: "asc" },
   });
   return Response.json(items);
