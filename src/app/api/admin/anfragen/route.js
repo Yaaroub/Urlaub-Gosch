@@ -20,16 +20,24 @@ function deny(auth) {
 }
 
 /**
- * GET /api/admin/anfragen?status=PENDING&q=&page=1
+ * POST /api/admin/anfragen  { status: "PENDING", q: "", page: 1 }
  * Booking requests incl. contact data. Requires AVAILABILITY_VIEW (the same
  * right that shows guest names in the occupancy calendar).
+ *
+ * POST on purpose: the search term (often a guest's name or e-mail) travels in
+ * the request body and therefore never appears in URLs or access logs.
  */
-export async function GET(req) {
+export async function POST(req) {
   const auth = await requireAdminPermission(ADMIN_PERMISSIONS.AVAILABILITY_VIEW, req);
   if (!auth.ok) return deny(auth);
 
   try {
-    const query = parseListQuery(new URL(req.url).searchParams);
+    const body = await req.json().catch(() => ({}));
+    const params = new URLSearchParams();
+    for (const key of ["status", "q", "page"]) {
+      if (body && (typeof body[key] === "string" || typeof body[key] === "number")) params.set(key, String(body[key]));
+    }
+    const query = parseListQuery(params);
     const where = buildListWhere(query);
     const cutoff = retentionCutoff(DEFAULT_RETENTION_MONTHS);
 
@@ -76,7 +84,7 @@ export async function GET(req) {
       { headers: NO_STORE }
     );
   } catch (error) {
-    logError("GET /api/admin/anfragen failed:", error);
+    logError("POST /api/admin/anfragen failed:", error);
     return Response.json({ error: "Anfragen konnten nicht geladen werden." }, { status: 500, headers: NO_STORE });
   }
 }

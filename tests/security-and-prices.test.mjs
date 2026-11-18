@@ -243,7 +243,8 @@ const anfragenMocks = (db, perms, ok = true) => ({
 
 test("booking requests are never readable or deletable without the right permission", async () => {
   const list = await load("../src/app/api/admin/anfragen/route.js", anfragenMocks(noDb, [], false));
-  assert.equal((await list.GET(new Request("http://x/api/admin/anfragen"))).status, 401);
+  assert.equal((await list.POST(new Request("http://x/api/admin/anfragen", { method: "POST", body: "{}" }))).status, 401);
+  assert.equal(list.GET, undefined, "no GET: search terms must never be part of a URL");
   assert.equal((await list.DELETE(new Request("http://x/api/admin/anfragen", { method: "DELETE", body: '{"olderThanMonths":12}' }))).status, 401);
 
   // Viewing right alone must not allow deleting or changing.

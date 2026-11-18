@@ -50,9 +50,14 @@ export default function AdminRequestsPage() {
     async (signal) => {
       setLoading(true);
       try {
-        const params = new URLSearchParams({ status, page: String(page) });
-        if (appliedQuery) params.set("q", appliedQuery);
-        const response = await fetch(`/api/admin/anfragen?${params}`, { cache: "no-store", signal });
+        // Search term goes in the body, never in the URL (keeps guest names out of access logs).
+        const response = await fetch("/api/admin/anfragen", {
+          method: "POST",
+          cache: "no-store",
+          signal,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status, page, q: appliedQuery }),
+        });
         const result = await response.json().catch(() => ({}));
         if (response.status === 401) {
           window.location.href = "/admin/login";
