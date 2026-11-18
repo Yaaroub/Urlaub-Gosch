@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { logError } from "@/lib/safe-log";
 
 export async function GET(req) {
   try {
@@ -7,7 +8,7 @@ export async function GET(req) {
     const ids = idsParam
       .split(",")
       .map((s) => Number(s.trim()))
-      .filter((n) => Number.isFinite(n) && n > 0);
+      .filter((n) => Number.isSafeInteger(n) && n > 0 && n <= 2147483647);
 
     if (ids.length === 0) return Response.json([]);
 
@@ -36,7 +37,7 @@ export async function GET(req) {
 
     return Response.json(items);
   } catch (e) {
-    console.error(e);
+    logError("GET /api/properties/by-ids failed", e);
     return Response.json({ error: "Failed to load properties" }, { status: 500 });
   }
 }

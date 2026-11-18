@@ -28,7 +28,9 @@ export async function GET(req) {
   try {
     const sp = new URL(req.url).searchParams;
     const pid = Number(sp.get("propertyId"));
-    if (!Number.isSafeInteger(pid) || pid <= 0) return Response.json([]);
+    if (!Number.isSafeInteger(pid) || pid <= 0 || pid > 2147483647) {
+      return Response.json({ error: "Ungültige Objekt-ID." }, { status: 400 });
+    }
 
     const rows = await prisma.booking.findMany({
       where: currentBookingsWhere(pid),
@@ -42,7 +44,10 @@ export async function GET(req) {
     );
   } catch (e) {
     logError("GET /api/bookings error:", e);
-    return Response.json([], { status: 200 });
+    return Response.json(
+      { error: "Die Belegung konnte nicht geladen werden." },
+      { status: 503, headers: { "Cache-Control": "no-store" } }
+    );
   }
 }
 
@@ -119,7 +124,7 @@ export async function POST(req) {
     }
     const { booking } = result;
 
-    return Response.json({ ok: true, booking });
+    return Response.json({ ok: true, booking }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (e) {
     logError("POST /api/bookings error:", e);
     return Response.json(

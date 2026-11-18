@@ -238,3 +238,21 @@ Sicherheit: Alle Aktionen prüfen Anmeldung und Recht auf dem Server. Wer nur an
 Geprüft: 67 von 67 Tests, Lint, Produktions-Build. Lokal ohne Login: alle vier Schnittstellen-Aktionen 401, gefälschtes Cookie 401, Seite leitet zum Login. **Nicht geprüft:** die Seite angemeldet im Browser (keine Zugangsdaten). Bitte nach der Veröffentlichung einmal ansehen.
 
 Offen bleibt eine **automatische** Löschung nach Frist (ohne Klick). Sie würde selbständig Daten in der Live-Datenbank löschen und wird nur nach ausdrücklicher Freigabe gebaut.
+
+---
+
+## 10. Nachtrag 18.11.2026: Kundenkonten entfernt (lokal, nicht veröffentlicht)
+
+Urlaub-GOSCH bietet keine Kundenkonten an. Der Code dafür war aber noch vorhanden und öffentlich erreichbar: Über `/register` hätte jeder ein Konto anlegen und damit Daten in die Live-Datenbank schreiben können. In der Datenbank gab es **0 Kundenkonten und 0 gespeicherte Favoriten** (nur gezählt).
+
+**Entfernt:** die Seiten `/login`, `/register`, `/account` und die Schnittstellen `/api/auth/login`, `/api/auth/register`, `/api/auth/me`, `/api/account/*`, `/api/favorites/*`, außerdem die nur dafür genutzten Hilfsfunktionen. Alle liefern jetzt 404.
+
+**Geändert:**
+- **Sitzungen nur für Mitarbeiter.** Selbst ein Konto mit Kundenrolle bekäme keine gültige Sitzung (per Test belegt).
+- **Favoriten (Herz)** werden nur noch im Browser des Besuchers gespeichert. Es geht nichts an den Server (im Browser geprüft).
+- **Datenschutzerklärung:** Der Abschnitt „Kundenkonto“ ist entfernt. Dort steht jetzt, dass Favoriten nur im Browser liegen und das Sitzungs-Cookie nur für Mitarbeiter gilt.
+- **`robots.txt` und Header-Regeln** sind entsprechend bereinigt.
+
+**Unverändert:** Mitarbeiter-Login, Logout, Admin-Bereich. Die Datenbank-Tabellen `User` und `Favorite` und die Rolle `USER` bleiben bestehen, weil keine Datenbankänderung erfolgen soll. Sie werden vom Code nicht mehr für Kunden genutzt.
+
+Prüfung: 76 von 76 Tests, Lint, Produktions-Build. Lokal: alle entfernten Adressen 404, Logout, Favoriten-Seite und Admin-Login funktionieren.

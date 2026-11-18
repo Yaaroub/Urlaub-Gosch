@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentSessionAndUser, getCurrentUser } from "@/lib/auth";
 
 export const STAFF_ROLES = [
   "EDITOR",
@@ -41,24 +41,16 @@ export async function requireAdmin(req = null) {
 /**
  * Nur SUPERADMIN.
  */
-export async function getSuperAdmin(req = null) {
-  const user = await getCurrentUser(req);
-
-  if (!user) {
-    return null;
-  }
-
-  if (user.role !== "SUPERADMIN") {
-    return null;
-  }
-
+export async function getSuperAdminSession(req = null) {
+  const current = await getCurrentSessionAndUser(req);
   // Same rule as requireAdminPermission: no admin actions before the
   // mandatory password change has been completed.
-  if (user.mustChangePassword) {
-    return null;
-  }
+  if (current?.user.role !== "SUPERADMIN" || current.user.mustChangePassword) return null;
+  return current;
+}
 
-  return user;
+export async function getSuperAdmin(req = null) {
+  return (await getSuperAdminSession(req))?.user ?? null;
 }
 
 export async function requireSuperAdmin(req = null) {

@@ -1,6 +1,7 @@
 // src/app/api/price/route.js
 import prisma from "@/lib/db";
-import { parseTravelDate, applyKuschelwochen } from "@/lib/kuschelwochen";
+import { applyKuschelwochen } from "@/lib/kuschelwochen";
+import { publicTravelWindow } from "@/lib/search-utils";
 import { getKuschelwochenPeriods } from "@/lib/kuschelwochen-periods";
 import { logError } from "@/lib/safe-log";
 
@@ -78,20 +79,17 @@ export async function POST(req) {
       );
     }
 
-    const start = parseTravelDate(arrival);
-    const end = parseTravelDate(departure);
-
+    const window = publicTravelWindow(arrival, departure);
     if (
       !Number.isSafeInteger(Number(propertyId)) || Number(propertyId) <= 0 ||
-      !start ||
-      !end ||
-      end <= start || (end - start) / 86400000 > 730
+      !window
     ) {
       return Response.json(
         { error: "Ungültiger Zeitraum." },
         { status: 400 }
       );
     }
+    const { start, end } = window;
 
     const property = await prisma.property.findUnique({
       where: { id: Number(propertyId) },

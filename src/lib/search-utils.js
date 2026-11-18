@@ -2,7 +2,8 @@
 // ======================================================================
 // Dienstfunktionen für Suchlogik (Property-Filter für Prisma)
 // ======================================================================
-
+import { parseTravelDate } from "./kuschelwochen.js";
+import { startOfTodayBerlin } from "./public-calendar.js";
 export const AMENITY_LABELS = {
   wlan: "WLAN",
   sauna: "Sauna",
@@ -23,8 +24,12 @@ export const toAmenityLabels = (arr = []) =>
     .map((v) => String(v).trim().toLowerCase())
     .filter(Boolean);
 
-// Datum prüfen
-export const isDateStr = (s) => s && !Number.isNaN(new Date(s).getTime());
+export function publicTravelWindow(arrival, departure, today = startOfTodayBerlin()) {
+  const start = parseTravelDate(arrival);
+  const end = parseTravelDate(departure);
+  if (!start || !end || start < today || end <= start || end - start > 730 * 86400000) return null;
+  return { start, end };
+}
 
 // Zahl oder 0
 export const asNum = (v) => {
@@ -46,8 +51,7 @@ export function buildPropertyWhere({
   dogs,
   amenities = [],
 } = {}) {
-  const start = isDateStr(arrival) ? new Date(arrival) : null;
-  const end = isDateStr(departure) ? new Date(departure) : null;
+  const window = publicTravelWindow(arrival, departure);
   const aNames = toAmenityLabels(amenities);
 
   /** @type {import('@prisma/client').Prisma.PropertyWhereInput} */
@@ -86,7 +90,8 @@ export function buildPropertyWhere({
   }
 
   // Zeitraum: keine Überschneidung mit bestehenden Buchungen
-  if (start && end && end > start) {
+  if (window) {
+    const { start, end } = window;
     where.AND.push({
       bookings: {
         none: {

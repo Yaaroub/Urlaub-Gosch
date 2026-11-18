@@ -1,11 +1,12 @@
 import { clientIp } from "./rate-limit.js";
+import { isTrustedRequestOrigin } from "./request-origin.js";
 
 const attempts = new Map();
 
 export function checkInquiryRequest(req, now = Date.now()) {
-  const origin = req.headers.get("origin");
-  if (req.headers.get("sec-fetch-site") === "cross-site" || (origin && origin !== new URL(req.url).origin)) return 403;
-  if (!req.headers.get("content-type")?.toLowerCase().startsWith("application/json")) return 415;
+  if (!isTrustedRequestOrigin(req)) return 403;
+  const contentType = req.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase();
+  if (contentType !== "application/json") return 415;
   if (Number(req.headers.get("content-length")) > 16384) return 413;
   // Best-effort per-instance limit; persisted limits are checked in the route.
   const key = clientIp(req);

@@ -45,7 +45,7 @@ const nextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Referrer-Policy", value: "no-referrer" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
           { key: "Content-Security-Policy", value: csp },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
@@ -60,18 +60,18 @@ const nextConfig = {
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
       },
       {
-        // Admin area and all APIs: never index, never cache in shared caches.
-        source: "/admin/:path*",
+        // Private pages and authenticated endpoints must not enter browser or proxy caches.
+        source: "/:area(admin|favorites)/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
-          { key: "Cache-Control", value: "no-store" },
+          { key: "Cache-Control", value: "private, no-store" },
         ],
       },
       {
-        source: "/api/admin/:path*",
+        source: "/api/:area(admin|auth|contact|booking-request)/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
-          { key: "Cache-Control", value: "no-store" },
+          { key: "Cache-Control", value: "private, no-store" },
         ],
       },
     ];

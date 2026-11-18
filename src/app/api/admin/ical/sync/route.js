@@ -10,6 +10,8 @@ import {
   requireAdminPermission,
 } from "@/lib/admin-permissions";
 import { logError } from "@/lib/safe-log";
+import { isTrustedRequestOrigin } from "@/lib/auth";
+import { validateCalendarUrl } from "@/lib/safe-calendar-fetch";
 
 export const dynamic =
   "force-dynamic";
@@ -57,6 +59,7 @@ export async function POST(req) {
   let propertyId = null;
 
   try {
+    if (!isTrustedRequestOrigin(req)) return Response.json({ error: "Ungültige Anfrage." }, { status: 403 });
     const auth =
       await requireAdminPermission(
         ADMIN_PERMISSIONS.ICAL_EDIT,
@@ -139,32 +142,12 @@ export async function POST(req) {
     let parsedUrl;
 
     try {
-      parsedUrl =
-        new URL(
-          property.icalUrl
-        );
+      parsedUrl = validateCalendarUrl(property.icalUrl);
     } catch {
       return Response.json(
         {
           error:
-            "Die hinterlegte iCal-URL ist ungültig.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (
-      parsedUrl.protocol !==
-        "https:" &&
-      parsedUrl.protocol !==
-        "http:"
-    ) {
-      return Response.json(
-        {
-          error:
-            "Die hinterlegte iCal-URL verwendet ein nicht unterstütztes Protokoll.",
+            "Die hinterlegte iCal-URL muss eine öffentliche HTTPS-Adresse sein.",
         },
         {
           status: 400,

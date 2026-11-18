@@ -1134,8 +1134,7 @@ export default function DatenschutzPage() {
                   title="Betroffene Personen"
                   items={[
                     "Besucher unseres Onlineangebotes",
-                    "Gäste mit einer Buchungsanfrage",
-                    "Inhaber eines Kundenkontos",
+                    "Gäste mit einer Buchungs- oder Kontaktanfrage",
                   ]}
                 />
 
@@ -1276,13 +1275,13 @@ export default function DatenschutzPage() {
 
               <ul className="list-disc space-y-2 pl-5">
                 <li>
-                  <strong>Cookie „session“</strong> – nur wenn Sie sich anmelden. Hält Ihre Anmeldung aufrecht (HttpOnly, nur über HTTPS). Laufzeit beim Kundenkonto bis zu 7 Tage bzw. bis zur Abmeldung; im Mitarbeiterbereich endet die Sitzung nach der eingestellten Inaktivitätszeit, spätestens nach 12 Stunden.
+                  <strong>Cookie „session“</strong> – nur für Mitarbeiter im internen Verwaltungsbereich. Hält die Anmeldung aufrecht (HttpOnly, nur über HTTPS) und endet nach der eingestellten Inaktivitätszeit, spätestens nach 12 Stunden. Besucher der Website erhalten dieses Cookie nicht; Kundenkonten gibt es nicht.
                 </li>
                 <li>
                   <strong>„urlaub-gosch-consent-v1“</strong> (localStorage) – speichert Ihre Auswahl in den Cookie-Einstellungen, bis Sie sie ändern oder Ihre Browserdaten löschen.
                 </li>
                 <li>
-                  <strong>„fav:properties“</strong> (localStorage) – Ihre gemerkten Unterkünfte auf diesem Gerät. Sind Sie angemeldet, werden die Favoriten zusätzlich in Ihrem Kundenkonto gespeichert.
+                  <strong>„fav:properties“</strong> (localStorage) – Ihre gemerkten Unterkünfte. Sie werden ausschließlich in Ihrem Browser auf diesem Gerät gespeichert und nicht an uns übertragen.
                 </li>
                 <li>
                   <strong>„admin:lastActivity“</strong> und Ansichtseinstellungen (localStorage) – nur im internen Mitarbeiterbereich, für die automatische Abmeldung bei Inaktivität.
@@ -1290,7 +1289,7 @@ export default function DatenschutzPage() {
               </ul>
 
               <p>
-                Rechtsgrundlage für diese unbedingt erforderlichen Speicherungen ist § 25 Abs. 2 Nr. 2 TDDDG; die anschließende Verarbeitung erfolgt nach Art. 6 Abs. 1 lit. b DSGVO (Anmeldung, Kundenkonto) bzw. Art. 6 Abs. 1 lit. f DSGVO (funktionsfähige Website).
+                Rechtsgrundlage für diese unbedingt erforderlichen Speicherungen ist § 25 Abs. 2 Nr. 2 TDDDG; die anschließende Verarbeitung erfolgt nach Art. 6 Abs. 1 lit. f DSGVO (funktionsfähige Website und geschützter Verwaltungsbereich).
               </p>
 
               <p>
@@ -1298,7 +1297,7 @@ export default function DatenschutzPage() {
               </p>
 
               <p>
-                Sie können gespeicherte Cookies und Websitedaten zudem jederzeit in Ihrem Browser löschen. Ohne den Sitzungs-Cookie ist eine Anmeldung nicht möglich.
+                Sie können gespeicherte Cookies und Websitedaten zudem jederzeit in Ihrem Browser löschen; dabei gehen auch Ihre gemerkten Unterkünfte verloren.
               </p>
             </LegalCard>
 
@@ -1342,7 +1341,7 @@ export default function DatenschutzPage() {
               </p>
 
               <p>
-                Die serverseitige Verarbeitung ist der Vercel-Region Frankfurt am Main zugeordnet. Für Unterkunfts-, Konto- und Anfragedaten nutzen wir eine PostgreSQL-Datenbank der <strong>Neon Inc.</strong> (USA) in der Region Frankfurt am Main (AWS eu-central-1).
+                Die serverseitige Verarbeitung ist der Vercel-Region Frankfurt am Main zugeordnet. Für Unterkunfts- und Anfragedaten nutzen wir eine PostgreSQL-Datenbank der <strong>Neon Inc.</strong> (USA) in der Region Frankfurt am Main (AWS eu-central-1).
               </p>
 
               <p>
@@ -1350,7 +1349,7 @@ export default function DatenschutzPage() {
               </p>
 
               <p>
-                Rechtsgrundlage ist unser berechtigtes Interesse an einer sicheren, schnellen und zuverlässigen Bereitstellung der Website (Art. 6 Abs. 1 lit. f DSGVO) sowie, soweit Sie eine Anfrage stellen oder ein Konto nutzen, Art. 6 Abs. 1 lit. b DSGVO.
+                Rechtsgrundlage ist unser berechtigtes Interesse an einer sicheren, schnellen und zuverlässigen Bereitstellung der Website (Art. 6 Abs. 1 lit. f DSGVO) sowie, soweit Sie eine Anfrage stellen, Art. 6 Abs. 1 lit. b DSGVO.
               </p>
 
               <p>
@@ -1419,14 +1418,11 @@ export default function DatenschutzPage() {
               </p>
 
               <p>
-                <strong>Unverbindliche Buchungsanfrage:</strong> Über das Anfrageformular einer Unterkunft verarbeiten wir Vor- und Nachname, E-Mail-Adresse, optional Telefonnummer und Nachricht sowie die gewünschte Unterkunft und den Reisezeitraum. Die Anfrage wird in unserer Datenbank (Neon, siehe „Hosting“) gespeichert; zusätzlich erhalten wir eine Benachrichtigung per E-Mail über Resend, an den die Nachricht über eine verschlüsselte HTTPS-Verbindung übertragen wird. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen). Zum Schutz vor Missbrauch wird die Zahl der Anfragen je IP-Adresse und E-Mail-Adresse kurzzeitig begrenzt (Art. 6 Abs. 1 lit. f DSGVO).
+                <strong>Unverbindliche Buchungsanfrage:</strong> Über das Anfrageformular einer Unterkunft verarbeiten wir Vor- und Nachname, E-Mail-Adresse, optional Telefonnummer und Nachricht sowie die gewünschte Unterkunft und den Reisezeitraum. Wir speichern die Anfrage in unserer Datenbank (siehe „Hosting“). Berechtigte Mitarbeitende bearbeiten die Anfrage im geschützten Verwaltungsbereich. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen). Zum Schutz vor Missbrauch wird die Zahl der Anfragen je IP-Adresse und E-Mail-Adresse kurzzeitig begrenzt (Art. 6 Abs. 1 lit. f DSGVO).
               </p>
 
               <p>
-                <strong>Kontaktformular:</strong> Für allgemeine Anfragen und Vermieterinteressenten übermitteln wir Name, E-Mail-Adresse, optional Telefonnummer und Betreff sowie die Nachricht über Resend an unser Postfach. Kontaktanfragen werden nicht zusätzlich in der Website-Datenbank gespeichert. Informationen zum Anbieter finden Sie unter <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline">Resend Datenschutz</a>.
-              </p>
-              <p>
-                <strong>Kundenkonto:</strong> Wenn Sie ein Konto anlegen, speichern wir E-Mail-Adresse, optional Ihren Namen, Ihr Passwort ausschließlich als sicheren Hash sowie Ihre Favoriten (Art. 6 Abs. 1 lit. b DSGVO). Sie können Ihr Konto jederzeit unter „Konto & Einstellungen“ selbst löschen.
+                <strong>Kontaktformular:</strong> Wir speichern Ihren Namen, Ihre E-Mail-Adresse, optional Telefonnummer und Betreff, Ihre Nachricht und gegebenenfalls die Auswahl „Ich möchte meine Unterkunft vermieten“ in unserer Datenbank (siehe „Hosting“). Die zuständige Verwaltung bearbeitet die Anfrage im geschützten Verwaltungsbereich.
               </p>
 
               <p>

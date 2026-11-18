@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
+import prisma from "@/lib/db";
 import { checkInquiryRequest, readInquiryJson } from "@/lib/public-inquiry";
-import { sendInquiryMail } from "@/lib/resend-mail";
+import { logError } from "@/lib/safe-log";
+import { scheduleInquiryAlert } from "@/lib/inquiry-mail";
 
 export async function POST(req) {
   const rejected = checkInquiryRequest(req);
@@ -20,14 +22,27 @@ export async function POST(req) {
   if (data.privacyAccepted !== true) return Response.json({ error: "Bitte bestätigen Sie den Datenschutzhinweis unter Ihrer Nachricht.", field: "privacyAccepted", code: "PRIVACY_REQUIRED" }, { status: 400 });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return Response.json({ error: "Bitte geben Sie eine vollständige E-Mail-Adresse ein, zum Beispiel name@beispiel.de.", field: "email", code: "INVALID_EMAIL" }, { status: 400 });
   if (typeof data.submissionId !== "string" || !/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(data.submissionId)) return Response.json({ error: "Das Formular konnte nicht zugeordnet werden. Bitte laden Sie die Seite neu und versuchen Sie es erneut.", code: "INVALID_SUBMISSION" }, { status: 400 });
-  const type = data.isLandlordProspect === true ? "Vermieter-Interessent" : "Kontaktanfrage";
-  const text = `${type}\n\nName: ${data.name.trim()}\nE-Mail: ${data.email.trim()}\nTelefon: ${data.phone || "-"}\nBetreff: ${data.customSubject || "-"}\n\n${data.message.trim()}`;
-  const hash = createHash("sha256").update(text).digest("hex");
+  const inquiry = {
+    guestName: data.name,
+    guestEmail: data.email,
+    phone: data.phone || null,
+    subject: data.customSubject || null,
+    message: data.message,
+    isLandlordProspect: data.isLandlordProspect === true,
+  };
+  const deduplicationKey = createHash("sha256")
+    .update(JSON.stringify([data.submissionId.toLowerCase(), inquiry]))
+    .digest("hex");
+
   try {
-    await sendInquiryMail({ kind: "contact", subject: `${type} – ${data.customSubject || data.name}`, text, replyTo: data.email.trim(), idempotencyKey: `contact-${data.submissionId}-${hash}` });
+    const saved = await prisma.contactRequest.createMany({
+      data: [{ ...inquiry, deduplicationKey }],
+      skipDuplicates: true,
+    });
+    if (saved.count > 0) scheduleInquiryAlert();
     return Response.json({ ok: true });
   } catch (error) {
-    console.error("Contact mail failed:", error.message);
-    return Response.json({ error: "Ihre Nachricht konnte gerade nicht versendet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns telefonisch." }, { status: 503 });
+    logError("Contact request could not be saved", error);
+    return Response.json({ error: "Ihre Nachricht konnte gerade nicht gespeichert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns telefonisch." }, { status: 503 });
   }
 }

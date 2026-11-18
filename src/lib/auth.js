@@ -7,6 +7,9 @@ import { cookies } from "next/headers";
 
 import prisma from "@/lib/db";
 import { retryDatabaseRead } from "@/lib/database-availability";
+import { isTrustedRequestOrigin } from "./request-origin.js";
+
+export { isTrustedRequestOrigin };
 
 const COOKIE = "session";
 
@@ -70,7 +73,6 @@ export async function createSession(
 
   return new SignJWT({
     sub: String(user.id),
-    email: user.email,
     sv:
       user.sessionVersion ??
       0,
@@ -102,25 +104,15 @@ export async function verifySessionToken(
     const userId =
       Number(payload.sub);
 
-    if (
-      !userId ||
-      Number.isNaN(userId)
-    ) {
+    const sessionVersion = Number(payload.sv ?? 0);
+    if (!Number.isSafeInteger(userId) || userId <= 0 ||
+        !Number.isSafeInteger(sessionVersion) || sessionVersion < 0) {
       return null;
     }
 
     return {
       userId,
-
-      email:
-        payload.email ??
-        null,
-
-      sessionVersion:
-        Number(
-          payload.sv ?? 0
-        ),
-
+      sessionVersion,
       staffToken: payload.stf === 1,
 
       authTime: Number(payload.aat) || null,
@@ -136,6 +128,7 @@ export async function getSession(
   let token = null;
 
   if (request) {
+    if (!isTrustedRequestOrigin(request)) return null;
     try {
       token =
         request.cookies
@@ -179,12 +172,7 @@ export async function getSession(
   );
 }
 
-export async function getCurrentUser(
-  request = null
-) {
-  const session =
-    await getSession(request);
-
+async function getUserForSession(session) {
   if (!session?.userId) {
     return null;
   }
@@ -231,27 +219,33 @@ export async function getCurrentUser(
     return null;
   }
 
+  // There are no customer accounts: only staff can hold a session.
+  if (!isStaffRole(user.role)) {
+    return null;
+  }
+
   // Staff accounts only accept short-lived staff tokens (older 7-day tokens
   // issued before this rule are rejected) and never beyond the absolute limit.
-  if (isStaffRole(user.role)) {
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    if (
-      !session.staffToken ||
-      !session.authTime ||
-      nowSeconds - session.authTime > STAFF_SESSION_MAX_SECONDS
-    ) {
-      return null;
-    }
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (
+    !session.staffToken ||
+    !session.authTime ||
+    nowSeconds - session.authTime > STAFF_SESSION_MAX_SECONDS
+  ) {
+    return null;
   }
 
   return user;
 }
 
+export async function getCurrentUser(request = null) {
+  return getUserForSession(await getSession(request));
+}
+
 /** Session claims plus the verified user, for renewing staff tokens. */
 export async function getCurrentSessionAndUser(request = null) {
   const session = await getSession(request);
-  if (!session?.userId) return null;
-  const user = await getCurrentUser(request);
+  const user = await getUserForSession(session);
   return user ? { session, user } : null;
 }
 
@@ -293,30 +287,4 @@ export function clearSessionCookie() {
   ]
     .filter(Boolean)
     .join("; ");
-}
-
-// Use this for account APIs so revoked sessions and locked accounts are rejected.
-export async function getVerifiedSession(request) {
-  const user = await getCurrentUser(request);
-  return user ? { userId: user.id, email: user.email, role: user.role, sessionVersion: user.sessionVersion } : null;
-}
-
-/**
- * Self-service account APIs (/api/account/*) are for customers only.
- * Staff accounts are managed in the admin area, where the last-superadmin
- * protection, password policy and permission checks apply.
- */
-export async function requireCustomerSession(request) {
-  const session = await getVerifiedSession(request);
-  if (!session) return { ok: false, response: Response.json({ error: "Unauthorized" }, { status: 401 }) };
-  if (session.role !== "USER") {
-    return {
-      ok: false,
-      response: Response.json(
-        { error: "Mitarbeiterkonten werden im Adminbereich verwaltet." },
-        { status: 403 }
-      ),
-    };
-  }
-  return { ok: true, session };
 }

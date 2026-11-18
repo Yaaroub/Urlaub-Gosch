@@ -8,6 +8,7 @@ import {
   buildListWhere,
   parseIds,
   parseListQuery,
+  requestKind,
   retentionCutoff,
 } from "@/lib/booking-requests-admin";
 
@@ -30,6 +31,12 @@ function deny(auth) {
 export async function POST(req) {
   const auth = await requireAdminPermission(ADMIN_PERMISSIONS.AVAILABILITY_VIEW, req);
   if (!auth.ok) return deny(auth);
+  const kind = requestKind(req.url);
+  if (!kind) return deny({ status: 400, error: "Ungültige Anfrageart." });
+  const canViewContact = auth.user.role === "SUPERADMIN";
+  if (kind === "contact" && !canViewContact) {
+    return deny({ status: 403, error: "Kontaktanfragen sind nur für Superadmins sichtbar." });
+  }
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -38,30 +45,32 @@ export async function POST(req) {
       if (body && (typeof body[key] === "string" || typeof body[key] === "number")) params.set(key, String(body[key]));
     }
     const query = parseListQuery(params);
-    const where = buildListWhere(query);
+    const where = buildListWhere(query, kind);
     const cutoff = retentionCutoff(DEFAULT_RETENTION_MONTHS);
+    const model = kind === "contact" ? prisma.contactRequest : prisma.bookingRequest;
+    const details = kind === "contact"
+      ? { phone: true, subject: true, isLandlordProspect: true }
+      : { startDate: true, endDate: true, property: { select: { id: true, title: true, slug: true } } };
 
     const [items, total, grouped, olderThanRetention] = await Promise.all([
-      prisma.bookingRequest.findMany({
+      model.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         skip: (query.page - 1) * PAGE_SIZE,
         take: PAGE_SIZE,
         select: {
           id: true,
           createdAt: true,
-          startDate: true,
-          endDate: true,
           guestName: true,
           guestEmail: true,
           message: true,
           status: true,
-          property: { select: { id: true, title: true, slug: true } },
+          ...details,
         },
       }),
-      prisma.bookingRequest.count({ where }),
-      prisma.bookingRequest.groupBy({ by: ["status"], _count: { _all: true } }),
-      prisma.bookingRequest.count({ where: { createdAt: { lt: cutoff } } }),
+      model.count({ where }),
+      model.groupBy({ by: ["status"], _count: { _all: true } }),
+      model.count({ where: { createdAt: { lt: cutoff } } }),
     ]);
 
     const counts = Object.fromEntries(REQUEST_STATUSES.map((s) => [s, 0]));
@@ -80,6 +89,7 @@ export async function POST(req) {
         counts,
         retention: { months: DEFAULT_RETENTION_MONTHS, olderCount: olderThanRetention },
         canEdit,
+        canViewContact,
       },
       { headers: NO_STORE }
     );
@@ -98,6 +108,11 @@ export async function POST(req) {
 export async function DELETE(req) {
   const auth = await requireAdminPermission(ADMIN_PERMISSIONS.AVAILABILITY_EDIT, req);
   if (!auth.ok) return deny(auth);
+  const kind = requestKind(req.url);
+  if (!kind) return deny({ status: 400, error: "Ungültige Anfrageart." });
+  if (kind === "contact" && auth.user.role !== "SUPERADMIN") {
+    return deny({ status: 403, error: "Kontaktanfragen sind nur für Superadmins sichtbar." });
+  }
 
   const body = await req.json().catch(() => null);
   let where = null;
@@ -120,7 +135,8 @@ export async function DELETE(req) {
   }
 
   try {
-    const result = await prisma.bookingRequest.deleteMany({ where });
+    const model = kind === "contact" ? prisma.contactRequest : prisma.bookingRequest;
+    const result = await model.deleteMany({ where });
     return Response.json({ ok: true, deleted: result.count }, { headers: NO_STORE });
   } catch (error) {
     logError("DELETE /api/admin/anfragen failed:", error);

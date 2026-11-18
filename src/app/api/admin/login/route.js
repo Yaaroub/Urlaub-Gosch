@@ -2,6 +2,7 @@ import prisma from "@/lib/db";
 
 import {
   createSession,
+  isTrustedRequestOrigin,
   sessionCookie,
 } from "@/lib/auth";
 
@@ -20,6 +21,9 @@ const STAFF_ROLES = [
 ];
 
 export async function POST(req) {
+  if (!isTrustedRequestOrigin(req)) {
+    return Response.json({ error: "Anfrage von fremder Website abgelehnt." }, { status: 403 });
+  }
   try {
     const body =
       await req.json().catch(() => null);
@@ -121,12 +125,14 @@ export async function POST(req) {
       );
     }
 
-    recordLoginSuccess("admin", email);
-
     const updated =
       await prisma.user.update({
         where: {
           id: user.id,
+          role: user.role,
+          isActive: true,
+          sessionVersion: user.sessionVersion,
+          password: user.password,
         },
 
         data: {
@@ -147,6 +153,8 @@ export async function POST(req) {
           mustChangePassword: true,
         },
       });
+
+    recordLoginSuccess("admin", email);
 
     const token =
       await createSession(
@@ -190,6 +198,11 @@ export async function POST(req) {
       }
     );
   } catch (error) {
+    if (error?.code === "P2025") {
+      return Response.json({ error: "E-Mail oder Passwort ist falsch." }, {
+        status: 401, headers: { "Cache-Control": "no-store" },
+      });
+    }
     logError("POST /api/admin/login failed:", error);
 
     return Response.json(

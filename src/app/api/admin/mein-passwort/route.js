@@ -42,9 +42,15 @@ export async function POST(req) {
   if (limited) return limited;
 
   try {
+    const where = {
+      id: current.user.id,
+      role: current.user.role,
+      isActive: true,
+      sessionVersion: current.session.sessionVersion,
+    };
     const row = await prisma.user.findUnique({
-      where: { id: current.user.id },
-      select: { id: true, password: true },
+      where,
+      select: { password: true },
     });
     if (!row || !(await verifyPasswordConstantTime(currentPassword, row.password))) {
       recordLoginFailure("staff-password", limitKey);
@@ -53,7 +59,7 @@ export async function POST(req) {
     recordLoginSuccess("staff-password", limitKey);
 
     const updated = await prisma.user.update({
-      where: { id: row.id },
+      where,
       data: {
         password: await bcrypt.hash(newPassword, 12),
         passwordChangedAt: new Date(),
@@ -61,7 +67,7 @@ export async function POST(req) {
         // Invalidates every other session of this account.
         sessionVersion: { increment: 1 },
       },
-      select: { id: true, email: true, role: true, sessionVersion: true, sessionTimeoutMinutes: true },
+      select: { id: true, role: true, sessionVersion: true, sessionTimeoutMinutes: true },
     });
 
     const token = await createSession(updated, { authTime: current.session.authTime });
@@ -70,6 +76,7 @@ export async function POST(req) {
       { headers: { "Set-Cookie": sessionCookie(token), "Cache-Control": "no-store" } }
     );
   } catch (error) {
+    if (error?.code === "P2025") return Response.json({ error: "Bitte erneut anmelden." }, { status: 401 });
     logError("POST /api/admin/mein-passwort failed:", error);
     return Response.json({ error: "Passwort konnte nicht geändert werden." }, { status: 500 });
   }

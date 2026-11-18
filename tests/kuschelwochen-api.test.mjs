@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import vm from "node:vm";
 import { createRequire } from "node:module";
 import * as logic from "../src/lib/kuschelwochen.js";
+import { publicTravelWindow } from "../src/lib/search-utils.js";
 
 const require = createRequire(import.meta.url);
 const { transform } = require("next/dist/build/swc");
@@ -14,6 +15,9 @@ async function loadRoute(path, mocks) {
   });
   const module = { exports: {} };
   vm.runInNewContext(code, { exports: module.exports, module, Response, Date, console, require: (name) => {
+    if (name === "@/lib/search-utils") {
+      return { publicTravelWindow: (arrival, departure) => publicTravelWindow(arrival, departure, new Date("2026-10-30T00:00:00Z")) };
+    }
     if (name === "@/lib/safe-log") return safeLog; if (!(name in mocks)) throw new Error(`Unexpected import: ${name}`);
     return mocks[name];
   } });
@@ -86,6 +90,7 @@ test("invalid price dates are rejected without a database query", async () => {
     "@/lib/db": {},
   });
   assert.equal((await route.POST({ json: async () => ({ propertyId: 1, arrival: "invalid", departure: "2026-11-07" }) })).status, 400);
+  assert.equal((await route.POST({ json: async () => ({ propertyId: 1, arrival: "2026-10-29", departure: "2026-11-07" }) })).status, 400);
 });
 
 test("empty, incomplete and non-object price bodies do not cause server errors", async () => {

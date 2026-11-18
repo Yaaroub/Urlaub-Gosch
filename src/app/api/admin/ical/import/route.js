@@ -11,6 +11,8 @@ import {
   requireAdminPermission,
 } from "@/lib/admin-permissions";
 import { logError } from "@/lib/safe-log";
+import { isTrustedRequestOrigin } from "@/lib/auth";
+import { MAX_CALENDAR_BYTES, validateCalendarUrl } from "@/lib/safe-calendar-fetch";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +63,7 @@ function overlaps(
 
 export async function POST(req) {
   try {
+    if (!isTrustedRequestOrigin(req)) return Response.json({ error: "Ungültige Anfrage." }, { status: 403 });
     const auth =
       await requireAdminPermission(
         ADMIN_PERMISSIONS.ICAL_EDIT,
@@ -73,6 +76,7 @@ export async function POST(req) {
 
     let propertyId;
     let events = [];
+    let parsedUrl = null;
 
     const contentType =
       req.headers.get(
@@ -128,6 +132,10 @@ export async function POST(req) {
         );
       }
 
+      if (file.size > MAX_CALENDAR_BYTES) {
+        return Response.json({ error: "Kalenderdatei ist zu groß (maximal 2 MB)." }, { status: 413 });
+      }
+
       const buffer =
         Buffer.from(
           await file.arrayBuffer()
@@ -169,33 +177,13 @@ export async function POST(req) {
         );
       }
 
-      let parsedUrl;
-
       try {
-        parsedUrl =
-          new URL(url);
+        parsedUrl = validateCalendarUrl(url);
       } catch {
         return Response.json(
           {
             error:
-              "Ungültige iCal-URL.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      if (
-        parsedUrl.protocol !==
-          "https:" &&
-        parsedUrl.protocol !==
-          "http:"
-      ) {
-        return Response.json(
-          {
-            error:
-              "Es sind nur HTTP- oder HTTPS-URLs erlaubt.",
+              "Bitte eine gültige öffentliche HTTPS-Kalenderadresse eintragen.",
           },
           {
             status: 400,

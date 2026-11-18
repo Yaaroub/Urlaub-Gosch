@@ -26,6 +26,7 @@ import {
 import { getGoogleMapsUrl } from "@/lib/activity-groups";
 import { getActivityTown, toActivityCard, WEATHER_LABELS } from "@/lib/activity-view";
 import { buildActivityJsonLd, safeJsonLd } from "@/lib/activity-seo";
+import { logError } from "@/lib/safe-log";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
@@ -87,7 +88,7 @@ async function getNearby({ lat, lng, radiusKm }) {
   try {
     return { items: await findNearbyProperties(params), error: null };
   } catch (error) {
-    console.error("Nearby-Unterkünfte konnten nicht geladen werden:", error);
+    logError("Nearby-Unterkünfte konnten nicht geladen werden", error);
     return { items: [], error: "Unterkünfte in der Nähe konnten nicht geladen werden." };
   }
 }

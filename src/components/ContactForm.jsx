@@ -41,7 +41,7 @@ export default function ContactForm({ children }) {
       });
     }
   }
-  return <form onSubmit={submit} className="grid gap-5" aria-busy={busy}>
+  return <form method="post" action="/api/contact" onSubmit={submit} className="grid gap-5" aria-busy={busy}>
     <fieldset disabled={busy} className="grid min-w-0 gap-5">
       <label hidden aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" data-1p-ignore="true" data-lpignore="true" /></label>
       {children}

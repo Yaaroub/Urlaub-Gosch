@@ -1,3 +1,5 @@
+import { logError } from "@/lib/safe-log";
+
 export const dynamic = "force-dynamic";
 
 function pick(obj, keys) {
@@ -38,7 +40,7 @@ export async function GET(req) {
       longitude: j.longitude,
     });
   } catch (e) {
-    console.error(e);
+    logError("GET /api/weather failed", e);
     return Response.json({ error: "Wetter konnte nicht geladen werden" }, { status: 500 });
   }
 }

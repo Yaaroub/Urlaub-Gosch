@@ -158,7 +158,7 @@ export default function AdminIcalPage() {
    */
   const fetchPropertyDetails = useCallback(async (propertyId, signal) => {
     const response = await fetch(
-      `/api/admin/properties/${encodeURIComponent(propertyId)}`,
+      `/api/admin/ical/source/${encodeURIComponent(propertyId)}`,
       {
         cache: "no-store",
         signal,
@@ -325,7 +325,7 @@ export default function AdminIcalPage() {
 
     try {
       const response = await fetch(
-        `/api/admin/properties/${encodeURIComponent(selectedId)}`,
+        `/api/admin/ical/source/${encodeURIComponent(selectedId)}`,
         {
           method: "PUT",
           headers: {
@@ -761,6 +761,7 @@ export default function AdminIcalPage() {
             )}
           </div>
 
+          {prop.canEdit && (<>
           {/* Externe iCal-URL */}
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <div className="mb-4">
@@ -789,9 +790,7 @@ export default function AdminIcalPage() {
                 />
 
                 <span className="text-[11px] leading-5 text-slate-500">
-                  Unterstützt werden HTTPS-Adressen. Eine
-                  webcal://-Adresse kann ebenfalls gespeichert werden,
-                  sofern deine API sie verarbeitet.
+                  Unterstützt werden öffentliche HTTPS-Adressen.
                 </span>
               </label>
 
@@ -855,6 +854,7 @@ export default function AdminIcalPage() {
               </button>
             </form>
           </div>
+          </>)}
         </div>
       )}
     </section>

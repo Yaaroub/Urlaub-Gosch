@@ -1,23 +1,32 @@
-/**
- * Privacy-safe error logging for server routes.
- *
- * Full error objects must not be logged: Prisma validation errors, for example,
- * print the complete query including submitted values (guest names, e-mails,
- * messages). We only log the error type, its code and the first line of the
- * message, cut to a fixed length and with e-mail addresses masked.
- */
+const knownNames = new Set([
+  "Error",
+  "TypeError",
+  "RangeError",
+  "SyntaxError",
+  "AbortError",
+  "TimeoutError",
+  "PrismaClientKnownRequestError",
+  "PrismaClientUnknownRequestError",
+  "PrismaClientValidationError",
+  "PrismaClientInitializationError",
+  "PrismaClientRustPanicError",
+]);
+
+const knownNetworkCodes = new Set([
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ENOTFOUND",
+  "ETIMEDOUT",
+  "EAI_AGAIN",
+]);
+
+// Error text and stacks can contain whole database queries, input or secret URLs.
 export function describeError(error) {
   if (!error) return "unknown error";
-  const name = typeof error.name === "string" ? error.name : "Error";
-  const code = typeof error.code === "string" ? error.code : "";
-  const firstLine = String(error.message ?? "")
-    .split("\n")
-    .map((line) => line.trim())
-    .find(Boolean) || "";
-  const message = firstLine
-    .replace(/[^\s@"'<>]+@[^\s@"'<>]+/g, "<email>")
-    .slice(0, 160);
-  return [name, code, message].filter(Boolean).join(" | ");
+  const name = knownNames.has(error.name) ? error.name : "Error";
+  const sourceCode = error.code ?? error.errorCode;
+  const prismaCode = name.startsWith("PrismaClient") && typeof sourceCode === "string" && /^P[0-9]{4}$/.test(sourceCode);
+  return prismaCode || knownNetworkCodes.has(sourceCode) ? `${name} | ${sourceCode}` : name;
 }
 
 export function logError(label, error) {

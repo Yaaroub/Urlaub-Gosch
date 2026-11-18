@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import prisma from "@/lib/db";
-import { buildPropertyWhere } from "@/lib/search-utils";
+import { buildPropertyWhere, publicTravelWindow } from "@/lib/search-utils";
 import { getMinimumNightlyPrice } from "@/lib/min-nightly-price";
 
 import HomeHero from "@/components/HomeHero";
@@ -124,7 +124,7 @@ export default async function HomePage(
      SUCHPARAMETER
   -------------------------------------------------------------------------- */
 
-  const arrival =
+  const requestedArrival =
     String(
       getSingleSearchParam(
         searchParams,
@@ -133,7 +133,7 @@ export default async function HomePage(
     );
 
 
-  const departure =
+  const requestedDeparture =
     String(
       getSingleSearchParam(
         searchParams,
@@ -141,6 +141,10 @@ export default async function HomePage(
       ) ?? "",
     );
 
+
+  const travelWindow = publicTravelWindow(requestedArrival, requestedDeparture);
+  const arrival = travelWindow ? requestedArrival : "";
+  const departure = travelWindow ? requestedDeparture : "";
 
   const objectName =
     String(

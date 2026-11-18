@@ -7,8 +7,11 @@ import { createHmac } from "node:crypto";
 
 /** Start of "today" (calendar day in Europe/Berlin) as a UTC date. */
 export function startOfTodayBerlin(now = new Date()) {
-  const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(now);
-  return new Date(`${day}T00:00:00.000Z`);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(now);
+  const date = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return new Date(`${date.year}-${date.month}-${date.day}T00:00:00.000Z`);
 }
 
 /** Bookings that still matter for availability (departure today or later). */

@@ -18,6 +18,7 @@ const addDays = (d, n) => {
 };
 
 const WEEKDAY_LABELS = ["So.", "Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa."];
+const EMPTY_BOOKINGS = [];
 
 export default function BookingCalendar({
   propertyId,
@@ -28,7 +29,7 @@ export default function BookingCalendar({
   numberOfMonths = 1,
   compact = false,
 }) {
-  const [bookings, setBookings] = useState([]);
+  const [calendar, setCalendar] = useState(null);
 
   useEffect(() => {
     if (!propertyId || bookingsProp) return;
@@ -41,14 +42,16 @@ export default function BookingCalendar({
           cache: "no-store",
         });
 
-        const data = res.ok ? await res.json() : [];
+        if (!res.ok) throw new Error("Calendar unavailable");
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("Invalid calendar data");
 
         if (!cancelled) {
-          setBookings(Array.isArray(data) ? data : []);
+          setCalendar({ propertyId, bookings: data });
         }
       } catch {
         if (!cancelled) {
-          setBookings([]);
+          setCalendar({ propertyId, unavailable: true });
         }
       }
     }
@@ -60,7 +63,8 @@ export default function BookingCalendar({
     };
   }, [propertyId, bookingsProp]);
 
-  const source = bookingsProp ?? bookings;
+  const loadedCalendar = calendar?.propertyId === propertyId ? calendar : null;
+  const source = bookingsProp ?? loadedCalendar?.bookings ?? EMPTY_BOOKINGS;
 
   const bookedRanges = useMemo(() => {
     return source
@@ -95,6 +99,13 @@ export default function BookingCalendar({
   };
 
   const disabled = selectable ? bookedRanges : undefined;
+
+  if (!bookingsProp && propertyId && !loadedCalendar) {
+    return <p role="status" className="text-sm text-slate-600">Belegung wird geladen …</p>;
+  }
+  if (!bookingsProp && loadedCalendar?.unavailable) {
+    return <p role="status" className="text-sm text-slate-600">Die Belegung kann gerade nicht angezeigt werden.</p>;
+  }
 
   return (
     <div className="w-full overflow-hidden">

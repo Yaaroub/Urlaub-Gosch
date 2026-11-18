@@ -4,22 +4,19 @@ import prisma from "@/lib/db";
 
 import {
   createSession,
+  getCurrentSessionAndUser,
+  isStaffRole,
   sessionCookie,
 } from "@/lib/auth";
 
-import {
-  getAdminUser,
-} from "@/lib/admin-auth";
 import { logError } from "@/lib/safe-log";
 
 export async function POST(req) {
   try {
-    const currentUser =
-      await getAdminUser(
-        req
-      );
+    const current = await getCurrentSessionAndUser(req);
+    const currentUser = current?.user;
 
-    if (!currentUser) {
+    if (!currentUser || !isStaffRole(currentUser.role)) {
       return Response.json(
         {
           error:
@@ -45,13 +42,9 @@ export async function POST(req) {
       );
     }
 
-    const body =
-      await req.json();
+    const body = await req.json().catch(() => null);
 
-    const password =
-      String(
-        body?.password || ""
-      );
+    const password = typeof body?.password === "string" ? body.password : "";
 
     if (
       password.length < 10 ||
@@ -68,18 +61,19 @@ export async function POST(req) {
       );
     }
 
+    const where = {
+      id: currentUser.id,
+      role: currentUser.role,
+      isActive: true,
+      sessionVersion: current.session.sessionVersion,
+      mustChangePassword: true,
+    };
+
     const user =
       await prisma.user.findUnique({
-        where: {
-          id:
-            currentUser.id,
-        },
-
+        where,
         select: {
-          id: true,
-          email: true,
           password: true,
-          sessionVersion: true,
         },
       });
 
@@ -128,10 +122,7 @@ export async function POST(req) {
      */
     const updated =
       await prisma.user.update({
-        where: {
-          id:
-            currentUser.id,
-        },
+        where,
 
         data: {
           password:
@@ -150,9 +141,9 @@ export async function POST(req) {
 
         select: {
           id: true,
-          email: true,
-
+          role: true,
           sessionVersion: true,
+          sessionTimeoutMinutes: true,
         },
       });
 
@@ -163,7 +154,7 @@ export async function POST(req) {
      */
     const token =
       await createSession(
-        updated
+        updated, { authTime: current.session.authTime }
       );
 
     return Response.json(
@@ -183,6 +174,7 @@ export async function POST(req) {
       }
     );
   } catch (error) {
+    if (error?.code === "P2025") return Response.json({ error: "Bitte erneut anmelden." }, { status: 401 });
     logError("POST /api/admin/passwort-aendern failed:", error);
 
     return Response.json(

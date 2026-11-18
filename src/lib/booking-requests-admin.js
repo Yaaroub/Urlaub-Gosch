@@ -15,15 +15,21 @@ export function parseListQuery(searchParams) {
   return { status, q, page };
 }
 
-export function buildListWhere({ status, q }) {
+export function requestKind(url) {
+  const kind = new URL(url).searchParams.get("kind") ?? "booking";
+  return kind === "contact" || kind === "booking" ? kind : null;
+}
+
+export function buildListWhere({ status, q }, kind = "booking") {
   const where = {};
   if (status !== "ALL") where.status = status;
   if (q) {
     where.OR = [
       { guestName: { contains: q, mode: "insensitive" } },
       { guestEmail: { contains: q, mode: "insensitive" } },
-      { property: { title: { contains: q, mode: "insensitive" } } },
     ];
+    if (kind === "contact") where.OR.push({ subject: { contains: q, mode: "insensitive" } });
+    else where.OR.push({ property: { title: { contains: q, mode: "insensitive" } } });
   }
   return where;
 }

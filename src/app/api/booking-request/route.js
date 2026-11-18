@@ -1,7 +1,7 @@
 import prisma from "@/lib/db";
-import { sendInquiryMail } from "@/lib/resend-mail";
 import { checkInquiryRequest, readInquiryJson, validInquiry } from "@/lib/public-inquiry";
 import { logError } from "@/lib/safe-log";
+import { scheduleInquiryAlert } from "@/lib/inquiry-mail";
 
 function dateOnly(input) {
   if (typeof input !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(input)) return new Date(NaN);
@@ -67,7 +67,7 @@ export async function POST(req) {
 
     const property = await prisma.property.findUnique({
       where: { id: pid },
-      select: { id: true, title: true, location: true, slug: true },
+      select: { id: true },
     });
     if (!property) {
       return Response.json(
@@ -108,40 +108,11 @@ Nachricht: ${message || "-"}
         `.trim(),
         status: "PENDING",
       },
+      select: { id: true },
     });
 
-    let notificationSent = false;
-    try {
-        const text = `
-Neue unverbindliche Anfrage (PENDING)
-
-Objekt:  ${property.title}
-Ort:     ${property.location ?? "-"}
-Slug:    ${property.slug}
-
-Zeitraum:
-  Anreise:  ${fmtISODate(start)}
-  Abreise:  ${fmtISODate(end)}
-
-Gast:
-  Name:    ${fullName}
-  E-Mail:  ${email}
-  Telefon: ${phone || "-"}
-
-Nachricht:
-${message || "-"}
-
-Hinweis:
-Die Tage sind im Kalender NOCH NICHT blockiert.
-Bitte im Admin-Bereich prüfen und ggf. Buchung anlegen.
-        `.trim();
-      await sendInquiryMail({ subject: `Neue Anfrage – ${property.title}`, text, replyTo: email.trim(), idempotencyKey: `booking-request-${request.id}` });
-      notificationSent = true;
-    } catch (error) {
-      console.error("Booking notification failed; request saved:", request.id, error.message);
-    }
-
-    return Response.json({ ok: true, requestId: request.id, notificationSent });
+    scheduleInquiryAlert();
+    return Response.json({ ok: true, requestId: request.id });
   } catch (e) {
     logError("POST /api/booking-request error:", e);
     return Response.json(

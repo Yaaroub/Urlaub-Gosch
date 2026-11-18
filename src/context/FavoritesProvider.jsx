@@ -1,7 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-
 import {
   createContext,
   useCallback,
@@ -11,6 +9,11 @@ import {
   useState,
 } from "react";
 
+/**
+ * Favourites ("Merkliste") are stored only in the visitor's own browser
+ * (localStorage). There are no customer accounts: nothing is sent to the
+ * server and nothing is stored in the database.
+ */
 const STORAGE_KEY = "fav:properties";
 const Ctx = createContext(null);
 
@@ -18,9 +21,8 @@ function readLocalFavorites() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-
     return Array.isArray(parsed)
-      ? parsed.map(String)
+      ? [...new Set(parsed.map(String).filter((id) => /^\d{1,10}$/.test(id)))]
       : [];
   } catch {
     return [];
@@ -29,424 +31,66 @@ function readLocalFavorites() {
 
 function writeLocalFavorites(ids) {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(ids)
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
   } catch {}
 }
 
-function runWhenIdle(callback) {
-  if (typeof window === "undefined") {
-    return undefined;
-  }
-
-  if ("requestIdleCallback" in window) {
-    const id = window.requestIdleCallback(
-      callback,
-      {
-        timeout: 2500,
-      }
-    );
-
-    return () =>
-      window.cancelIdleCallback(id);
-  }
-
-  const id = window.setTimeout(
-    callback,
-    1200
-  );
-
-  return () =>
-    window.clearTimeout(id);
-}
-
-export default function FavoritesProvider({
-  children,
-}) {
-  const pathname = usePathname();
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+export default function FavoritesProvider({ children }) {
   const [ready, setReady] = useState(false);
-
-  const [loggedIn, setLoggedIn] =
-    useState(false);
-
-  const [user, setUser] = useState(null);
-
   const [ids, setIds] = useState([]);
 
   useEffect(() => {
-    if (isAdmin) return;
-    let cancelled = false;
-    const controller = new AbortController();
-
-    // --------------------------------------------------
-    // 1. Sofort lokale Favoriten anzeigen
-    // --------------------------------------------------
-
-    const localIds =
-      readLocalFavorites();
-
-    setIds(localIds);
+    setIds(readLocalFavorites());
     setReady(true);
 
-    // --------------------------------------------------
-    // 2. Auth + Server-Favoriten erst im Idle-Fenster
-    // --------------------------------------------------
-
-    const cancelIdle = runWhenIdle(async () => {
-      try {
-        // ----------------------------------------------
-        // Benutzer prüfen
-        // ----------------------------------------------
-
-        const authResponse = await fetch(
-          "/api/auth/me",
-          {
-            cache: "no-store",
-            signal: controller.signal,
-          }
-        );
-
-        if (!authResponse.ok) {
-          if (!cancelled) {
-            setLoggedIn(false);
-            setUser(null);
-          }
-
-          return;
-        }
-
-        const authData =
-          await authResponse.json();
-
-        const currentUser =
-          authData?.user ?? null;
-
-        if (!currentUser) {
-          if (!cancelled) {
-            setLoggedIn(false);
-            setUser(null);
-          }
-
-          return;
-        }
-
-        if (!cancelled) {
-          setLoggedIn(true);
-          setUser(currentUser);
-        }
-
-        // ----------------------------------------------
-        // Favoriten vom Server laden
-        // ----------------------------------------------
-
-        const favoritesResponse =
-          await fetch(
-            "/api/favorites",
-            {
-              cache: "no-store",
-            signal: controller.signal,
-            }
-          );
-
-        if (!favoritesResponse.ok) {
-          return;
-        }
-
-        const favoritesData =
-          await favoritesResponse.json();
-
-        const serverIds =
-          Array.isArray(
-            favoritesData?.ids
-          )
-            ? favoritesData.ids.map(
-                String
-              )
-            : [];
-
-        if (cancelled) {
-          return;
-        }
-
-        setIds(serverIds);
-
-        writeLocalFavorites(
-          serverIds
-        );
-      } catch {
-        if (!cancelled) {
-          setLoggedIn(false);
-          setUser(null);
-        }
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      cancelIdle?.();
-      controller.abort();
+    // Keep several open tabs in sync.
+    const onStorage = (event) => {
+      if (event.key === STORAGE_KEY) setIds(readLocalFavorites());
     };
-  }, [isAdmin]);
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
-  // ----------------------------------------------------
-  // Set für schnelle Prüfung
-  // ----------------------------------------------------
+  const favorites = useMemo(() => new Set(ids), [ids]);
 
-  const favorites = useMemo(
-    () => new Set(ids),
-    [ids]
-  );
+  const isFav = useCallback((id) => favorites.has(String(id)), [favorites]);
 
-  // ----------------------------------------------------
-  // Favorit?
-  // ----------------------------------------------------
+  const update = useCallback((mutate) => {
+    setIds((current) => {
+      const next = mutate(new Set(current));
+      const nextIds = [...next];
+      writeLocalFavorites(nextIds);
+      return nextIds;
+    });
+  }, []);
 
-  const isFav = useCallback(
+  const add = useCallback((id) => update((set) => set.add(String(id))), [update]);
+
+  const remove = useCallback(
     (id) =>
-      favorites.has(
-        String(id)
-      ),
-    [favorites]
+      update((set) => {
+        set.delete(String(id));
+        return set;
+      }),
+    [update]
   );
 
-  // ----------------------------------------------------
-  // Hinzufügen
-  // ----------------------------------------------------
+  const toggle = useCallback((id) => (isFav(id) ? remove(id) : add(id)), [isFav, add, remove]);
 
-  const add = useCallback(
-    async (id) => {
-      const key =
-        String(id);
-
-      if (
-        favorites.has(key)
-      ) {
-        return;
-      }
-
-      const next =
-        new Set(favorites);
-
-      next.add(key);
-
-      const nextIds = [
-        ...next,
-      ];
-
-      // Optimistisches Update
-      setIds(nextIds);
-
-      writeLocalFavorites(
-        nextIds
-      );
-
-      // Nur für eingeloggte Benutzer
-      // zusätzlich in DB speichern
-      if (loggedIn) {
-        try {
-          const response =
-            await fetch(
-              "/api/favorites",
-              {
-                method: "POST",
-
-                headers: {
-                  "Content-Type":
-                    "application/json",
-                },
-
-                body: JSON.stringify({
-                  propertyId: id,
-                }),
-              }
-            );
-
-          // Session vielleicht inzwischen
-          // ungültig / Benutzer gesperrt
-          if (
-            response.status === 401
-          ) {
-            setLoggedIn(false);
-            setUser(null);
-          }
-        } catch {}
-      }
-    },
-    [
-      favorites,
-      loggedIn,
-    ]
-  );
-
-  // ----------------------------------------------------
-  // Entfernen
-  // ----------------------------------------------------
-
-  const remove =
-    useCallback(
-      async (id) => {
-        const key =
-          String(id);
-
-        if (
-          !favorites.has(key)
-        ) {
-          return;
-        }
-
-        const next =
-          new Set(favorites);
-
-        next.delete(key);
-
-        const nextIds = [
-          ...next,
-        ];
-
-        // Optimistisches Update
-        setIds(nextIds);
-
-        writeLocalFavorites(
-          nextIds
-        );
-
-        if (loggedIn) {
-          try {
-            const response =
-              await fetch(
-                `/api/favorites/${id}`,
-                {
-                  method:
-                    "DELETE",
-                }
-              );
-
-            if (
-              response.status ===
-              401
-            ) {
-              setLoggedIn(
-                false
-              );
-
-              setUser(null);
-            }
-          } catch {}
-        }
-      },
-      [
-        favorites,
-        loggedIn,
-      ]
-    );
-
-  // ----------------------------------------------------
-  // Umschalten
-  // ----------------------------------------------------
-
-  const toggle =
-    useCallback(
-      (id) =>
-        isFav(id)
-          ? remove(id)
-          : add(id),
-      [
-        isFav,
-        add,
-        remove,
-      ]
-    );
-
-  // ----------------------------------------------------
-  // Lokal leeren
-  // ----------------------------------------------------
-
-  const clear =
-    useCallback(() => {
-      setIds([]);
-
-      writeLocalFavorites(
-        []
-      );
-    }, []);
-
-  // ----------------------------------------------------
-  // Context
-  // ----------------------------------------------------
+  const clear = useCallback(() => update(() => new Set()), [update]);
 
   const value = useMemo(
-    () => ({
-      ready,
-
-      loggedIn,
-
-      // NEU:
-      // vollständiger Benutzer
-      user,
-
-      ids,
-      favorites,
-
-      isFav,
-      add,
-      remove,
-      toggle,
-      clear,
-
-      // Rollen-Helfer
-      isStaff:
-        user?.role ===
-          "EDITOR" ||
-        user?.role ===
-          "ADMIN" ||
-        user?.role ===
-          "SUPERADMIN",
-
-      isAdmin:
-        user?.role ===
-          "ADMIN" ||
-        user?.role ===
-          "SUPERADMIN",
-
-      isSuperAdmin:
-        user?.role ===
-        "SUPERADMIN",
-    }),
-    [
-      ready,
-      loggedIn,
-      user,
-      ids,
-      favorites,
-      isFav,
-      add,
-      remove,
-      toggle,
-      clear,
-    ]
+    () => ({ ready, ids, favorites, isFav, add, remove, toggle, clear }),
+    [ready, ids, favorites, isFav, add, remove, toggle, clear]
   );
 
-  return (
-    <Ctx.Provider
-      value={value}
-    >
-      {children}
-    </Ctx.Provider>
-  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useFavoritesCtx() {
-  const ctx =
-    useContext(Ctx);
-
+  const ctx = useContext(Ctx);
   if (!ctx) {
-    throw new Error(
-      "useFavoritesCtx must be used within <FavoritesProvider>"
-    );
+    throw new Error("useFavoritesCtx must be used within <FavoritesProvider>");
   }
-
   return ctx;
 }

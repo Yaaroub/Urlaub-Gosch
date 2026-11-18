@@ -9,6 +9,7 @@ import { publicPropertySelect } from "../src/lib/public-property-select.js";
 import { isPublicCalendarAddress, validateCalendarUrl } from "../src/lib/safe-calendar-fetch.js";
 import * as publicInquiry from "../src/lib/public-inquiry.js";
 import * as publicCalendar from "../src/lib/public-calendar.js";
+import * as requestOrigin from "../src/lib/request-origin.js";
 
 const require = createRequire(import.meta.url);
 const { transform } = require("next/dist/build/swc");
@@ -17,8 +18,10 @@ async function load(path, mocks) {
     filename: path, jsc: { parser: { syntax: "ecmascript" } }, module: { type: "commonjs" },
   });
   const module = { exports: {} };
-  vm.runInNewContext(code, { exports: module.exports, module, Response, URL, Date, console, TextEncoder, process: { env: { AUTH_SECRET: "security-test-only-secret" } }, require: (name) => {
-    if (name === "@/lib/safe-log") return safeLog; if (!(name in mocks)) throw new Error(`Unexpected dependency ${name}`);
+  vm.runInNewContext(code, { exports: module.exports, module, Response, URL, URLSearchParams, AbortSignal, Date, console, TextEncoder, process: { env: { AUTH_SECRET: "security-test-only-secret" } }, require: (name) => {
+    if (name === "@/lib/safe-log") return safeLog;
+    if (name === "@/lib/inquiry-mail" && !(name in mocks)) return { scheduleInquiryAlert() {} };
+    if (!(name in mocks)) throw new Error(`Unexpected dependency ${name}`);
     return mocks[name];
   } });
   return module.exports;
@@ -119,41 +122,44 @@ test("iCal import rejects private, loopback, metadata and encoded loopback targe
   for (const url of ["http://2130706433/test", "http://0x7f000001/", "http://[::1]/", "file:///etc/passwd", "https://user:pass@example.com/", "http://example.com:8080/"]) assert.throws(() => validateCalendarUrl(url));
   assert.equal(validateCalendarUrl("https://example.com/calendar.ics").hostname, "example.com");
 });
-test("revoked sessions cannot be reused for account APIs", async () => {
+test("revoked sessions and non-staff accounts never get a session", async () => {
   let lookupCount = 0;
   const auth = await load("../src/lib/auth.js", {
+    "./request-origin.js": requestOrigin,
     jose: { jwtVerify: async () => ({ payload: { sub: "1", sv: 1 } }), SignJWT: class {} },
     "next/headers": {}, "@/lib/db": { user: { findUnique: async () => { lookupCount++; return { id: 1, isActive: true, sessionVersion: 2 }; } } },
     "@/lib/database-availability": { retryDatabaseRead: (read) => read() },
   });
   const request = { headers: new Headers({ cookie: "session=test-token" }) };
-  assert.equal(await auth.getVerifiedSession(request), null);
+  assert.equal(await auth.getCurrentUser(request), null);
   assert.equal(lookupCount, 1);
+  assert.equal(auth.getVerifiedSession, undefined, "customer session helpers are removed");
+  assert.equal(auth.requireCustomerSession, undefined, "customer session helpers are removed");
 });
 
-test("contact only reports success after mail acceptance and rejects missing consent", async () => {
-  let sends = 0;
-  let fail = false;
+test("contact reports failure when the database cannot save the request", async () => {
+  let saves = 0;
   const data = { name: "Ada", email: "ada@example.com", message: "Hallo", privacyAccepted: true, submissionId: "12345678-1234-1234-1234-123456789abc" };
   const route = await load("../src/app/api/contact/route.js", {
     "node:crypto": require("node:crypto"),
     "@/lib/public-inquiry": { checkInquiryRequest: () => null, readInquiryJson: req => req.json() },
-    "@/lib/resend-mail": { sendInquiryMail: async () => { sends++; if(fail) throw Error("MAIL_PROVIDER_503"); } },
+    "@/lib/db": { contactRequest: { createMany: async () => { saves++; throw new Error("DATABASE_UNAVAILABLE"); } } },
   });
   const req = body => ({ json: async () => body });
   assert.equal((await route.POST(req({...data,privacyAccepted:false}))).status,400);
-  assert.equal(sends,0);
-  assert.equal((await route.POST(req(data))).status,200);
-  fail=true;
+  assert.equal(saves,0);
   assert.equal((await route.POST(req(data))).status,503);
+  assert.equal(saves,1);
 });
 
-test("contact accepts a real form request, trims surrounding spaces and keeps retry identity", async () => {
-  const sent = [];
+test("contact only persists customer data in the database and keeps retry identity", async () => {
+  const writes = [];
+  let alerts = 0;
   const route = await load("../src/app/api/contact/route.js", {
     "node:crypto": require("node:crypto"),
     "@/lib/public-inquiry": publicInquiry,
-    "@/lib/resend-mail": { sendInquiryMail: async message => { sent.push(message); } },
+    "@/lib/db": { contactRequest: { createMany: async args => { writes.push(args); return { count: writes.length === 1 ? 1 : 0 }; } } },
+    "@/lib/inquiry-mail": { scheduleInquiryAlert: (...args) => { assert.deepEqual(args, []); alerts++; } },
   });
   const fields = new FormData();
   for (const [name, value] of Object.entries({ name: " Ada ", email: " ada@example.com ", message: " Hallo\nOstsee! ", privacyAccepted: "on", website: "" })) fields.set(name, value);
@@ -165,18 +171,22 @@ test("contact accepts a real form request, trims surrounding spaces and keeps re
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { ok: true });
   }
-  assert.equal(sent[0].replyTo, "ada@example.com");
-  assert.equal(sent[0].subject, "Kontaktanfrage – Ada");
-  assert.match(sent[0].text, /Telefon: -\nBetreff: -\n\nHallo\nOstsee!$/);
-  assert.equal(sent[0].idempotencyKey, sent[1].idempotencyKey);
+  assert.equal(writes[0].skipDuplicates, true);
+  const [saved] = writes[0].data;
+  assert.equal(saved.guestEmail, "ada@example.com");
+  assert.equal(saved.guestName, "Ada");
+  assert.equal(saved.message, "Hallo\nOstsee!");
+  assert.equal(saved.phone, null);
+  assert.equal(saved.deduplicationKey, writes[1].data[0].deduplicationKey);
+  assert.equal(alerts, 1);
 });
 
-test("contact explains invalid fields without sending mail or weakening request protection", async () => {
-  let sends = 0;
+test("contact explains invalid fields without persisting rejected requests", async () => {
+  let saves = 0;
   const route = await load("../src/app/api/contact/route.js", {
     "node:crypto": require("node:crypto"),
     "@/lib/public-inquiry": publicInquiry,
-    "@/lib/resend-mail": { sendInquiryMail: async () => { sends++; } },
+    "@/lib/db": { contactRequest: { createMany: async () => { saves++; } } },
   });
   const data = { name: "Ada", email: "ada@example.com", message: "Hallo", privacyAccepted: true, submissionId: "12345678-1234-1234-1234-123456789abc" };
   const cases = [
@@ -208,37 +218,100 @@ test("contact explains invalid fields without sending mail or weakening request 
   assert.equal(malformed.status, 400);
   const crossSite = await route.POST(new Request("http://localhost:3000/api/contact", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://other.example" }, body: JSON.stringify(data) }));
   assert.equal(crossSite.status, 403);
-  assert.equal(sends, 0);
+  assert.equal(saves, 0);
 });
 
-test("booking remains saved when Resend fails, without reporting successful notification", async () => {
+test("booking saves the request and triggers a notification without passing customer data", async () => {
   let saves = 0;
+  let alerts = 0;
   const route = await load("../src/app/api/booking-request/route.js", {
     "@/lib/public-inquiry": { checkInquiryRequest: () => null, readInquiryJson: req => req.json(), validInquiry: () => true },
-    "@/lib/resend-mail": { sendInquiryMail: async () => { throw Error("MAIL_PROVIDER_503"); } },
     "@/lib/db": { bookingRequest: { count: async()=>0, create: async()=>{saves++;return {id:123};} }, property: { findUnique: async()=>({id:1,title:"Test",slug:"test"}) }, booking: { findFirst: async()=>null } },
+    "@/lib/inquiry-mail": { scheduleInquiryAlert: (...args) => { assert.deepEqual(args, []); alerts++; } },
   });
   const response = await route.POST({ json: async()=>({propertyId:1,arrival:"2099-11-01",departure:"2099-11-08",firstName:"Ada",lastName:"Test",email:"ada@example.com"}) });
   assert.equal(response.status,200);
   assert.equal(saves,1);
-  assert.deepEqual(await response.json(),{ok:true,requestId:123,notificationSent:false});
+  assert.equal(alerts,1);
+  assert.deepEqual(await response.json(),{ok:true,requestId:123});
+});
+
+test("Microsoft 365 receives only a fixed alert to the existing business mailbox", async () => {
+  let scheduled = 0;
+  const { sendInquiryAlert, scheduleInquiryAlert } = await load("../src/lib/inquiry-mail.js", {
+    "next/server": { after: () => { scheduled++; } },
+    "@/lib/db": {},
+  });
+  scheduleInquiryAlert();
+  assert.equal(scheduled, 0);
+  const calls = [];
+  const accepted = await sendInquiryAlert(
+    { tenantId: "sample-tenant", clientId: "sample-client", clientSecret: "sample-token-secret" },
+    async (url, options) => {
+      calls.push({ url, options });
+      return calls.length === 1 ? Response.json({ access_token: "sample-access-token" }) : new Response(null, { status: 202 });
+    }
+  );
+  assert.equal(accepted, true);
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /^https:\/\/login\.microsoftonline\.com\//);
+  assert.equal(calls[0].options.body.get("scope"), "https://graph.microsoft.com/.default");
+  assert.equal(calls[1].url, "https://graph.microsoft.com/v1.0/users/info%40urlaub-gosch.de/sendMail");
+  assert.equal(calls[1].options.redirect, "error");
+  assert.equal(calls[1].options.headers.Authorization, "Bearer sample-access-token");
+  assert.deepEqual(JSON.parse(calls[1].options.body), {
+    message: {
+      subject: "Neue Anfrage bei Urlaub-GOSCH",
+      body: { contentType: "Text", content: "Eine neue Anfrage ist eingegangen. Bitte öffnen Sie im Adminbereich den Menüpunkt „Anfragen“." },
+      toRecipients: [{ emailAddress: { address: "info@urlaub-gosch.de" } }],
+    },
+    saveToSentItems: false,
+  });
 });
 
 // ---- Admin "Anfragen" (booking requests with guest contact data) ----
 import * as requestsAdmin from "../src/lib/booking-requests-admin.js";
 
 const noDb = new Proxy({}, { get: () => new Proxy({}, { get: () => async () => { throw new Error("Database must not be reached"); } }) });
-const permissionMock = (ok, perms = []) => ({
+const permissionMock = (ok, perms = [], role = "EDITOR") => ({
   ADMIN_PERMISSIONS: { AVAILABILITY_VIEW: "AVAILABILITY_VIEW", AVAILABILITY_EDIT: "AVAILABILITY_EDIT" },
   requireAdminPermission: async (permission) =>
     ok && perms.includes(permission)
-      ? { ok: true, user: { role: "EDITOR", permissions: perms } }
+      ? { ok: true, user: { role, permissions: perms } }
       : { ok: false, status: ok ? 403 : 401, error: "verweigert" },
 });
-const anfragenMocks = (db, perms, ok = true) => ({
+const anfragenMocks = (db, perms, ok = true, role) => ({
   "@/lib/db": db,
-  "@/lib/admin-permissions": permissionMock(ok, perms),
+  "@/lib/admin-permissions": permissionMock(ok, perms, role),
   "@/lib/booking-requests-admin": requestsAdmin,
+});
+
+test("only superadmins can access contact requests and contact lookup cannot select booking records", async () => {
+  const permissions = ["AVAILABILITY_VIEW", "AVAILABILITY_EDIT"];
+  const url = "http://localhost/api/admin/anfragen?kind=contact";
+  const request = (method, body = {}) => new Request(url, { method, body: JSON.stringify(body) });
+  const editor = await load("../src/app/api/admin/anfragen/route.js", anfragenMocks(noDb, permissions));
+  assert.equal((await editor.POST(request("POST"))).status, 403);
+  assert.equal((await editor.DELETE(request("DELETE", { ids: [1] }))).status, 403);
+  const detail = await load("../src/app/api/admin/anfragen/[id]/route.js", anfragenMocks(noDb, permissions));
+  assert.equal((await detail.PATCH(request("PATCH", { status: "APPROVED" }), { params: { id: "1" } })).status, 403);
+
+  let selection;
+  const db = {
+    bookingRequest: noDb.bookingRequest,
+    contactRequest: {
+      findMany: async (options) => { selection = options; return []; },
+      count: async () => 0,
+      groupBy: async () => [],
+    },
+  };
+  const admin = await load("../src/app/api/admin/anfragen/route.js", anfragenMocks(db, permissions, true, "SUPERADMIN"));
+  const response = await admin.POST(request("POST", { q: "Rückfrage" }));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(selection.select.deduplicationKey, undefined);
+  assert.equal(selection.select.property, undefined);
+  assert.ok(selection.where.OR.some((field) => field.subject?.contains === "Rückfrage"));
 });
 
 test("booking requests are never readable or deletable without the right permission", async () => {

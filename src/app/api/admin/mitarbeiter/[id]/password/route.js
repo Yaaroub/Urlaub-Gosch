@@ -9,17 +9,16 @@ import {
 } from "@/lib/auth";
 
 import {
-  getSuperAdmin,
+  getSuperAdminSession,
+  STAFF_ROLES,
 } from "@/lib/admin-auth";
 
 export async function POST(
   request,
   context
 ) {
-  const currentUser =
-    await getSuperAdmin(
-      request
-    );
+  const current = await getSuperAdminSession(request);
+  const currentUser = current?.user;
 
   if (!currentUser) {
     return Response.json(
@@ -39,10 +38,7 @@ export async function POST(
   const id =
     Number(params.id);
 
-  if (
-    !id ||
-    Number.isNaN(id)
-  ) {
+  if (!Number.isSafeInteger(id) || id <= 0) {
     return Response.json(
       {
         error:
@@ -54,11 +50,14 @@ export async function POST(
     );
   }
 
+  const isSelf = id === currentUser.id;
   const target =
     await prisma.user.findUnique({
       where: {
         id,
+        role: { in: STAFF_ROLES },
       },
+      select: { role: true, sessionVersion: true, password: isSelf },
     });
 
   if (!target) {
@@ -81,9 +80,6 @@ export async function POST(
   } catch {
     body = {};
   }
-
-  const isSelf =
-    id === currentUser.id;
 
   let newPassword =
     String(
@@ -193,6 +189,8 @@ export async function POST(
     await prisma.user.update({
       where: {
         id,
+        role: target.role,
+        sessionVersion: isSelf ? current.session.sessionVersion : target.sessionVersion,
       },
 
       data: {
@@ -233,7 +231,13 @@ export async function POST(
         passwordChangedAt:
           true,
       },
+    }).catch((error) => {
+      if (error?.code === "P2025") return null;
+      throw error;
     });
+  if (!updated) {
+    return Response.json({ error: "Mitarbeiterkonto wurde inzwischen geändert." }, { status: 409 });
+  }
 
   // Eigenes Passwort:
   // aktuellen Browser wieder anmelden,
@@ -241,7 +245,7 @@ export async function POST(
   if (isSelf) {
     const token =
       await createSession(
-        updated
+        updated, { authTime: current.session.authTime }
       );
 
     return Response.json(

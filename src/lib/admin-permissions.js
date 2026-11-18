@@ -1,6 +1,6 @@
 import prisma from "@/lib/db";
 import { retryDatabaseRead } from "@/lib/database-availability";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isStaffRole } from "@/lib/auth";
 
 export const ADMIN_PERMISSIONS = {
   PROPERTIES_VIEW: "PROPERTIES_VIEW",
@@ -120,15 +120,7 @@ export async function getAdminUserWithPermissions(
 ) {
   const currentUser = await getCurrentUser(request);
 
-  if (!currentUser) {
-    return null;
-  }
-
-  if (
-    currentUser.role !== "EDITOR" &&
-    currentUser.role !== "ADMIN" &&
-    currentUser.role !== "SUPERADMIN"
-  ) {
+  if (!currentUser || !isStaffRole(currentUser.role)) {
     return null;
   }
 
@@ -163,7 +155,8 @@ export async function getAdminUserWithPermissions(
     },
   }));
 
-  if (!user || !user.isActive) {
+  if (!user || !user.isActive || user.role !== currentUser.role ||
+      user.sessionVersion !== currentUser.sessionVersion) {
     return null;
   }
 
@@ -186,7 +179,7 @@ export async function hasAdminPermission(
   const user =
     await getAdminUserWithPermissions(request);
 
-  if (!user) {
+  if (!user || user.mustChangePassword) {
     return false;
   }
 

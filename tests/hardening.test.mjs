@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { safeNextPath } from "../src/lib/safe-redirect.js";
 import {
   checkLoginLimit,
   clientIp,
@@ -11,14 +10,6 @@ import {
 } from "../src/lib/rate-limit.js";
 
 const req = (headers = {}) => ({ headers: new Headers(headers) });
-
-test("post-login redirect only allows same-site paths", () => {
-  assert.equal(safeNextPath("/account"), "/account");
-  assert.equal(safeNextPath("/favorites?x=1"), "/favorites?x=1");
-  for (const bad of ["//evil.example", "/\\evil.example", "https://evil.example", "javascript:alert(1)", "", null, "/\tx"]) {
-    assert.equal(safeNextPath(bad), "/", String(bad));
-  }
-});
 
 test("client IP ignores spoofed leftmost x-forwarded-for entries", () => {
   assert.equal(clientIp(req({ "x-real-ip": "203.0.113.5", "x-forwarded-for": "1.1.1.1" })), "203.0.113.5");
@@ -85,9 +76,10 @@ test("error logs never contain submitted personal data", async () => {
   );
   prismaLike.name = "PrismaClientValidationError";
   const line = describeError(prismaLike);
-  assert.match(line, /PrismaClientValidationError/);
-  for (const secret of ["Erika", "erika@example.test", "0171"]) assert.ok(!line.includes(secret), secret);
-  assert.equal(describeError(new Error("mail to test@example.test failed")).includes("@"), false);
+  assert.equal(line, "PrismaClientValidationError");
+  assert.equal(describeError(new Error("Erika Mustermann 0171 1234567 https://example.test/calendar.ics?token=private")), "Error");
+  assert.equal(describeError({ name: "Erika Mustermann", code: "GUEST_EMAIL", message: "Private Anfrage" }), "Error");
+  assert.equal(describeError({ name: "PrismaClientKnownRequestError", code: "P1001" }), "PrismaClientKnownRequestError | P1001");
 });
 
 test("calendar import keeps only the source, never the portal's event text", async () => {

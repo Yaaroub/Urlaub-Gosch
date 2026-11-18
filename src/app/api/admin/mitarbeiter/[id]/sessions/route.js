@@ -6,6 +6,7 @@ import {
 
 import {
   getSuperAdmin,
+  STAFF_ROLES,
 } from "@/lib/admin-auth";
 
 export async function POST(
@@ -35,10 +36,7 @@ export async function POST(
   const id =
     Number(params.id);
 
-  if (
-    !id ||
-    Number.isNaN(id)
-  ) {
+  if (!Number.isSafeInteger(id) || id <= 0) {
     return Response.json(
       {
         error:
@@ -50,18 +48,11 @@ export async function POST(
     );
   }
 
-  const target =
-    await prisma.user.findUnique({
-      where: {
-        id,
-      },
-
-      select: {
-        id: true,
-      },
-    });
-
-  if (!target) {
+  const updated = await prisma.user.updateMany({
+    where: { id, role: { in: STAFF_ROLES } },
+    data: { sessionVersion: { increment: 1 } },
+  });
+  if (updated.count !== 1) {
     return Response.json(
       {
         error:
@@ -72,18 +63,6 @@ export async function POST(
       }
     );
   }
-
-  await prisma.user.update({
-    where: {
-      id,
-    },
-
-    data: {
-      sessionVersion: {
-        increment: 1,
-      },
-    },
-  });
 
   const isSelf =
     id === currentUser.id;

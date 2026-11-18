@@ -11,6 +11,8 @@ import {
 
 import {
   getSuperAdmin,
+  getSuperAdminSession,
+  STAFF_ROLES,
 } from "@/lib/admin-auth";
 
 const ALLOWED_ROLES = [
@@ -63,10 +65,8 @@ export async function PATCH(
   request,
   context
 ) {
-  const currentUser =
-    await getSuperAdmin(
-      request
-    );
+  const current = await getSuperAdminSession(request);
+  const currentUser = current?.user;
 
   if (!currentUser) {
     return Response.json(
@@ -83,10 +83,7 @@ export async function PATCH(
   const id =
     await getId(context);
 
-  if (
-    !id ||
-    Number.isNaN(id)
-  ) {
+  if (!Number.isSafeInteger(id) || id <= 0) {
     return Response.json(
       {
         error:
@@ -102,11 +99,15 @@ export async function PATCH(
     await prisma.user.findUnique({
       where: {
         id,
+        role: { in: STAFF_ROLES },
       },
 
-      include: {
-        adminPermissions:
-          true,
+      select: {
+        email: true,
+        role: true,
+        isActive: true,
+        sessionVersion: true,
+        adminPermissions: { select: { permission: true } },
       },
     });
 
@@ -128,6 +129,9 @@ export async function PATCH(
     body =
       await request.json();
   } catch {
+    body = null;
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return Response.json(
       {
         error:
@@ -553,6 +557,8 @@ export async function PATCH(
         return tx.user.update({
           where: {
             id,
+            role: target.role,
+            sessionVersion: isSelf ? current.session.sessionVersion : target.sessionVersion,
           },
 
           data,
@@ -592,7 +598,13 @@ export async function PATCH(
           },
         });
       }
-    );
+    ).catch((error) => {
+      if (error?.code === "P2025") return null;
+      throw error;
+    });
+  if (!updated) {
+    return Response.json({ error: "Mitarbeiterkonto wurde inzwischen geändert." }, { status: 409 });
+  }
 
   const responseBody = {
     success: true,
@@ -627,7 +639,7 @@ export async function PATCH(
   ) {
     const token =
       await createSession(
-        updated
+        updated, { authTime: current.session.authTime }
       );
 
     return Response.json(
@@ -686,10 +698,7 @@ export async function DELETE(
   const id =
     await getId(context);
 
-  if (
-    !id ||
-    Number.isNaN(id)
-  ) {
+  if (!Number.isSafeInteger(id) || id <= 0) {
     return Response.json(
       {
         error:
@@ -720,6 +729,7 @@ export async function DELETE(
     await prisma.user.findUnique({
       where: {
         id,
+        role: { in: STAFF_ROLES },
       },
 
       select: {
@@ -762,11 +772,16 @@ export async function DELETE(
     }
   }
 
-  await prisma.user.delete({
+  const deleted = await prisma.user.deleteMany({
     where: {
       id,
+      role: target.role,
+      isActive: target.isActive,
     },
   });
+  if (deleted.count !== 1) {
+    return Response.json({ error: "Mitarbeiterkonto wurde inzwischen geändert." }, { status: 409 });
+  }
 
   return Response.json({
     success: true,

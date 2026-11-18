@@ -156,6 +156,27 @@ model BookingRequest {
   @@index([propertyId, startDate, endDate])
 }
 
+model ContactRequest {
+  id                 Int           @id @default(autoincrement())
+  deduplicationKey   String        @unique
+  guestName          String
+  guestEmail         String
+  phone              String?
+  subject            String?
+  message            String
+  isLandlordProspect Boolean       @default(false)
+  status             RequestStatus @default(PENDING)
+  createdAt          DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
+model InquiryMailThrottle {
+  id            Int      @id
+  lastAttemptAt DateTime @db.Timestamptz(3)
+}
+
 // ============================================================================
 // BENUTZERROLLEN
 // ============================================================================

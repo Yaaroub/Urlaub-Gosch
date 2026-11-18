@@ -186,9 +186,7 @@ export default function BookingBox({ propertyId }) {
       setMessage({
         type: "ok",
         text:
-          data.notificationSent === false
-            ? "Ihre Anfrage wurde gespeichert. Die E-Mail-Benachrichtigung konnte derzeit nicht versendet werden. Bitte nennen Sie bei Rückfragen die Anfrage-Nr. " + data.requestId + "."
-            : requestType === "booking"
+          requestType === "booking"
             ? "Ihre Buchungsanfrage wurde erfolgreich übermittelt. Die ausgewählten Tage sind noch nicht fest gebucht – wir prüfen Ihre Anfrage und melden uns."
             : "Ihre Informationsanfrage wurde erfolgreich übermittelt. Wir melden uns schnellstmöglich bei Ihnen.",
       });
@@ -213,7 +211,7 @@ export default function BookingBox({ propertyId }) {
         <ReceiptText className="h-5 w-5 shrink-0 text-slate-400" />
       </div>
 
-      <form onSubmit={submit} className="grid gap-5">
+      <form method="post" action="/api/booking-request" onSubmit={submit} className="grid gap-5">
         <label aria-hidden="true" className="absolute -left-[10000px]">Website<input name="website" type="text" tabIndex={-1} autoComplete="off" /></label>
         <fieldset>
           <legend className="mb-2 text-xs font-semibold text-slate-700">

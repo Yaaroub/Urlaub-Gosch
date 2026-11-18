@@ -3,7 +3,7 @@ import { fetchPublicCalendar } from "@/lib/safe-calendar-fetch";
 
 /**
  * Lädt eine ICS-Quelle (URL oder Buffer) und gibt Normalform zurück:
- * [{ start: Date, end: Date, summary: string }]
+ * [{ start: Date, end: Date }]
  * Achtung: DTEND ist in iCal exklusiv – perfekt für unser Modell.
  */
 export async function parseIcsFromUrl(icsUrl) {
@@ -32,7 +32,6 @@ function normalizeIcal(data) {
     out.push({
       start: s,
       end: e,
-      summary: ev.summary || "",
     });
   }
   return out;

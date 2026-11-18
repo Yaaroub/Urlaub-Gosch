@@ -12,6 +12,12 @@ test("public inquiry rejects cross-site and large requests, and limits repeated 
   assert.equal(checkInquiryRequest(request({ "x-real-ip": "test-client" }), 1000), 429);
   assert.equal(checkInquiryRequest(request({ "x-real-ip": "test-client" }), 601001), null);
 });
+test("public forms accept the browser's own host when Next uses its bind address internally", () => {
+  const headers = { origin: "https://example.test", host: "example.test", "content-type": "application/json" };
+  const incoming = (site) => new Request("http://localhost/api/contact", { method: "POST", headers: { ...headers, "sec-fetch-site": site }, body: "{}" });
+  assert.equal(checkInquiryRequest(incoming("same-origin")), null);
+  assert.equal(checkInquiryRequest(incoming("same-site")), 403);
+});
 test("body limit also applies when content-length is absent", async () => {
   await assert.rejects(readInquiryJson(request({}, "x".repeat(16385))), /BODY_TOO_LARGE/);
   await assert.rejects(readInquiryJson(request({}, "{")));

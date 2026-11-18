@@ -1,6 +1,6 @@
 import { publicPropertySelect } from "@/lib/public-property-select";
 import prisma from "@/lib/db";
-import { buildPropertyWhere, isDateStr } from "@/lib/search-utils";
+import { buildPropertyWhere, publicTravelWindow } from "@/lib/search-utils";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -40,20 +40,11 @@ export async function POST(req) {
     ? [amenities.toLowerCase()]
     : [];
 
-  // Datumsvalidierung
-  if ((arrival && !departure) || (!arrival && departure)) {
+  if ((arrival || departure) && !publicTravelWindow(arrival, departure)) {
     return Response.json(
-      { error: "arrival und departure müssen gemeinsam gesetzt sein." },
+      { error: "Bitte wählen Sie einen gültigen zukünftigen Reisezeitraum." },
       { status: 400 }
     );
-  }
-  if (isDateStr(arrival) && isDateStr(departure)) {
-    if (new Date(departure) <= new Date(arrival)) {
-      return Response.json(
-        { error: "departure muss nach arrival liegen." },
-        { status: 400 }
-      );
-    }
   }
 
   const where = buildPropertyWhere({
