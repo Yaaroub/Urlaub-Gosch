@@ -7,6 +7,7 @@ import {
   recordLoginSuccess,
   verifyPasswordConstantTime,
 } from "@/lib/rate-limit";
+import { logError } from "@/lib/safe-log";
 
 const INVALID = "Ungültige Zugangsdaten";
 
@@ -44,7 +45,7 @@ export async function POST(req) {
       headers: { "Set-Cookie": sessionCookie(token), "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
   } catch (e) {
-    console.error("POST /api/auth/login failed:", e);
+    logError("POST /api/auth/login failed:", e);
     return Response.json({ error: "Login fehlgeschlagen" }, { status: 500 });
   }
 }

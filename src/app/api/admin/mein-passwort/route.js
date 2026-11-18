@@ -9,6 +9,7 @@ import {
   recordLoginSuccess,
   verifyPasswordConstantTime,
 } from "@/lib/rate-limit";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export async function POST(req) {
       { headers: { "Set-Cookie": sessionCookie(token), "Cache-Control": "no-store" } }
     );
   } catch (error) {
-    console.error("POST /api/admin/mein-passwort failed:", error);
+    logError("POST /api/admin/mein-passwort failed:", error);
     return Response.json({ error: "Passwort konnte nicht geändert werden." }, { status: 500 });
   }
 }

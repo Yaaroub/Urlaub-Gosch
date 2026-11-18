@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic = "force-dynamic";
 
@@ -153,10 +154,7 @@ export async function GET(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "GET /api/admin/lastminute failed:",
-      error
-    );
+    logError("GET /api/admin/lastminute failed:", error);
 
     return Response.json(
       {
@@ -377,10 +375,7 @@ export async function POST(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "POST /api/admin/lastminute failed:",
-      error
-    );
+    logError("POST /api/admin/lastminute failed:", error);
 
     return Response.json(
       {
@@ -610,10 +605,7 @@ export async function PUT(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "PUT /api/admin/lastminute failed:",
-      error
-    );
+    logError("PUT /api/admin/lastminute failed:", error);
 
     return Response.json(
       {

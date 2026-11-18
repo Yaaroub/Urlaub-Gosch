@@ -7,6 +7,7 @@ import {
   recordLoginFailure,
   verifyPasswordConstantTime,
 } from "@/lib/rate-limit";
+import { logError } from "@/lib/safe-log";
 
 export async function PUT(req) {
   const auth = await requireCustomerSession(req);
@@ -70,7 +71,7 @@ export async function PUT(req) {
     });
   } catch (e) {
     if (e?.code === "P2002") return Response.json({ error: "E-Mail bereits vergeben" }, { status: 409 });
-    console.error("PUT /api/account/profile failed:", e);
+    logError("PUT /api/account/profile failed:", e);
     return Response.json({ error: "Profil-Update fehlgeschlagen" }, { status: 500 });
   }
 }

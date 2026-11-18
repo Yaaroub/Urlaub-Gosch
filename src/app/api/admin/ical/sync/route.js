@@ -2,12 +2,14 @@ import prisma from "@/lib/db";
 
 import {
   parseIcsFromUrl,
+  icalImportLabel,
 } from "@/lib/ical-import";
 
 import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic =
   "force-dynamic";
@@ -267,15 +269,7 @@ export async function POST(req) {
         endDate:
           end,
 
-        guestName:
-          event?.summary
-            ? String(
-                event.summary
-              ).slice(
-                0,
-                120
-              )
-            : null,
+        guestName: icalImportLabel(parsedUrl),
       });
 
       occupied.push({
@@ -336,10 +330,7 @@ export async function POST(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "POST /api/admin/ical/sync:",
-      error
-    );
+    logError("POST /api/admin/ical/sync:", error);
 
     /*
      * Wenn propertyId bereits bekannt ist,

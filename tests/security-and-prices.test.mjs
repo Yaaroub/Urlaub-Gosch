@@ -1,4 +1,5 @@
 import test from "node:test";
+import * as safeLog from "../src/lib/safe-log.js";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import vm from "node:vm";
@@ -17,7 +18,7 @@ async function load(path, mocks) {
   });
   const module = { exports: {} };
   vm.runInNewContext(code, { exports: module.exports, module, Response, URL, Date, console, TextEncoder, process: { env: { AUTH_SECRET: "security-test-only-secret" } }, require: (name) => {
-    if (!(name in mocks)) throw new Error(`Unexpected dependency ${name}`);
+    if (name === "@/lib/safe-log") return safeLog; if (!(name in mocks)) throw new Error(`Unexpected dependency ${name}`);
     return mocks[name];
   } });
   return module.exports;
@@ -221,4 +222,62 @@ test("booking remains saved when Resend fails, without reporting successful noti
   assert.equal(response.status,200);
   assert.equal(saves,1);
   assert.deepEqual(await response.json(),{ok:true,requestId:123,notificationSent:false});
+});
+
+// ---- Admin "Anfragen" (booking requests with guest contact data) ----
+import * as requestsAdmin from "../src/lib/booking-requests-admin.js";
+
+const noDb = new Proxy({}, { get: () => new Proxy({}, { get: () => async () => { throw new Error("Database must not be reached"); } }) });
+const permissionMock = (ok, perms = []) => ({
+  ADMIN_PERMISSIONS: { AVAILABILITY_VIEW: "AVAILABILITY_VIEW", AVAILABILITY_EDIT: "AVAILABILITY_EDIT" },
+  requireAdminPermission: async (permission) =>
+    ok && perms.includes(permission)
+      ? { ok: true, user: { role: "EDITOR", permissions: perms } }
+      : { ok: false, status: ok ? 403 : 401, error: "verweigert" },
+});
+const anfragenMocks = (db, perms, ok = true) => ({
+  "@/lib/db": db,
+  "@/lib/admin-permissions": permissionMock(ok, perms),
+  "@/lib/booking-requests-admin": requestsAdmin,
+});
+
+test("booking requests are never readable or deletable without the right permission", async () => {
+  const list = await load("../src/app/api/admin/anfragen/route.js", anfragenMocks(noDb, [], false));
+  assert.equal((await list.GET(new Request("http://x/api/admin/anfragen"))).status, 401);
+  assert.equal((await list.DELETE(new Request("http://x/api/admin/anfragen", { method: "DELETE", body: '{"olderThanMonths":12}' }))).status, 401);
+
+  // Viewing right alone must not allow deleting or changing.
+  const viewOnly = await load("../src/app/api/admin/anfragen/route.js", anfragenMocks(noDb, ["AVAILABILITY_VIEW"]));
+  assert.equal((await viewOnly.DELETE(new Request("http://x/api/admin/anfragen", { method: "DELETE", body: '{"ids":[1]}' }))).status, 403);
+  const one = await load("../src/app/api/admin/anfragen/[id]/route.js", anfragenMocks(noDb, ["AVAILABILITY_VIEW"]));
+  const ctx = { params: Promise.resolve({ id: "1" }) };
+  assert.equal((await one.DELETE(new Request("http://x", { method: "DELETE" }), ctx)).status, 403);
+  assert.equal((await one.PATCH(new Request("http://x", { method: "PATCH", body: '{"status":"APPROVED"}' }), ctx)).status, 403);
+});
+
+test("bulk deletion of booking requests only accepts explicit ids or a retention of at least 6 months", async () => {
+  let deleteWhere = null;
+  const db = { bookingRequest: { deleteMany: async ({ where }) => { deleteWhere = where; return { count: 2 }; } } };
+  const route = await load("../src/app/api/admin/anfragen/route.js", anfragenMocks(db, ["AVAILABILITY_VIEW", "AVAILABILITY_EDIT"]));
+  const del = (body) => route.DELETE(new Request("http://x/api/admin/anfragen", { method: "DELETE", body: JSON.stringify(body) }));
+
+  for (const body of [{}, { ids: [] }, { ids: ["x"] }, { ids: [-1] }, { olderThanMonths: 1 }, { olderThanMonths: 0 }, { olderThanMonths: "all" }]) {
+    deleteWhere = null;
+    assert.equal((await del(body)).status, 400, JSON.stringify(body));
+    assert.equal(deleteWhere, null, "nothing may be deleted for " + JSON.stringify(body));
+  }
+  assert.equal((await del({ ids: [3, 3, 4] })).status, 200);
+  assert.equal(JSON.stringify(deleteWhere), JSON.stringify({ id: { in: [3, 4] } }));
+  assert.equal((await del({ olderThanMonths: 12 })).status, 200);
+  const cutoff = deleteWhere.createdAt.lt;
+  const elevenMonthsAgo = new Date(); elevenMonthsAgo.setUTCMonth(elevenMonthsAgo.getUTCMonth() - 11);
+  assert.ok(cutoff < elevenMonthsAgo, "only requests older than 12 months are deleted");
+});
+
+test("request messages are split into phone and text for display", () => {
+  assert.deepEqual(requestsAdmin.splitRequestMessage("Telefon: 0431 123\nNachricht: Hallo\nzweite Zeile"), { phone: "0431 123", text: "Hallo\nzweite Zeile" });
+  assert.deepEqual(requestsAdmin.splitRequestMessage("Telefon: -\nNachricht: -"), { phone: "", text: "" });
+  assert.equal(requestsAdmin.parseListQuery(new URLSearchParams("status=hack&page=-3&q=" + "a".repeat(500))).status, "ALL");
+  assert.equal(requestsAdmin.parseListQuery(new URLSearchParams("page=-3")).page, 1);
+  assert.equal(requestsAdmin.parseListQuery(new URLSearchParams("q=" + "a".repeat(500))).q.length, 100);
 });

@@ -1,5 +1,6 @@
 import prisma from "@/lib/db";
 import { clearSessionCookie, getCurrentUser } from "@/lib/auth";
+import { logError } from "@/lib/safe-log";
 
 export async function POST(req) {
   // Invalidate the token server-side, so a copied cookie stops working after logout.
@@ -13,7 +14,7 @@ export async function POST(req) {
       });
     }
   } catch (error) {
-    console.error("POST /api/auth/logout: session revoke failed:", error);
+    logError("POST /api/auth/logout: session revoke failed:", error);
   }
 
   return Response.json(

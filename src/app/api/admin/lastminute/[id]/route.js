@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic =
   "force-dynamic";
@@ -141,10 +142,7 @@ export async function DELETE(
       }
     );
   } catch (error) {
-    console.error(
-      "DELETE /api/admin/lastminute/[id] failed:",
-      error
-    );
+    logError("DELETE /api/admin/lastminute/[id] failed:", error);
 
     return Response.json(
       {

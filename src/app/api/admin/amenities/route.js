@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 /**
  * Einheitliche Antwort bei fehlender Berechtigung.
@@ -64,10 +65,7 @@ export async function GET(
       }
     );
   } catch (error) {
-    console.error(
-      "GET /api/admin/amenities failed:",
-      error
-    );
+    logError("GET /api/admin/amenities failed:", error);
 
     return Response.json(
       {
@@ -169,10 +167,7 @@ export async function POST(
       }
     );
   } catch (error) {
-    console.error(
-      "POST /api/admin/amenities failed:",
-      error
-    );
+    logError("POST /api/admin/amenities failed:", error);
 
     return Response.json(
       {

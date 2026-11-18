@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 function deny(auth) {
   return Response.json(
@@ -224,10 +225,7 @@ export async function PUT(
       }
     );
   } catch (error) {
-    console.error(
-      "PUT /api/admin/fees/[id]:",
-      error
-    );
+    logError("PUT /api/admin/fees/[id]:", error);
 
     return Response.json(
       {
@@ -320,10 +318,7 @@ export async function DELETE(
       }
     );
   } catch (error) {
-    console.error(
-      "DELETE /api/admin/fees/[id]:",
-      error
-    );
+    logError("DELETE /api/admin/fees/[id]:", error);
 
     return Response.json(
       {

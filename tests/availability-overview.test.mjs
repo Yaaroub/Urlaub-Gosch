@@ -1,4 +1,5 @@
 import test from "node:test";
+import * as safeLog from "../src/lib/safe-log.js";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import vm from "node:vm";
@@ -62,7 +63,7 @@ async function loadRoute(auth, database) {
   const { code } = await transform(await fs.readFile(new URL(path, import.meta.url), "utf8"), { filename: path, jsc: { parser: { syntax: "ecmascript" } }, module: { type: "commonjs" } });
   const module = { exports: {} };
   const mocks = { "@/lib/db": database, "@/lib/admin-permissions": { ADMIN_PERMISSIONS: { AVAILABILITY_VIEW: "AVAILABILITY_VIEW" }, requireAdminPermission: async (permission) => { assert.equal(permission, "AVAILABILITY_VIEW"); return auth; } }, "@/lib/availability-overview": { getOverviewWindow } };
-  vm.runInNewContext(code, { module, exports: module.exports, Response, URL, console: { error() {} }, require: (name) => { if (!(name in mocks)) throw Error(name); return mocks[name]; } });
+  vm.runInNewContext(code, { module, exports: module.exports, Response, URL, console: { error() {} }, require: (name) => { if (name === "@/lib/safe-log") return safeLog; if (!(name in mocks)) throw Error(name); return mocks[name]; } });
   return module.exports;
 }
 const request = { url: "https://example.test/api/admin/availability-overview?arrival=2026-10-29&departure=2026-11-05" };

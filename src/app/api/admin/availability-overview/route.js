@@ -1,6 +1,7 @@
 import prisma from "@/lib/db";
 import { ADMIN_PERMISSIONS, requireAdminPermission } from "@/lib/admin-permissions";
 import { getOverviewWindow } from "@/lib/availability-overview";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(request) {
     });
     return Response.json({ properties }, { headers });
   } catch (error) {
-    console.error("Availability overview failed", error);
+    logError("Availability overview failed", error);
     return Response.json({ error: "Verfügbarkeiten konnten nicht geladen werden. Bitte erneut versuchen." }, { status: 503, headers });
   }
 }

@@ -50,3 +50,18 @@ function toDateOnly(x) {
   const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
   return new Date(Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day)));
 }
+
+
+/**
+ * Neutral label for imported bookings. The SUMMARY of a portal's calendar can
+ * contain guest names; we only keep where the booking came from.
+ */
+export function icalImportLabel(url) {
+  let host = "";
+  try {
+    host = new URL(String(url)).hostname.replace(/^www\./, "");
+  } catch {
+    host = "";
+  }
+  return (host ? `iCal-Import (${host})` : "iCal-Import").slice(0, 120);
+}

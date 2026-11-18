@@ -1,6 +1,7 @@
 // src/app/api/favorites/[propertyId]/route.js
 import prisma from "@/lib/db";
 import { getVerifiedSession } from "@/lib/auth";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -26,7 +27,7 @@ export async function DELETE(req, ctx) {
 
     return Response.json({ ok: true });
   } catch (err) {
-    console.error("DELETE /api/favorites/[propertyId] failed:", err);
+    logError("DELETE /api/favorites/[propertyId] failed:", err);
     return Response.json({ error: "Internal error" }, { status: 500 });
   }
 }

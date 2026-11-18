@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 function deny(auth) {
   return Response.json(
@@ -250,10 +251,7 @@ export async function DELETE(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "DELETE images bulk:",
-      error
-    );
+    logError("DELETE images bulk:", error);
 
     return Response.json(
       {

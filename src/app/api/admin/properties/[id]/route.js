@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 /**
  * Einheitliche Antwort bei fehlender Berechtigung.
@@ -206,10 +207,7 @@ export async function GET(
       }
     );
   } catch (error) {
-    console.error(
-      "GET /api/admin/properties/[id] failed:",
-      error
-    );
+    logError("GET /api/admin/properties/[id] failed:", error);
 
     return Response.json(
       {
@@ -474,10 +472,7 @@ export async function PUT(
       }
     );
   } catch (error) {
-    console.error(
-      "PUT /api/admin/properties/[id] failed:",
-      error
-    );
+    logError("PUT /api/admin/properties/[id] failed:", error);
 
     return Response.json(
       {
@@ -572,10 +567,7 @@ export async function DELETE(
       }
     );
   } catch (error) {
-    console.error(
-      "DELETE /api/admin/properties/[id] failed:",
-      error
-    );
+    logError("DELETE /api/admin/properties/[id] failed:", error);
 
     return Response.json(
       {

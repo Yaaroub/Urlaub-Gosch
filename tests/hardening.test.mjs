@@ -77,3 +77,28 @@ test("content security policy restricts sources and blocks indexing of the verce
   assert.match(vercelRule.headers[0].value, /noindex/);
   assert.equal(config.images.remotePatterns.some((p) => /unsplash|googleusercontent|\*/.test(p.hostname)), false);
 });
+
+test("error logs never contain submitted personal data", async () => {
+  const { describeError } = await import("../src/lib/safe-log.js");
+  const prismaLike = new Error(
+    "Invalid `prisma.bookingRequest.create()` invocation:\n\n{\n  data: {\n    guestName: \"Erika Mustermann\",\n    guestEmail: \"erika@example.test\",\n    message: \"Telefon 0171 1234567\"\n  }\n}\nArgument missing."
+  );
+  prismaLike.name = "PrismaClientValidationError";
+  const line = describeError(prismaLike);
+  assert.match(line, /PrismaClientValidationError/);
+  for (const secret of ["Erika", "erika@example.test", "0171"]) assert.ok(!line.includes(secret), secret);
+  assert.equal(describeError(new Error("mail to test@example.test failed")).includes("@"), false);
+});
+
+test("calendar import keeps only the source, never the portal's event text", async () => {
+  const fs = await import("node:fs/promises");
+  const src = await fs.readFile(new URL("../src/lib/ical-import.js", import.meta.url), "utf8");
+  const fn = src.slice(src.indexOf("export function icalImportLabel"));
+  const icalImportLabel = new Function(`${fn.replace("export ", "")}; return icalImportLabel;`)();
+  assert.equal(icalImportLabel(new URL("https://www.airbnb.de/calendar/ical/123.ics?s=secret")), "iCal-Import (airbnb.de)");
+  assert.equal(icalImportLabel("kein-link"), "iCal-Import");
+  for (const route of ["../src/app/api/admin/ical/import/route.js", "../src/app/api/admin/ical/sync/route.js"]) {
+    const code = await fs.readFile(new URL(route, import.meta.url), "utf8");
+    assert.ok(!/guestName:\s*event/.test(code), `${route} must not store event text as guest name`);
+  }
+});

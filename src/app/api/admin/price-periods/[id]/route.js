@@ -5,6 +5,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 function deny(auth) {
   return Response.json(
@@ -401,10 +402,7 @@ export async function PUT(
       }
     );
   } catch (error) {
-    console.error(
-      "PUT /api/admin/price-periods/[id] failed:",
-      error
-    );
+    logError("PUT /api/admin/price-periods/[id] failed:", error);
 
     return Response.json(
       {
@@ -501,10 +499,7 @@ export async function DELETE(
       }
     );
   } catch (error) {
-    console.error(
-      "DELETE /api/admin/price-periods/[id] failed:",
-      error
-    );
+    logError("DELETE /api/admin/price-periods/[id] failed:", error);
 
     return Response.json(
       {

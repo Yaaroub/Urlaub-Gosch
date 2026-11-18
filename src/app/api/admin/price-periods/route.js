@@ -5,6 +5,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 function deny(auth) {
   return Response.json(
@@ -155,10 +156,7 @@ export async function GET(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "GET /api/admin/price-periods failed:",
-      error
-    );
+    logError("GET /api/admin/price-periods failed:", error);
 
     return Response.json(
       {
@@ -440,10 +438,7 @@ export async function POST(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "POST /api/admin/price-periods failed:",
-      error
-    );
+    logError("POST /api/admin/price-periods failed:", error);
 
     return Response.json(
       {

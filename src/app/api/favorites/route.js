@@ -1,6 +1,7 @@
 // src/app/api/favorites/route.js
 import prisma from "@/lib/db";
 import { getVerifiedSession } from "@/lib/auth";
+import { logError } from "@/lib/safe-log";
 
 // Wichtig: dynamisch deklarieren wegen Sessions/Cookies
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ export async function GET(req) {
 
     return Response.json({ ids: rows.map((r) => r.propertyId) });
   } catch (err) {
-    console.error("GET /favorites failed:", err);
+    logError("GET /favorites failed:", err);
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -59,7 +60,7 @@ export async function POST(req) {
     if (err?.code === "P2003") {
       return Response.json({ error: "Unterkunft nicht gefunden" }, { status: 404 });
     }
-    console.error("POST /favorites failed:", err);
+    logError("POST /favorites failed:", err);
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

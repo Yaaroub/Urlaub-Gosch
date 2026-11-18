@@ -1,4 +1,5 @@
 import { findNearbyProperties, parseNearbyParams } from "@/lib/nearby-properties";
+import { logError } from "@/lib/safe-log";
 
 export async function GET(req) {
   try {
@@ -15,7 +16,7 @@ export async function GET(req) {
 
     return Response.json({ items: await findNearbyProperties(params) });
   } catch (e) {
-    console.error("nearby error:", e);
+    logError("nearby error:", e);
     return Response.json({ error: "nearby failed" }, { status: 500 });
   }
 }

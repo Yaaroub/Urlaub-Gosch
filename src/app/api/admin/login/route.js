@@ -11,6 +11,7 @@ import {
   recordLoginSuccess,
   verifyPasswordConstantTime,
 } from "@/lib/rate-limit";
+import { logError } from "@/lib/safe-log";
 
 const STAFF_ROLES = [
   "EDITOR",
@@ -189,10 +190,7 @@ export async function POST(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "POST /api/admin/login failed:",
-      error
-    );
+    logError("POST /api/admin/login failed:", error);
 
     return Response.json(
       {

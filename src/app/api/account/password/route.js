@@ -2,6 +2,7 @@ import prisma from "@/lib/db";
 import { requireCustomerSession, createSession, sessionCookie } from "@/lib/auth";
 import bcrypt from "bcrypt";
 import { checkLoginLimit, passwordProblem, recordLoginFailure, verifyPasswordConstantTime } from "@/lib/rate-limit";
+import { logError } from "@/lib/safe-log";
 
 export async function PUT(req) {
   const auth = await requireCustomerSession(req);
@@ -38,7 +39,7 @@ export async function PUT(req) {
     const token = await createSession(updated);
     return Response.json({ ok: true }, { headers: { "Set-Cookie": sessionCookie(token), "Cache-Control": "no-store" } });
   } catch (e) {
-    console.error("PUT /api/account/password failed:", e);
+    logError("PUT /api/account/password failed:", e);
     return Response.json({ error: "Passwort-Update fehlgeschlagen" }, { status: 500 });
   }
 }

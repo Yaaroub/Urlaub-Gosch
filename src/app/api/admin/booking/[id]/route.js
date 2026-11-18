@@ -6,6 +6,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 function deny(auth) {
   return NextResponse.json(
@@ -211,10 +212,7 @@ export async function PUT(req, context) {
       }
     );
   } catch (error) {
-    console.error(
-      "PUT /api/admin/booking/[id]",
-      error
-    );
+    logError("PUT /api/admin/booking/[id]", error);
 
     return NextResponse.json(
       {
@@ -297,10 +295,7 @@ export async function DELETE(req, context) {
       },
     });
   } catch (error) {
-    console.error(
-      "DELETE /api/admin/booking/[id]",
-      error
-    );
+    logError("DELETE /api/admin/booking/[id]", error);
 
     return NextResponse.json(
       {

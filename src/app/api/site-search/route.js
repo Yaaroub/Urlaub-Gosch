@@ -1,6 +1,7 @@
 import prisma from "@/lib/db";
 import { activities } from "@/lib/activities";
 import inspirationArticles from "@/data/inspiration-articles.json";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic = "force-dynamic";
 
@@ -421,10 +422,7 @@ export async function GET(request) {
       }
     );
   } catch (error) {
-    console.error(
-      "GET /api/site-search fehlgeschlagen:",
-      error
-    );
+    logError("GET /api/site-search fehlgeschlagen:", error);
 
     return Response.json(
       {

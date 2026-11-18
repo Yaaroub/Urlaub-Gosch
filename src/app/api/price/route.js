@@ -2,6 +2,7 @@
 import prisma from "@/lib/db";
 import { parseTravelDate, applyKuschelwochen } from "@/lib/kuschelwochen";
 import { getKuschelwochenPeriods } from "@/lib/kuschelwochen-periods";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic = "force-dynamic";
 
@@ -355,10 +356,7 @@ export async function POST(req) {
       invoiceNote,
     });
   } catch (error) {
-    console.error(
-      "POST /api/price failed:",
-      error
-    );
+    logError("POST /api/price failed:", error);
 
     return Response.json(
       { error: "Preisberechnung fehlgeschlagen." },

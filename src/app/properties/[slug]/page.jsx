@@ -1873,22 +1873,15 @@ export default async function PropertyPage({
                 />
               </div>
 
-              <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-start xl:flex-row xl:items-center">
+              {/* No public iCal link: the export is only meant for booking portals
+                  and is handed out from the admin area. */}
+              <div className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
                 <p>
                   Belegung inklusive
                   An- und
                   Abreisetag;
                   Enddatum exklusiv.
                 </p>
-
-                <a
-                  href={`/api/ical/${encodeURIComponent(
-                    property.slug,
-                  )}`}
-                  className="whitespace-nowrap font-medium underline underline-offset-4 transition hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
-                >
-                  iCal abonnieren
-                </a>
               </div>
             </section>
           }

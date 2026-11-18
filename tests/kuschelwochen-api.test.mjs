@@ -1,4 +1,5 @@
 import test from "node:test";
+import * as safeLog from "../src/lib/safe-log.js";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import vm from "node:vm";
@@ -13,7 +14,7 @@ async function loadRoute(path, mocks) {
   });
   const module = { exports: {} };
   vm.runInNewContext(code, { exports: module.exports, module, Response, Date, console, require: (name) => {
-    if (!(name in mocks)) throw new Error(`Unexpected import: ${name}`);
+    if (name === "@/lib/safe-log") return safeLog; if (!(name in mocks)) throw new Error(`Unexpected import: ${name}`);
     return mocks[name];
   } });
   return module.exports;

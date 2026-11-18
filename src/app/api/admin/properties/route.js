@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 /**
  * Erstellt einen einfachen URL-Slug und sorgt dafür,
@@ -120,10 +121,7 @@ export async function GET(request) {
       },
     });
   } catch (error) {
-    console.error(
-      "GET /api/admin/properties failed:",
-      error
-    );
+    logError("GET /api/admin/properties failed:", error);
 
     return Response.json(
       {
@@ -325,10 +323,7 @@ export async function POST(request) {
       }
     );
   } catch (error) {
-    console.error(
-      "POST /api/admin/properties failed:",
-      error
-    );
+    logError("POST /api/admin/properties failed:", error);
 
     return Response.json(
       {

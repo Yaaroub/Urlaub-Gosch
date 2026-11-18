@@ -2,6 +2,7 @@ import prisma from "@/lib/db";
 import { ADMIN_PERMISSIONS, requireAdminPermission } from "@/lib/admin-permissions";
 import { handleUpload } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/safe-log";
 
 export const runtime = "nodejs";
 
@@ -50,7 +51,7 @@ export async function POST(request) {
 
     return NextResponse.json(jsonResponse);
   } catch (e) {
-    console.error("BLOB CLIENT UPLOAD ERROR:", e);
+    logError("BLOB CLIENT UPLOAD ERROR:", e);
 
     return NextResponse.json(
       {

@@ -2,6 +2,7 @@ import { ADMIN_PERMISSIONS, requireAdminPermission } from "@/lib/admin-permissio
 import prisma from "@/lib/db";
 import { overlapWhere, withPropertyBookingLock } from "@/lib/booking-lock";
 import { currentBookingsWhere } from "@/lib/public-calendar";
+import { logError } from "@/lib/safe-log";
 
 /** Utils */
 function dateOnly(input) {
@@ -40,7 +41,7 @@ export async function GET(req) {
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (e) {
-    console.error("GET /api/bookings error:", e);
+    logError("GET /api/bookings error:", e);
     return Response.json([], { status: 200 });
   }
 }
@@ -120,7 +121,7 @@ export async function POST(req) {
 
     return Response.json({ ok: true, booking });
   } catch (e) {
-    console.error("POST /api/bookings error:", e);
+    logError("POST /api/bookings error:", e);
     return Response.json(
       { error: "Interner Fehler beim Anlegen der Buchung." },
       { status: 500 }

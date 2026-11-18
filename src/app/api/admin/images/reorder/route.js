@@ -4,6 +4,7 @@ import {
   ADMIN_PERMISSIONS,
   requireAdminPermission,
 } from "@/lib/admin-permissions";
+import { logError } from "@/lib/safe-log";
 
 function deny(auth) {
   return Response.json(
@@ -233,10 +234,7 @@ export async function PUT(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "PUT /api/admin/images/reorder:",
-      error
-    );
+    logError("PUT /api/admin/images/reorder:", error);
 
     return Response.json(
       {

@@ -180,3 +180,61 @@ Prüfung: 62 von 62 Tests bestanden (neue Tests für Kalender-JSON und iCal-Expo
 ### Hinweis zum neuen Kontaktformular
 
 Parallel wurde ein Kontaktformular mit dem Versanddienst **Resend** angelegt (`src/app/api/contact`, `src/lib/resend-mail.js`). Es ist technisch sauber abgesichert: Herkunftsprüfung, Größen- und Anzahlbegrenzung, Spam-Feld, keine Zeilenumbrüche in Kopfzeilen, Fehlermeldungen ohne Kundendaten in den Logs. Resend ist allerdings ein **zusätzlicher Auftragsverarbeiter** mit Sitz in den USA. Dafür braucht es einen AV-Vertrag und eine Angabe in der Datenschutzerklärung. Das weicht vom besprochenen Weg über Microsoft 365 ab. Die Entscheidung liegt beim Betreiber.
+
+---
+
+## 9. Nachtrag 18.11.2026: Admin-Bereich, Datenschutz, Link-Übertragung
+
+### Behoben (lokal, noch nicht veröffentlicht)
+
+| Befund | Schwere | Korrektur |
+| --- | --- | --- |
+| **Fehlerprotokolle konnten Kundendaten enthalten.** 53 Stellen in 36 Schnittstellen schrieben das komplette Fehlerobjekt in das Vercel-Protokoll. Bei Datenbank-Fehlern enthält es die übermittelten Werte, etwa Name, E-Mail und Nachricht einer Anfrage. | Mittel (Datenschutz) | Neuer Logger `src/lib/safe-log.js`: protokolliert nur Fehlerart, Code und die erste Zeile, E-Mail-Adressen werden maskiert. Alle 53 Stellen umgestellt. Test belegt, dass Name, E-Mail und Telefon nicht im Protokoll landen. |
+| **Kalender-Import speicherte den Ereignistext fremder Portale als „Gastname“.** Manche Portale schreiben dort echte Gästenamen hinein. | Mittel (Datenschutz) | Gespeichert wird nur noch „iCal-Import (Portal)“, z. B. „iCal-Import (airbnb.de)“. Bereits importierte Einträge bleiben, bis zum nächsten Abgleich, unverändert (keine Datenbankänderung). |
+| **„iCal abonnieren“ auf jeder Objektseite** machte den Kalender-Export öffentlich bekannt. | Klein | Link entfernt. Der Export bleibt für die Portale erreichbar und wird nur noch im Admin-Bereich herausgegeben. |
+| **Kein `robots.txt`.** | Klein | `robots.txt` sperrt Admin, Konto-Seiten und alle `/api`-Adressen für Suchmaschinen. Ohne Hauptdomain (nur Vercel-Adresse) wird die ganze Seite gesperrt. |
+
+Prüfung: 64 von 64 Tests bestanden, Lint ohne Befund, Produktions-Build erfolgreich. Lokal ohne Login geprüft: Objektseite ohne iCal-Link, Export für Portale weiter erreichbar (ohne Namen, Anfragen, Nummern, alte Termine), Admin-Schnittstellen gesperrt.
+
+### Link-Übertragung geprüft – kein Befund
+
+- Alle Links auf fremde Seiten tragen `rel="noopener noreferrer"`. Zusätzlich gilt seitenweit `Referrer-Policy: strict-origin-when-cross-origin`. Fremde Seiten erfahren höchstens die Domain, nie die genaue Seite.
+- Keine Adresse (URL) enthält Personendaten. In Links stehen nur Objektname, Reisedaten und Personenzahl.
+- Benachrichtigungs-Mails enthalten keine Links.
+- Externe Inhalte (Karten, Webcams) laden erst nach Zustimmung. Wetterdaten holt der eigene Server ab.
+- Kalender-Links für Portale verwenden fest die Hauptdomain (seit 16.11.).
+
+### Admin-Bereich – Stand
+
+| Thema | Stand |
+| --- | --- |
+| Rechteprüfung | Alle Admin-Schnittstellen prüfen Anmeldung und Einzelrecht. Einzige Ausnahme ist der Login selbst. |
+| Login | Begrenzung der Versuche, gleiche Antwortzeit bei unbekannten Konten, gesperrte Konten erst nach richtigem Passwort erkennbar. |
+| Sitzung | Cookie `HttpOnly`, `Secure`, `SameSite=Lax`. Mitarbeiter-Sitzung endet nach der eingestellten Inaktivität, spätestens nach 12 Stunden. Logout macht das Token ungültig. |
+| Passwörter | 10–72 Zeichen, bcrypt. Eigenes Passwort im Admin änderbar (mit altem Passwort). |
+| Superadmin | Nur Superadmins verwalten Mitarbeiter. Der letzte Superadmin kann nicht gesperrt oder herabgestuft werden. |
+| Kundendaten im Admin | Gästenamen sehen nur Mitarbeiter mit dem Recht „Belegung ansehen“. |
+
+### Offen – Entscheidung beim Betreiber
+
+1. ~~**Speicherdauer der Buchungsanfragen.**~~ **Erledigt am 18.11.2026, siehe unten.** Anfragen (Name, E-Mail, Telefon, Nachricht) werden gespeichert, aber **nie gelöscht**, und es gibt **keine Admin-Ansicht** dafür. Damit lassen sich weder Löschfristen (Art. 5 DSGVO) noch Löschwünsche von Gästen (Art. 17 DSGVO) im System umsetzen. Empfehlung: eine Admin-Seite „Anfragen“ mit Löschen-Knopf und eine automatische Löschung nach fester Frist (z. B. 12 Monate). Das ändert Daten in der Live-Datenbank und wird deshalb nur nach ausdrücklicher Freigabe umgesetzt.
+2. **Zwei-Faktor-Anmeldung für Superadmins.** Sie fehlt. Ohne Änderung der Datenbank ist sie nicht sauber umsetzbar. Übergangsweise: lange, einzigartige Passwörter und die Vercel-WAF-Regel für `/api/admin/login`.
+3. **Protokoll der Admin-Aktionen** (wer hat wann was geändert) fehlt. Für die Nachweispflicht nach DSGVO sinnvoll, braucht aber eine neue Tabelle.
+4. **Bestehende importierte Einträge** können noch Portal-Texte enthalten. Sie werden beim nächsten Kalender-Abgleich bzw. auf Wunsch einmalig bereinigt (Datenbankänderung, nur nach Freigabe).
+
+### Neu: Admin-Seite „Buchungsanfragen“ (18.11.2026, lokal, nicht veröffentlicht)
+
+Die gespeicherten Anfragen aus dem Formular sind jetzt im Admin-Bereich unter **Admin-Übersicht → Buchungsanfragen** (`/admin/anfragen`) einsehbar und löschbar. Damit lassen sich Löschfristen und Löschwünsche von Gästen (Art. 17 DSGVO) umsetzen. An der Datenbank wurde dafür nichts geändert; gelöscht wird nur, wenn ein Mitarbeiter es auslöst.
+
+| Funktion | Recht |
+| --- | --- |
+| Anfragen ansehen, filtern (offen / angenommen / abgelehnt), suchen (Name, E-Mail, Objekt) | „Belegung ansehen“ |
+| Status setzen (angenommen, abgelehnt, wieder offen) | „Belegung bearbeiten“ |
+| Einzelne oder ausgewählte Anfragen endgültig löschen | „Belegung bearbeiten“ |
+| Alle Anfragen älter als 12 Monate auf einmal löschen (Hinweis erscheint automatisch) | „Belegung bearbeiten“ |
+
+Sicherheit: Alle Aktionen prüfen Anmeldung und Recht auf dem Server. Wer nur ansehen darf, kann nichts ändern oder löschen (per Test belegt). Massenlöschung nur mit konkreter Auswahl (max. 200) oder nach Alter von mindestens 6 Monaten. Jede Löschung wird vorher bestätigt. Antworten werden nicht zwischengespeichert, Seite und Schnittstelle sind für Suchmaschinen gesperrt, Fehlerprotokolle enthalten keine Kundendaten.
+
+Geprüft: 67 von 67 Tests, Lint, Produktions-Build. Lokal ohne Login: alle vier Schnittstellen-Aktionen 401, gefälschtes Cookie 401, Seite leitet zum Login. **Nicht geprüft:** die Seite angemeldet im Browser (keine Zugangsdaten). Bitte nach der Veröffentlichung einmal ansehen.
+
+Offen bleibt eine **automatische** Löschung nach Frist (ohne Klick). Sie würde selbständig Daten in der Live-Datenbank löschen und wird nur nach ausdrücklicher Freigabe gebaut.

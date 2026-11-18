@@ -1,6 +1,7 @@
 import prisma from "@/lib/db";
 import { sendInquiryMail } from "@/lib/resend-mail";
 import { checkInquiryRequest, readInquiryJson, validInquiry } from "@/lib/public-inquiry";
+import { logError } from "@/lib/safe-log";
 
 function dateOnly(input) {
   if (typeof input !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(input)) return new Date(NaN);
@@ -142,7 +143,7 @@ Bitte im Admin-Bereich prüfen und ggf. Buchung anlegen.
 
     return Response.json({ ok: true, requestId: request.id, notificationSent });
   } catch (e) {
-    console.error("POST /api/booking-request error:", e);
+    logError("POST /api/booking-request error:", e);
     return Response.json(
       { error: "Interner Fehler beim Erstellen der Anfrage." },
       { status: 500 }

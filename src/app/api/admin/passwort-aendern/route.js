@@ -10,6 +10,7 @@ import {
 import {
   getAdminUser,
 } from "@/lib/admin-auth";
+import { logError } from "@/lib/safe-log";
 
 export async function POST(req) {
   try {
@@ -182,10 +183,7 @@ export async function POST(req) {
       }
     );
   } catch (error) {
-    console.error(
-      "POST /api/admin/passwort-aendern failed:",
-      error
-    );
+    logError("POST /api/admin/passwort-aendern failed:", error);
 
     return Response.json(
       {

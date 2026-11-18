@@ -2,6 +2,7 @@ import prisma from "@/lib/db";
 import bcrypt from "bcrypt";
 import { createSession, sessionCookie } from "@/lib/auth";
 import { clientIp, hit, isValidEmail, normalizeEmail, passwordProblem, retryAfterSeconds } from "@/lib/rate-limit";
+import { logError } from "@/lib/safe-log";
 
 const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 const REGISTER_MAX_PER_IP = 5;
@@ -47,7 +48,7 @@ export async function POST(req) {
     });
   } catch (e) {
     if (e?.code === "P2002") return Response.json({ error: "Email bereits registriert" }, { status: 409 });
-    console.error("POST /api/auth/register failed:", e);
+    logError("POST /api/auth/register failed:", e);
     return Response.json({ error: "Register fehlgeschlagen" }, { status: 500 });
   }
 }

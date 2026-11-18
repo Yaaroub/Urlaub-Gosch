@@ -1,6 +1,7 @@
 import prisma from "@/lib/db";
 import { requireCustomerSession, clearSessionCookie } from "@/lib/auth";
 import { checkLoginLimit, recordLoginFailure, verifyPasswordConstantTime } from "@/lib/rate-limit";
+import { logError } from "@/lib/safe-log";
 
 export async function POST(req) {
   const auth = await requireCustomerSession(req);
@@ -41,7 +42,7 @@ export async function POST(req) {
       headers: { "Set-Cookie": clearSessionCookie(), "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
   } catch (e) {
-    console.error("POST /api/account/delete failed:", e);
+    logError("POST /api/account/delete failed:", e);
     return Response.json({ error: "Konto löschen fehlgeschlagen" }, { status: 500 });
   }
 }

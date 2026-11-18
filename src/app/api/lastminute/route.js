@@ -1,6 +1,7 @@
 // src/app/api/lastminute/route.js
 
 import prisma from "@/lib/db";
+import { logError } from "@/lib/safe-log";
 
 export const dynamic = "force-dynamic";
 
@@ -86,10 +87,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error(
-      "GET /api/lastminute failed:",
-      error
-    );
+    logError("GET /api/lastminute failed:", error);
 
     return Response.json(
       {
