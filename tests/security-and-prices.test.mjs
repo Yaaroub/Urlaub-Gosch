@@ -102,7 +102,10 @@ test("public calendar JSON returns only current date ranges, without ids or name
 function icalDb(state) {
   return {
     property: { findUnique: async (a) => { assert.equal(a.select.requests, undefined); state.lookups = (state.lookups || 0) + 1; return { id: 3, title: "Test" }; } },
-    booking: { findMany: async (a) => { state.bookingArgs = a; return [{ id: 257, startDate: new Date("2026-12-01"), endDate: new Date("2026-12-08"), guestName: "TEST_GUEST_NOT_PUBLIC" }]; } },
+    booking: { findMany: async (a) => { state.bookingArgs = a; return [
+      { id: 257, startDate: new Date("2026-12-01"), endDate: new Date("2026-12-08"), guestName: "TEST_GUEST_NOT_PUBLIC" },
+      { id: 258, startDate: new Date("2026-12-08"), endDate: new Date("2026-12-10"), guestName: "TEST_GUEST_NOT_PUBLIC" },
+    ]; } },
   };
 }
 test("secret iCal feed exports bookings only: no names, no requests, no internal numbers", async () => {
@@ -122,6 +125,9 @@ test("secret iCal feed exports bookings only: no names, no requests, no internal
     assert(!body.includes("TEST_GUEST_NOT_PUBLIC"));
     assert(!/booking-257|request-/.test(body), "no internal numbers, no requests");
     assert.equal(state.bookingArgs.select.guestName, undefined);
+    // Back-to-back stays are exported as one block: guest changes stay hidden.
+    assert.equal(body.match(/BEGIN:VEVENT/g).length, 1);
+    assert(body.includes("DTSTART;VALUE=DATE:20261201") && body.includes("DTEND;VALUE=DATE:20261210"));
     assert.ok(state.bookingArgs.where.endDate?.gt instanceof Date, "past bookings are filtered out");
 
     // Wrong, foreign or missing key: always the same 404, no bookings read.

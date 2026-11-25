@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import { isAllowedImageUrl } from "@/lib/image-hosts";
+import { isAllowedImageUrl } from "@/lib/image-hosts.mjs";
 
 import {
   ADMIN_PERMISSIONS,

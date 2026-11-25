@@ -45,6 +45,7 @@ export default function SearchForm({
 
   const [arrival, setArrival] = useState(initialParams.arrival || "");
   const [departure, setDeparture] = useState(initialParams.departure || "");
+  const todayKey = useMemo(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(new Date()), []);
   const [objectName, setObjectName] = useState(initialParams.objectName || "");
   const [street, setStreet] = useState(initialParams.street || "");
   const [location, setLocation] = useState(initialParams.location || "");
@@ -170,6 +171,7 @@ export default function SearchForm({
             name="arrival"
             type="date"
             value={arrival}
+            min={todayKey}
             onChange={(event) => {
               const nextArrival = event.target.value;
               setArrival(nextArrival);
@@ -185,7 +187,7 @@ export default function SearchForm({
             name="departure"
             type="date"
             value={departure}
-            min={arrival || undefined}
+            min={arrival || todayKey}
             onChange={(event) => setDeparture(event.target.value)}
             className={inputClass}
           />

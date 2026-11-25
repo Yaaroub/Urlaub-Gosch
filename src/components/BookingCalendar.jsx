@@ -98,7 +98,10 @@ export default function BookingCalendar({
       "[&>button]:bg-pink-100 [&>button]:text-pink-700 [&>button]:font-semibold [&>button]:ring-1 [&>button]:ring-pink-300",
   };
 
-  const disabled = selectable ? bookedRanges : undefined;
+  const today = useMemo(() => dateOnly(new Date()), []);
+  const startMonth = useMemo(() => new Date(today.getFullYear(), today.getMonth(), 1), [today]);
+  // Past days are never selectable; past months are not shown at all.
+  const disabled = selectable ? [{ before: today }, ...bookedRanges] : undefined;
 
   if (!bookingsProp && propertyId && !loadedCalendar) {
     return <p role="status" className="text-sm text-slate-600">Belegung wird geladen …</p>;
@@ -115,6 +118,8 @@ export default function BookingCalendar({
         weekStartsOn={1}
         showOutsideDays
         numberOfMonths={numberOfMonths}
+        startMonth={startMonth}
+        defaultMonth={startMonth}
         modifiers={modifiers}
         modifiersClassNames={modifiersClassNames}
         disabled={disabled}
@@ -123,6 +128,7 @@ export default function BookingCalendar({
         formatters={{
           formatWeekdayName: (date) => WEEKDAY_LABELS[date.getDay()],
         }}
+        labels={{ labelPrevious: () => "Vorheriger Monat", labelNext: () => "Nächster Monat" }}
         classNames={{
           root: "relative m-0 w-full",
 
@@ -138,10 +144,10 @@ export default function BookingCalendar({
           nav: "absolute right-0 top-0 flex items-center gap-1",
 
           button_previous:
-            "flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+            "flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 aria-disabled:cursor-default aria-disabled:opacity-25",
 
           button_next:
-            "flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+            "flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 aria-disabled:cursor-default aria-disabled:opacity-25",
 
           weekdays: "grid grid-cols-7 gap-1",
 

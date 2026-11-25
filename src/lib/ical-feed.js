@@ -1,5 +1,5 @@
 import { createEvents } from "ics";
-import { publicEventUid } from "./public-calendar.js";
+import { mergeOccupiedRanges, publicEventUid } from "./public-calendar.js";
 
 function dToParts(d) {
   const x = new Date(d);
@@ -28,18 +28,21 @@ export function notFound() {
 }
 
 /**
- * Builds the iCal response of one property. Contains only booked date
- * ranges: no guest names, no booking requests, no internal numbers.
+ * Builds the iCal response of one property. Contains only what a portal
+ * needs to block dates: merged occupied ranges ("Belegt"). No guest names,
+ * no booking requests, no internal numbers, and back-to-back stays are
+ * joined so guest changes are not visible.
  */
 export function icalFeedResponse(property, bookings) {
-  const events = bookings.map((b) => ({
+  const events = mergeOccupiedRanges(bookings).map((b) => ({
     start: dToParts(b.startDate),
     end: dToParts(b.endDate), // DTEND exclusive, matches our model
     title: `${property.title} – Belegt`,
     description: "Belegt",
     status: "CONFIRMED",
     productId: "urlaub-gosch",
-    uid: publicEventUid("booking", b.id),
+    // Stable per block start, without any booking number.
+    uid: publicEventUid("block", `${property.id}:${dToParts(b.startDate).join("-")}`),
     calName: `${property.title} Belegung`,
   }));
 

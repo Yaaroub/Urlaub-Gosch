@@ -24,7 +24,7 @@ export async function GET(_req, { params }) {
   const bookings = await prisma.booking.findMany({
     where: currentBookingsWhere(property.id),
     orderBy: { startDate: "asc" },
-    select: { id: true, startDate: true, endDate: true },
+    select: { startDate: true, endDate: true },
   });
   return icalFeedResponse(property, bookings);
 }

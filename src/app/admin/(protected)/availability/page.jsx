@@ -36,6 +36,12 @@ function displayDate(date) {
   return `${day}.${month}.${year}`;
 }
 
+// Past months are not shown in the calendar.
+function startOfCurrentMonth() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
 function emptyRange() {
   return { from: undefined, to: undefined };
 }
@@ -981,7 +987,8 @@ export default function AvailabilityPage() {
                         date.getDay()
                       ],
                 }}
-                month={calendarMonth}
+                startMonth={startOfCurrentMonth()}
+                month={calendarMonth < startOfCurrentMonth() ? startOfCurrentMonth() : calendarMonth}
                 onMonthChange={setCalendarMonth}
                 mode="range"
                 selected={range}

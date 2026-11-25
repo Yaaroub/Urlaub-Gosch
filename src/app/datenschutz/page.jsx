@@ -1109,6 +1109,10 @@ export default function DatenschutzPage() {
                 <Link href="/impressum" className="underline">Impressum</Link>.
               </p>
 
+              <p>
+                Eine automatisierte Entscheidungsfindung einschließlich Profiling (Art. 22 DSGVO) findet nicht statt.
+              </p>
+
               <p className="text-sm text-slate-500">Stand: November 2026</p>
             </LegalCard>
 
@@ -1161,10 +1165,10 @@ export default function DatenschutzPage() {
                 <InfoBox
                   title="Rechtsgrundlagen"
                   items={[
-                    "Art. 6 DSGVO",
-                    "Art. 7 DSGVO",
-                    "Art. 13 DSGVO",
-                    "Weitere gesetzliche Grundlagen im Einzelfall",
+                    "Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG)",
+                    "Vertrag und Vertragsanbahnung (Art. 6 Abs. 1 lit. b DSGVO)",
+                    "Rechtliche Verpflichtung (Art. 6 Abs. 1 lit. c DSGVO)",
+                    "Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO)",
                   ]}
                 />
               </div>
@@ -1257,6 +1261,25 @@ export default function DatenschutzPage() {
                   ]}
                 />
               </div>
+
+              <div className="rounded-2xl border-l-4 border-[#c99a43] bg-[#f7f1e5] p-5 text-slate-800">
+                <p className="font-semibold text-slate-950">
+                  Widerspruchsrecht nach Art. 21 DSGVO
+                </p>
+                <p className="mt-2">
+                  Soweit wir Ihre Daten auf Grundlage berechtigter Interessen verarbeiten (Art. 6 Abs. 1 lit. f DSGVO), haben Sie das Recht, aus Gründen, die sich aus Ihrer besonderen Situation ergeben, jederzeit Widerspruch gegen diese Verarbeitung einzulegen. Wir verarbeiten Ihre Daten dann nicht mehr, es sei denn, wir können zwingende schutzwürdige Gründe nachweisen, die Ihre Interessen, Rechte und Freiheiten überwiegen, oder die Verarbeitung dient der Geltendmachung, Ausübung oder Verteidigung von Rechtsansprüchen. Der Widerspruch ist formlos möglich, z. B. per E-Mail an{" "}
+                  <a href="mailto:info@urlaub-gosch.de" className="underline">info@urlaub-gosch.de</a>.
+                </p>
+              </div>
+
+              <p>
+                Zur Ausübung Ihrer Rechte genügt eine formlose Nachricht an die oben genannten Kontaktdaten. Eine Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen; die Rechtmäßigkeit der bis dahin erfolgten Verarbeitung bleibt unberührt.
+              </p>
+
+              <p>
+                Sie haben das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Für uns zuständig ist das Unabhängige Landeszentrum für Datenschutz Schleswig-Holstein (ULD), Holstenstraße 98, 24103 Kiel,{" "}
+                <a href="https://www.datenschutzzentrum.de" target="_blank" rel="noopener noreferrer" className="underline">www.datenschutzzentrum.de</a>.
+              </p>
             </LegalCard>
 
             {/* =================================================
@@ -1278,7 +1301,7 @@ export default function DatenschutzPage() {
                   <strong>Cookie „session“</strong> – nur für Mitarbeiter im internen Verwaltungsbereich. Hält die Anmeldung aufrecht (HttpOnly, nur über HTTPS) und endet nach der eingestellten Inaktivitätszeit, spätestens nach 12 Stunden. Besucher der Website erhalten dieses Cookie nicht; Kundenkonten gibt es nicht.
                 </li>
                 <li>
-                  <strong>„urlaub-gosch-consent-v1“</strong> (localStorage) – speichert Ihre Auswahl in den Cookie-Einstellungen für 12 Monate; danach fragen wir erneut. Vorher endet die Speicherung, wenn Sie die Auswahl ändern oder IhreBrowserdaten löschen.
+                  <strong>„urlaub-gosch-consent-v1“</strong> (localStorage) – speichert Ihre Auswahl in den Cookie-Einstellungen für 12 Monate; danach fragen wir erneut. Vorher endet die Speicherung, wenn Sie die Auswahl ändern oder Ihre Browserdaten löschen.
                 </li>
                 <li>
                   <strong>„fav:properties“</strong> (localStorage) – Ihre gemerkten Unterkünfte. Sie werden ausschließlich in Ihrem Browser auf diesem Gerät gespeichert und nicht an uns übertragen.
@@ -1320,10 +1343,26 @@ export default function DatenschutzPage() {
               </p>
 
               <p>
-                Gesetzliche Aufbewahrungspflichten können
-                je nach Art der Daten unterschiedlich
-                lange bestehen.
+                Im Einzelnen gelten folgende Speicherfristen:
               </p>
+
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  <strong>Buchungs- und Informationsanfragen</strong>, aus denen keine Buchung entsteht: Löschung nach Erledigung, spätestens 12 Monate nach Eingang.
+                </li>
+                <li>
+                  <strong>Kontaktanfragen</strong> (E-Mail-Postfach): Löschung nach abschließender Bearbeitung, spätestens 12 Monate nach Eingang.
+                </li>
+                <li>
+                  <strong>Kommt eine Buchung zustande</strong>, bewahren wir die für Vertrag und Abrechnung nötigen Unterlagen so lange auf, wie es das Handels- und Steuerrecht vorschreibt (§ 257 HGB, § 147 AO), je nach Unterlage 6, 8 (Buchungsbelege) oder 10 Jahre (Bücher, Jahresabschlüsse), jeweils ab Ende des Kalenderjahres.
+                </li>
+                <li>
+                  <strong>Versanddaten bei Mailjet</strong> (Zeitpunkt, Adressen, Zustellstatus) und <strong>Server-Logfiles bei Vercel</strong>: nach den Fristen des jeweiligen Anbieters; die Inhalte der Formulare werden bei Mailjet nicht dauerhaft gespeichert.
+                </li>
+                <li>
+                  <strong>Cookie-Einstellungen</strong> im Browser: 12 Monate (siehe „Cookies“).
+                </li>
+              </ul>
             </LegalCard>
 
             {/* =================================================
@@ -1423,6 +1462,10 @@ export default function DatenschutzPage() {
 
               <p>
                 <strong>Kontaktformular:</strong> Ihren Namen, Ihre E-Mail-Adresse, optional Telefonnummer und Betreff, Ihre Nachricht und gegebenenfalls die Auswahl „Ich möchte meine Unterkunft vermieten“ senden wir per E-Mail über Mailjet an unser Postfach. Kontaktanfragen werden nicht in der Website-Datenbank gespeichert. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO bei Bezug zu einer Buchung oder Vermietung, sonst Art. 6 Abs. 1 lit. f DSGVO (Beantwortung Ihres Anliegens).
+              </p>
+
+              <p>
+                <strong>Pflichtangaben:</strong> Die als Pflichtfelder gekennzeichneten Angaben benötigen wir, um Ihre Anfrage bearbeiten und Ihnen antworten zu können. Ohne sie kann die Anfrage nicht abgesendet werden. Eine gesetzliche Pflicht, uns Daten mitzuteilen, besteht nicht; alternativ erreichen Sie uns telefonisch.
               </p>
 
               <p>

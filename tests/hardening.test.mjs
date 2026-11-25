@@ -37,7 +37,7 @@ test("password policy and constant-time verification for unknown accounts", asyn
 });
 
 test("image URLs are limited to our own image storage and local paths", async () => {
-  const { isAllowedImageUrl, BLOB_IMAGE_HOST } = await import("../src/lib/image-hosts.js");
+  const { isAllowedImageUrl, BLOB_IMAGE_HOST } = await import("../src/lib/image-hosts.mjs");
   assert.equal(isAllowedImageUrl(`https://${BLOB_IMAGE_HOST}/objects/property-1/a.jpg`), true);
   assert.equal(isAllowedImageUrl("/hero/hero.jpeg"), true);
   for (const bad of [

@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { isAllowedImageUrl } from "@/lib/image-hosts";
+import { isAllowedImageUrl } from "@/lib/image-hosts.mjs";
 
 export default function MarkdownContent({
   content = "",

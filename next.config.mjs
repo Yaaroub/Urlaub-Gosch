@@ -1,4 +1,4 @@
-import { BLOB_IMAGE_HOST, IMAGE_HOSTS } from "./src/lib/image-hosts.js";
+import { BLOB_IMAGE_HOST, IMAGE_HOSTS } from "./src/lib/image-hosts.mjs";
 
 const isProd = process.env.NODE_ENV === "production";
 
