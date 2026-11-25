@@ -245,7 +245,7 @@ export default function PriceEditorPage() {
 
       if (!response.ok) {
         const conflictInfo = data?.conflict
-          ? ` (Konflikt: ${getDateKey(data.conflict.startDate)} → ${getDateKey(
+          ? ` (Konflikt: ${formatPriceDate(data.conflict.startDate)} → ${formatPriceDate(
               data.conflict.endDate
             )})`
           : "";

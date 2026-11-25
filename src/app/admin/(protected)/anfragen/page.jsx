@@ -36,7 +36,6 @@ const dateTime = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeSty
 const dateOnly = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" });
 
 export default function AdminRequestsPage() {
-  const [kind, setKind] = useState("booking");
   const [status, setStatus] = useState("PENDING");
   const [query, setQuery] = useState("");
   const [appliedQuery, setAppliedQuery] = useState("");
@@ -46,15 +45,13 @@ export default function AdminRequestsPage() {
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState(() => new Set());
   const [message, setMessage] = useState(null);
-  const [canViewContact, setCanViewContact] = useState(false);
-  const category = kind === "contact" ? "?kind=contact" : "";
 
   const load = useCallback(
     async (signal) => {
       setLoading(true);
       try {
         // Search term goes in the body, never in the URL (keeps guest names out of access logs).
-        const response = await fetch(`/api/admin/anfragen${category}`, {
+        const response = await fetch("/api/admin/anfragen", {
           method: "POST",
           cache: "no-store",
           signal,
@@ -62,26 +59,20 @@ export default function AdminRequestsPage() {
           body: JSON.stringify({ status, page, q: appliedQuery }),
         });
         const result = await response.json().catch(() => ({}));
-        if (signal?.aborted) return;
         if (response.status === 401) {
           window.location.href = "/admin/login";
           return;
         }
         if (!response.ok) throw new Error(result.error || "Anfragen konnten nicht geladen werden.");
-        setCanViewContact(result.canViewContact === true);
         setData(result);
         setSelected(new Set());
       } catch (error) {
-        if (!signal?.aborted) {
-          setData(null);
-          setSelected(new Set());
-          setMessage({ error: true, text: error.message });
-        }
+        if (!signal?.aborted) setMessage({ error: true, text: error.message });
       } finally {
         if (!signal?.aborted) setLoading(false);
       }
     },
-    [category, status, page, appliedQuery]
+    [status, page, appliedQuery]
   );
 
   useEffect(() => {
@@ -94,19 +85,6 @@ export default function AdminRequestsPage() {
   const canEdit = Boolean(data?.canEdit);
   const items = useMemo(() => data?.items || [], [data]);
   const allOnPageSelected = items.length > 0 && items.every((item) => selected.has(item.id));
-
-  function changeKind(next) {
-    if (next === kind || busy) return;
-    setData(null);
-    setLoading(true);
-    setSelected(new Set());
-    setMessage(null);
-    setStatus("PENDING");
-    setQuery("");
-    setAppliedQuery("");
-    setPage(1);
-    setKind(next);
-  }
 
   async function run(request, successText) {
     setBusy(true);
@@ -127,7 +105,7 @@ export default function AdminRequestsPage() {
   function setRequestStatus(id, next) {
     run(
       () =>
-        fetch(`/api/admin/anfragen/${id}${category}`, {
+        fetch(`/api/admin/anfragen/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: next }),
@@ -138,7 +116,7 @@ export default function AdminRequestsPage() {
 
   function deleteOne(item) {
     if (!window.confirm(`Anfrage von ${item.guestName || "unbekannt"} endgültig löschen? Das kann nicht rückgängig gemacht werden.`)) return;
-    run(() => fetch(`/api/admin/anfragen/${item.id}${category}`, { method: "DELETE" }), "Anfrage gelöscht.");
+    run(() => fetch(`/api/admin/anfragen/${item.id}`, { method: "DELETE" }), "Anfrage gelöscht.");
   }
 
   function deleteSelected() {
@@ -147,7 +125,7 @@ export default function AdminRequestsPage() {
     if (!window.confirm(`${ids.length} ${ids.length === 1 ? "Anfrage" : "Anfragen"} endgültig löschen? Das kann nicht rückgängig gemacht werden.`)) return;
     run(
       () =>
-        fetch(`/api/admin/anfragen${category}`, {
+        fetch("/api/admin/anfragen", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ids }),
@@ -163,7 +141,7 @@ export default function AdminRequestsPage() {
     if (!window.confirm(`Alle ${count} Anfragen, die älter als ${months} Monate sind, endgültig löschen? Das kann nicht rückgängig gemacht werden.`)) return;
     run(
       () =>
-        fetch(`/api/admin/anfragen${category}`, {
+        fetch("/api/admin/anfragen", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ olderThanMonths: months }),
@@ -193,22 +171,12 @@ export default function AdminRequestsPage() {
 
       <header className="mb-6 mt-3 border-b border-slate-200 pb-5">
         <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-slate-950">
-          <Inbox className="h-6 w-6 text-teal-800" aria-hidden="true" /> Anfragen
+          <Inbox className="h-6 w-6 text-teal-800" aria-hidden="true" /> Buchungsanfragen
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-          {kind === "contact" ? "Nachrichten aus dem Kontaktformular." : "Unverbindliche Anfragen von den Objektseiten."} Bitte nur so lange aufbewahren wie nötig.
+          Unverbindliche Anfragen aus dem Formular der Objektseiten. Die Daten enthalten Namen, E-Mail-Adressen und Nachrichten
+          von Gästen. Bitte nur so lange aufbewahren wie nötig und auf Wunsch des Gastes löschen.
         </p>
-        {canViewContact && (
-          <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Art der Anfrage">
-            {[["booking", "Buchungsanfragen"], ["contact", "Kontaktanfragen"]].map(([value, label]) => (
-              <button key={value} type="button" disabled={busy} aria-pressed={kind === value}
-                onClick={() => changeKind(value)}
-                className={`min-h-10 rounded-lg border px-4 text-sm font-semibold ${kind === value ? "border-teal-800 bg-teal-50 text-teal-900" : "border-slate-300 bg-white text-slate-700"}`}>
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
       </header>
 
       {data?.retention?.olderCount > 0 && canEdit ? (
@@ -270,8 +238,7 @@ export default function AdminRequestsPage() {
               value={query}
               maxLength={100}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={kind === "contact" ? "Name, E-Mail, Betreff …" : "Name, E-Mail, Objekt …"}
-              autoComplete="off"
+              placeholder="Name, E-Mail, Objekt …"
               className="min-h-10 w-56 rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm focus:border-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700/20"
             />
           </label>
@@ -318,7 +285,6 @@ export default function AdminRequestsPage() {
             <RequestItem
               key={item.id}
               item={item}
-              isContact={kind === "contact"}
               canEdit={canEdit}
               busy={busy}
               selected={selected.has(item.id)}
@@ -357,11 +323,9 @@ export default function AdminRequestsPage() {
   );
 }
 
-function RequestItem({ item, isContact, canEdit, busy, selected, onToggle, onStatus, onDelete }) {
-  const { phone, text } = isContact
-    ? { phone: item.phone, text: item.message }
-    : splitRequestMessage(item.message);
-  const nights = isContact ? 0 : Math.round((new Date(item.endDate) - new Date(item.startDate)) / 86400000);
+function RequestItem({ item, canEdit, busy, selected, onToggle, onStatus, onDelete }) {
+  const { phone, details, text } = splitRequestMessage(item.message);
+  const nights = Math.round((new Date(item.endDate) - new Date(item.startDate)) / 86400000);
 
   return (
     <li className={`rounded-xl border bg-white p-5 ${selected ? "border-teal-600 ring-1 ring-teal-600" : "border-slate-200"}`}>
@@ -385,12 +349,7 @@ function RequestItem({ item, isContact, canEdit, busy, selected, onToggle, onSta
             <span className="text-xs text-slate-500">eingegangen {dateTime.format(new Date(item.createdAt))}</span>
           </div>
 
-          {isContact ? (
-            <p className="mt-1 break-words text-sm text-slate-700">
-              {item.isLandlordProspect ? "Vermieterinteresse" : "Allgemeine Kontaktanfrage"}
-              {item.subject ? ` · ${item.subject}` : ""}
-            </p>
-          ) : <p className="mt-1 text-sm text-slate-700">
+          <p className="mt-1 text-sm text-slate-700">
             {item.property ? (
               <a href={`/properties/${item.property.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-teal-800 hover:underline">
                 {item.property.title} <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -400,20 +359,31 @@ function RequestItem({ item, isContact, canEdit, busy, selected, onToggle, onSta
             )}
             {" · "}
             {dateOnly.format(new Date(item.startDate))} – {dateOnly.format(new Date(item.endDate))} ({nights} {nights === 1 ? "Nacht" : "Nächte"})
-          </p>}
+          </p>
 
           <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm">
             {item.guestEmail ? (
-              <span className="inline-flex min-w-0 items-center gap-1.5 break-all text-slate-700">
+              <a href={`mailto:${item.guestEmail}`} className="inline-flex items-center gap-1.5 text-slate-700 hover:text-teal-800">
                 <Mail className="h-4 w-4" aria-hidden="true" /> {item.guestEmail}
-              </span>
+              </a>
             ) : null}
             {phone ? (
-              <span className="inline-flex items-center gap-1.5 text-slate-700">
+              <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-1.5 text-slate-700 hover:text-teal-800">
                 <Phone className="h-4 w-4" aria-hidden="true" /> {phone}
-              </span>
+              </a>
             ) : null}
           </div>
+
+          {details.length ? (
+            <dl className="mt-3 grid gap-x-5 gap-y-1 text-sm sm:grid-cols-2">
+              {details.map(({ label, value }) => (
+                <div key={label} className="flex gap-2">
+                  <dt className="text-slate-500">{label}:</dt>
+                  <dd className="text-slate-800">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
 
           {text ? <p className="mt-3 whitespace-pre-line rounded-lg bg-slate-50 p-3 text-sm leading-6 text-slate-700">{text}</p> : null}
         </div>

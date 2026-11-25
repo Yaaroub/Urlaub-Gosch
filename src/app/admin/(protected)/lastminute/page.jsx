@@ -1,5 +1,7 @@
 "use client";
 
+import { formatPriceDate } from "@/lib/pricePeriodUtils";
+
 import { useObjectFocus } from "../ObjectWorkspace";
 
 import { useEffect, useMemo, useState } from "react";
@@ -875,15 +877,11 @@ export default function AdminLastMinutePage() {
                       className="border-t border-slate-100"
                     >
                       <td className="py-3">
-                        {toISO(
-                          offer.startDate
-                        )}
+                        {formatPriceDate(toISO(offer.startDate))}
                       </td>
 
                       <td>
-                        {toISO(
-                          offer.endDate
-                        )}
+                        {formatPriceDate(toISO(offer.endDate))}
                       </td>
 
                       <td>
@@ -968,13 +966,9 @@ export default function AdminLastMinutePage() {
 
             <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600">
               <div>
-                {toISO(
-                  pendingDelete.startDate
-                )}{" "}
+                {formatPriceDate(toISO(pendingDelete.startDate))}{" "}
                 →{" "}
-                {toISO(
-                  pendingDelete.endDate
-                )}
+                {formatPriceDate(toISO(pendingDelete.endDate))}
               </div>
 
               <div className="font-semibold text-slate-900">

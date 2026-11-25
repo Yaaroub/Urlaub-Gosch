@@ -30,6 +30,12 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+// Display only: same calendar day as formatDate, shown as TT.MM.JJJJ.
+function displayDate(date) {
+  const [year, month, day] = formatDate(date).split("-");
+  return `${day}.${month}.${year}`;
+}
+
 function emptyRange() {
   return { from: undefined, to: undefined };
 }
@@ -906,9 +912,9 @@ export default function AvailabilityPage() {
 
       {propertyId ? (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-          {/* Kalender */}
+          {/* Kalender: bleibt auf großen Bildschirmen stehen */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:self-start">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-sm font-semibold text-slate-900">
@@ -1129,9 +1135,9 @@ export default function AvailabilityPage() {
             </div>
           </div>
 
-          {/* Buchungsliste */}
+          {/* Buchungsliste: scrollt auf großen Bildschirmen für sich */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:flex-col lg:self-start">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h3 className="text-sm font-semibold text-slate-900">
                 Buchungen / Blöcke
@@ -1151,7 +1157,7 @@ export default function AvailabilityPage() {
                 Noch keine Einträge.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
                 {bookings.map(
                   (booking) => (
                     <li
@@ -1161,13 +1167,9 @@ export default function AvailabilityPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold text-slate-900">
-                            {formatDate(
-                              booking.startDate
-                            )}{" "}
+                            {displayDate(booking.startDate)}{" "}
                             →{" "}
-                            {formatDate(
-                              booking.endDate
-                            )}
+                            {displayDate(booking.endDate)}
                           </p>
 
                           <p className="mt-0.5 text-xs text-slate-500">
@@ -1382,13 +1384,9 @@ export default function AvailabilityPage() {
               <p className="mt-2 text-sm text-slate-600">
                 Zeitraum:{" "}
                 <span className="font-medium">
-                  {formatDate(
-                    pendingDelete.startDate
-                  )}{" "}
+                  {displayDate(pendingDelete.startDate)}{" "}
                   →{" "}
-                  {formatDate(
-                    pendingDelete.endDate
-                  )}
+                  {displayDate(pendingDelete.endDate)}
                 </span>
               </p>
 

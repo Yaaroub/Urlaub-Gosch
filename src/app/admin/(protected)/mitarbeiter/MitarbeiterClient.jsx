@@ -858,9 +858,7 @@ export default function MitarbeiterClient({
                             {employee.lastLoginAt
                               ? `Letzter Login: ${new Date(
                                   employee.lastLoginAt
-                                ).toLocaleString(
-                                  "de-DE"
-                                )}`
+                                ).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}`
                               : "Noch kein Login"}
                           </span>
                         </div>

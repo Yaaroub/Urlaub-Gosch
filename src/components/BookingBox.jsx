@@ -503,6 +503,15 @@ export default function BookingBox({ propertyId }) {
           )}
         </div>
 
+        <p className="text-[11px] leading-5 text-slate-500">
+          Ihre Angaben verwenden wir nur zur Bearbeitung Ihrer Anfrage. Mehr in
+          der{" "}
+          <a href="/datenschutz#kontakt" className="underline underline-offset-2 hover:text-slate-700">
+            Datenschutzerklärung
+          </a>
+          .
+        </p>
+
         <button
           type="submit"
           className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"

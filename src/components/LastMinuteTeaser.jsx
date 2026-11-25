@@ -64,7 +64,7 @@ export default function LastMinuteTeaser() {
               <p className="text-sm text-slate-600">{offer.property.location}</p>
 
               <p className="mt-1 text-sm font-semibold text-rose-600">
-                −{offer.discount}% bis {new Date(offer.endDate).toLocaleDateString("de-DE")}
+                −{offer.discount}% bis {new Date(offer.endDate).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Europe/Berlin" })}
               </p>
 
               {offer.note && <p className="mt-1 text-xs text-slate-500">{offer.note}</p>}

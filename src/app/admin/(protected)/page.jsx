@@ -64,7 +64,7 @@ export default async function AdminHome() {
           <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sky-700">Belegungskalender öffnen <ArrowRight className="h-4 w-4" aria-hidden="true" /></span>
         </Link>
       </div>
-      <div className="mt-3 max-w-xl"><AreaLink item={{ href: "/admin/anfragen", title: "Anfragen", description: "Formularanfragen ansehen und bearbeiten.", icon: Inbox }} /></div>
+      <div className="mt-3 max-w-xl"><AreaLink item={{ href: "/admin/anfragen", title: "Anfragen", description: "Buchungsanfragen ansehen und bearbeiten.", icon: Inbox }} /></div>
     </section>
 
     {groups.map((group, index) => <section key={group.title} aria-labelledby={`admin-group-${index}`} className="mb-9">

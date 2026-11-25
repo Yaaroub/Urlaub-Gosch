@@ -186,8 +186,8 @@ export default function ContactPage() {
                   >
                     Datenschutzerklärung
                   </Link>{" "}
-                  gelesen und stimme der Verarbeitung meiner Angaben zur
-                  Bearbeitung der Anfrage zu.
+                  zur Kenntnis genommen. Meine Angaben werden nur zur
+                  Bearbeitung der Anfrage verwendet.
                 </span>
               </label>
 

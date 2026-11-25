@@ -17,7 +17,6 @@ import {
 
 import AdminLogoutButton from "./AdminLogoutButton";
 import AdminIdleTimeout from "./AdminIdleTimeout";
-import AdminInquiryNotifications from "./AdminInquiryNotifications";
 
 export const dynamic =
   "force-dynamic";
@@ -135,8 +134,6 @@ export default async function ProtectedAdminLayout({
           >
             <LayoutDashboard className="h-5 w-5" />
           </Link>
-
-          <AdminInquiryNotifications />
 
           {/* Benutzer */}
 

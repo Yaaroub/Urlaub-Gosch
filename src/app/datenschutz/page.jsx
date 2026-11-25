@@ -1278,7 +1278,7 @@ export default function DatenschutzPage() {
                   <strong>Cookie „session“</strong> – nur für Mitarbeiter im internen Verwaltungsbereich. Hält die Anmeldung aufrecht (HttpOnly, nur über HTTPS) und endet nach der eingestellten Inaktivitätszeit, spätestens nach 12 Stunden. Besucher der Website erhalten dieses Cookie nicht; Kundenkonten gibt es nicht.
                 </li>
                 <li>
-                  <strong>„urlaub-gosch-consent-v1“</strong> (localStorage) – speichert Ihre Auswahl in den Cookie-Einstellungen, bis Sie sie ändern oder Ihre Browserdaten löschen.
+                  <strong>„urlaub-gosch-consent-v1“</strong> (localStorage) – speichert Ihre Auswahl in den Cookie-Einstellungen für 12 Monate; danach fragen wir erneut. Vorher endet die Speicherung, wenn Sie die Auswahl ändern oder IhreBrowserdaten löschen.
                 </li>
                 <li>
                   <strong>„fav:properties“</strong> (localStorage) – Ihre gemerkten Unterkünfte. Sie werden ausschließlich in Ihrem Browser auf diesem Gerät gespeichert und nicht an uns übertragen.
@@ -1418,11 +1418,19 @@ export default function DatenschutzPage() {
               </p>
 
               <p>
-                <strong>Unverbindliche Buchungsanfrage:</strong> Über das Anfrageformular einer Unterkunft verarbeiten wir Vor- und Nachname, E-Mail-Adresse, optional Telefonnummer und Nachricht sowie die gewünschte Unterkunft und den Reisezeitraum. Wir speichern die Anfrage in unserer Datenbank (siehe „Hosting“). Berechtigte Mitarbeitende bearbeiten die Anfrage im geschützten Verwaltungsbereich. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen). Zum Schutz vor Missbrauch wird die Zahl der Anfragen je IP-Adresse und E-Mail-Adresse kurzzeitig begrenzt (Art. 6 Abs. 1 lit. f DSGVO).
+                <strong>Unverbindliche Buchungsanfrage:</strong> Über das Anfrageformular einer Unterkunft verarbeiten wir die Art der Anfrage (Information oder Buchung), Vor- und Nachname, Anschrift, E-Mail-Adresse, Mobilnummer, die Zahl der Erwachsenen und Kinder, Angaben zu mitreisenden Hunden, optional Ihre Nachricht sowie die gewünschte Unterkunft und den Reisezeitraum. Diese Angaben benötigen wir, um die Verfügbarkeit und den Preis zu prüfen und im Fall einer Buchung den Mietvertrag vorzubereiten. Wir speichern die Anfrage in unserer Datenbank (siehe „Hosting“); berechtigte Mitarbeitende bearbeiten sie im geschützten Verwaltungsbereich. Zusätzlich erhalten wir die Anfrage per E-Mail über den Versanddienst Mailjet (siehe unten). Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen). Zum Schutz vor Missbrauch wird die Zahl der Anfragen je IP-Adresse und E-Mail-Adresse kurzzeitig begrenzt (Art. 6 Abs. 1 lit. f DSGVO).
               </p>
 
               <p>
-                <strong>Kontaktformular:</strong> Wir speichern Ihren Namen, Ihre E-Mail-Adresse, optional Telefonnummer und Betreff, Ihre Nachricht und gegebenenfalls die Auswahl „Ich möchte meine Unterkunft vermieten“ in unserer Datenbank (siehe „Hosting“). Die zuständige Verwaltung bearbeitet die Anfrage im geschützten Verwaltungsbereich.
+                <strong>Kontaktformular:</strong> Ihren Namen, Ihre E-Mail-Adresse, optional Telefonnummer und Betreff, Ihre Nachricht und gegebenenfalls die Auswahl „Ich möchte meine Unterkunft vermieten“ senden wir per E-Mail über Mailjet an unser Postfach. Kontaktanfragen werden nicht in der Website-Datenbank gespeichert. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO bei Bezug zu einer Buchung oder Vermietung, sonst Art. 6 Abs. 1 lit. f DSGVO (Beantwortung Ihres Anliegens).
+              </p>
+
+              <p>
+                <strong>E-Mail-Versand über Mailjet:</strong> Für die Zustellung der Formular-E-Mails an unser Postfach und der automatischen Eingangsbestätigung an Sie nutzen wir Mailjet (Mailjet SAS, 43 rue de Dunkerque, 75010 Paris, Frankreich; Teil der Sinch-Gruppe) als Auftragsverarbeiter auf Grundlage eines Vertrags nach Art. 28 DSGVO. Die Daten werden verschlüsselt (HTTPS/TLS) übertragen und von Mailjet in Rechenzentren in der EU (Google Cloud, Deutschland und Belgien) verarbeitet. Für Support und Abrechnung setzt Mailjet auch Unterauftragnehmer mit Sitz in den USA ein; ein Zugriff von dort kann daher nicht vollständig ausgeschlossen werden. Solche Übermittlungen erfolgen nur unter den Voraussetzungen der Art. 44 ff. DSGVO (insbesondere EU-Standardvertragsklauseln). Öffnungs- und Klick-Tracking sind abgeschaltet; der Betreff der E-Mail enthält keine personenbezogenen Angaben. Mailjet speichert Versanddaten (z. B. Zeitpunkt, Empfänger- und Antwortadresse, Zustellstatus) für eine begrenzte Zeit, um die Zustellung nachweisen zu können. Nach dem Absenden eines Formulars erhalten Sie eine automatische Eingangsbestätigung an die angegebene E-Mail-Adresse (Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO bzw. bei allgemeinen Anfragen Art. 6 Abs. 1 lit. f DSGVO – unser Interesse, Ihnen den Eingang zu bestätigen). Sie enthält nur unsere eigenen Standardtexte, bei Anfragen zu einer Unterkunft zusätzlich deren Namen und den angefragten Zeitraum, jedoch nicht Ihren Namen oder Ihre Nachricht. Das Logo ist in die E-Mail eingebettet und wird nicht aus dem Internet nachgeladen. Werbe-E-Mails versenden wir nicht. Weitere Informationen: <a href="https://www.mailjet.com/legal/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung von Mailjet</a>. Bitte teilen Sie uns über die Formulare keine besonders sensiblen Daten (z. B. Gesundheitsangaben) mit, die für Ihre Anfrage nicht erforderlich sind.
+              </p>
+
+              <p>
+                <strong>E-Mail-Postfach:</strong> Unser geschäftliches Postfach (info@urlaub-gosch.de) betreiben wir bei Microsoft 365 (Microsoft Ireland Operations Limited, Dublin, Irland) auf Grundlage eines Vertrags zur Auftragsverarbeitung nach Art. 28 DSGVO. Dort gehen Ihre Formularanfragen und E-Mails ein. Eine Übermittlung an die Microsoft Corporation (USA) ist möglich; Microsoft ist unter dem EU-US Data Privacy Framework zertifiziert (Art. 45 DSGVO).
               </p>
 
               <p>
@@ -1451,7 +1459,7 @@ export default function DatenschutzPage() {
                   <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung</a>
                 </li>
                 <li>
-                  <strong>Mapbox</strong> (interaktive Karten) – Mapbox, Inc., USA.{" "}
+                  <strong>Mapbox</strong> (interaktive Karten) – Mapbox, Inc., USA. Mapbox ist unter dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA erfolgt auf Grundlage des Angemessenheitsbeschlusses (Art. 45 DSGVO).{" "}
                   <a href="https://www.mapbox.com/legal/privacy" target="_blank" rel="noopener noreferrer" className="underline">Datenschutzerklärung</a>
                 </li>
                 <li>

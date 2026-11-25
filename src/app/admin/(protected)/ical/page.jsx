@@ -13,7 +13,6 @@ import {
   Upload,
 } from "lucide-react";
 
-const PUBLIC_SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/+$/, "");
 
 function formatDateTime(value) {
   if (!value) return "—";
@@ -57,7 +56,6 @@ export default function AdminIcalPage() {
 
   const [prop, setProp] = useState(null);
   const [icalUrl, setIcalUrl] = useState("");
-  const [siteOrigin, setSiteOrigin] = useState("");
 
   const [loadingProperties, setLoadingProperties] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -74,11 +72,6 @@ export default function AdminIcalPage() {
    * /admin/ical?propertyId=21
    */
   useEffect(() => {
-    // Export links handed to booking portals must always use the public main
-    // domain (NEXT_PUBLIC_SITE_URL), never the address the admin happens to be
-    // opened on (e.g. the technical *.vercel.app address).
-    setSiteOrigin(PUBLIC_SITE_ORIGIN || window.location.origin);
-
     const searchParams = new URLSearchParams(window.location.search);
     const propertyIdFromUrl = searchParams.get("propertyId");
 
@@ -244,13 +237,16 @@ export default function AdminIcalPage() {
    * Beispiel:
    * https://urlaub-gosch.de/api/ical/alte-liebe
    */
-  const ownIcalExportUrl = useMemo(() => {
-    if (!siteOrigin || !prop?.slug) {
-      return "";
+  // The secret export link (with key) is created only on the server and is
+  // delivered only to staff with the right to edit calendar links.
+  const ownIcalExportUrl = prop?.exportUrl || "";
+  const exportOnVercelHost = useMemo(() => {
+    try {
+      return /\.vercel\.app$/i.test(new URL(ownIcalExportUrl).hostname);
+    } catch {
+      return false;
     }
-
-    return `${siteOrigin}/api/ical/${encodeURIComponent(prop.slug)}`;
-  }, [siteOrigin, prop?.slug]);
+  }, [ownIcalExportUrl]);
 
   const selectedPropertyTitle = useMemo(() => {
     return (
@@ -696,6 +692,8 @@ export default function AdminIcalPage() {
                 <p className="mt-1 text-sm leading-6 text-slate-600">
                   Diese URL kannst du in Airbnb, Booking, FeWo-direkt
                   oder anderen Portalen als externen Kalender eintragen.
+                  Sie enthält einen geheimen Schlüssel: nur an Portale
+                  weitergeben, nicht öffentlich teilen.
                 </p>
               </div>
             </div>
@@ -715,7 +713,7 @@ export default function AdminIcalPage() {
                   />
                 </label>
 
-                {/\.vercel\.app$/i.test(siteOrigin.replace(/^https?:\/\//, "")) ? (
+                {exportOnVercelHost ? (
                   <p role="alert" className="mt-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
                     Achtung: Dieser Link zeigt auf die technische Vercel-Adresse. Bitte nicht an Portale weitergeben,
                     solange die Hauptdomain nicht eingerichtet ist (Umgebungsvariable NEXT_PUBLIC_SITE_URL).
@@ -754,9 +752,11 @@ export default function AdminIcalPage() {
               </>
             ) : (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                Für dieses Objekt ist kein Slug vorhanden. Vergib zuerst
-                einen Slug in den Grunddaten, damit eine Export-URL
-                erstellt werden kann.
+                {!prop.canEdit
+                  ? "Die geheime Export-URL sehen nur Mitarbeiter mit dem Recht, Kalender zu bearbeiten."
+                  : !prop.slug
+                    ? "Für dieses Objekt ist kein Slug vorhanden. Vergib zuerst einen Slug in den Grunddaten, damit eine Export-URL erstellt werden kann."
+                    : "Die Export-URL konnte nicht erzeugt werden (Server-Schlüssel fehlt)."}
               </div>
             )}
           </div>

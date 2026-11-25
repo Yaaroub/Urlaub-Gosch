@@ -1,7 +1,7 @@
 import { ADMIN_PERMISSIONS, requireAdminPermission } from "@/lib/admin-permissions";
 import prisma from "@/lib/db";
 import { overlapWhere, withPropertyBookingLock } from "@/lib/booking-lock";
-import { currentBookingsWhere } from "@/lib/public-calendar";
+import { mergeOccupiedRanges, publicOccupancyWhere } from "@/lib/public-calendar";
 import { logError } from "@/lib/safe-log";
 
 /** Utils */
@@ -22,7 +22,8 @@ function fmtISODate(d) {
  * GET /api/bookings?propertyId=1
  * Public availability for the booking calendar on the property page.
  * Intentionally without login (visitors must see booked days), therefore
- * reduced to the minimum: date ranges only, from today on, no ids, no names.
+ * reduced to the minimum: merged occupied blocks from today up to the booking
+ * horizon, no individual stays, no ids, no names.
  */
 export async function GET(req) {
   try {
@@ -33,13 +34,14 @@ export async function GET(req) {
     }
 
     const rows = await prisma.booking.findMany({
-      where: currentBookingsWhere(pid),
+      where: publicOccupancyWhere(pid),
       orderBy: { startDate: "asc" },
       select: { startDate: true, endDate: true },
     });
 
+    // Only merged "occupied" blocks, no individual stays.
     return Response.json(
-      rows.map(({ startDate, endDate }) => ({ startDate, endDate })),
+      mergeOccupiedRanges(rows),
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (e) {

@@ -4,6 +4,14 @@ import { isTrustedRequestOrigin } from "@/lib/auth";
 import { readInquiryJson } from "@/lib/public-inquiry";
 import { validateCalendarUrl } from "@/lib/safe-calendar-fetch";
 import { logError } from "@/lib/safe-log";
+import { icalFeedPath } from "@/lib/public-calendar";
+
+// Feed links for booking portals always point to the public main domain.
+function publicOrigin(request) {
+  const configured = String(process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/+$/, "");
+  if (/^https:\/\/[^/]+$/i.test(configured)) return configured;
+  try { return new URL(request.url).origin; } catch { return ""; }
+}
 
 const NO_STORE = { "Cache-Control": "private, no-store" };
 
@@ -29,7 +37,11 @@ export async function GET(request, { params }) {
     });
     if (!property) return reply({ error: "Objekt wurde nicht gefunden." }, 404);
     const { icalUrl, ...details } = property;
-    return reply({ ...details, canEdit, ...(canEdit && { icalUrl }) });
+    // The secret export link is generated only here, on the server, and only
+    // for staff who may manage calendar links.
+    const feedPath = canEdit ? icalFeedPath(property.slug, id) : null;
+    const exportUrl = feedPath ? `${publicOrigin(request)}${feedPath}` : null;
+    return reply({ ...details, canEdit, ...(canEdit && { icalUrl, exportUrl }) });
   } catch (error) {
     logError("iCal-Quelle konnte nicht geladen werden", error);
     return reply({ error: "Kalendereinstellungen konnten nicht geladen werden." }, 500);

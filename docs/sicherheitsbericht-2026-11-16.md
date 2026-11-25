@@ -256,3 +256,61 @@ Urlaub-GOSCH bietet keine Kundenkonten an. Der Code dafür war aber noch vorhand
 **Unverändert:** Mitarbeiter-Login, Logout, Admin-Bereich. Die Datenbank-Tabellen `User` und `Favorite` und die Rolle `USER` bleiben bestehen, weil keine Datenbankänderung erfolgen soll. Sie werden vom Code nicht mehr für Kunden genutzt.
 
 Prüfung: 76 von 76 Tests, Lint, Produktions-Build. Lokal: alle entfernten Adressen 404, Logout, Favoriten-Seite und Admin-Login funktionieren.
+
+## 11. Nachtrag 18.11.2026: iCal-Feed mit geheimem Schlüssel, minimierter Belegungskalender (lokal, nicht veröffentlicht)
+
+Ziel: Auch reine Belegungsdaten (wann ist ein Objekt belegt) sollen nicht mehr frei abrufbar sein. Keine Datenbankänderung.
+
+- **Neue Feed-Adresse mit Schlüssel:** `/api/ical/<objekt>/<schlüssel>`. Der Schlüssel (22 Zeichen, 128 Bit) wird pro Objekt aus einem Server-Geheimnis berechnet (HMAC-SHA256, `ICAL_FEED_SECRET`, ersatzweise `AUTH_SECRET`) und zeitkonstant geprüft. Falscher, fremder oder fehlender Schlüssel und unbekanntes Objekt ergeben immer dieselbe 404 – es ist nicht erkennbar, ob ein Objekt existiert.
+- **Alte Adresse ohne Schlüssel (`/api/ical/<objekt>`) ist abgeschaltet** (404, ohne Datenbankabfrage). Nur für eine Übergangszeit kann sie über `ICAL_LEGACY_LINKS_UNTIL=JJJJ-MM-TT` (höchstens 60 Tage im Voraus) wieder eingeschaltet werden.
+- **Schlüssel austauschen:** `ICAL_FEED_SECRET` in Vercel ändern → alle Feed-Links werden sofort ungültig; danach neue Links in die Portale eintragen.
+- **Link nur serverseitig:** Die Export-URL erzeugt ausschließlich `/api/admin/ical/source/<id>` und liefert sie nur an Mitarbeiter mit dem Recht „iCal bearbeiten“. Domain: `NEXT_PUBLIC_SITE_URL` (nur HTTPS), sonst die aktuelle Adresse mit Warnhinweis bei *.vercel.app. Der Link „iCal exportieren“ in der Objektübersicht führt jetzt auf die Admin-Kalenderseite.
+- **Öffentlicher Belegungskalender (`/api/bookings`) minimiert:** nur noch zusammengefasste „belegt“-Blöcke (aneinanderstoßende und überlappende Aufenthalte werden verschmolzen, Gästewechsel nicht erkennbar), ab heute und höchstens 540 Tage im Voraus. Keine IDs, keine Namen. Die Buchbarkeit auf der Objektseite bleibt gleich.
+
+Hinweis: Der Schlüssel steht im Pfad der Adresse und kann daher in den Zugriffsprotokollen von Vercel und der Portale auftauchen. Er gewährt nur Lesezugriff auf belegte Zeiträume eines Objekts und lässt sich jederzeit austauschen.
+
+Prüfung: 78 von 78 Tests, Lint, Produktions-Build. Lokal gegen die Live-Datenbank (nur lesend): Feed mit Schlüssel 200 (nur „Belegt“), ohne / falscher / fremder Schlüssel und unbekanntes Objekt 404; öffentlicher Kalender liefert nur `startDate`/`endDate`.
+
+**Umstellung (zusammen mit dem Domain-Umzug):** `NEXT_PUBLIC_SITE_URL=https://urlaub-gosch.de` und `ICAL_FEED_SECRET` (zufällig, mind. 32 Zeichen) in Vercel setzen, veröffentlichen, dann je Objekt in Admin → iCal die neue URL kopieren und im Portal (fewoFlow u. a.) den alten Link ersetzen. Wenn Portale nicht sofort umgestellt werden können: vorübergehend `ICAL_LEGACY_LINKS_UNTIL` setzen und nach Abschluss wieder entfernen.
+
+## 12. Nachtrag 21.11.2026: Anfragen per Mailjet-Mail, Datenschutz-Durchsicht (lokal, nicht veröffentlicht)
+
+Auf Wunsch des Betreibers zurückgenommen: Kontaktanfragen im Admin-Dashboard, Benachrichtigungs-Glocke und Hinweis-Mail über Microsoft 365. Versanddienst ist jetzt **Mailjet** (EU-Anbieter, Paris) statt Resend (USA), um eine Übermittlung in die USA zu vermeiden.
+
+- **Kontaktformular:** Inhalt geht per Mailjet an das Postfach; keine Speicherung in der Datenbank. Erfolg erst nach Annahme durch Mailjet; doppeltes Absenden erzeugt keine zweite Mail.
+- **Buchungsanfrage:** wird gespeichert (Admin → Anfragen, nur Buchungsanfragen) und per Mailjet gemeldet; schlägt die Mail fehl, bleibt die Anfrage erhalten.
+- **Datensparsamkeit im Versand:** Tracking aus, Betreff ohne Gastdaten, nur Text, Gast nur als Reply-To, keine Fehlertexte des Anbieters in Logs.
+- Die Tabelle `ContactRequest` bleibt bestehen (keine Datenbankänderung), wird aber nicht mehr genutzt. Bereits gespeicherte Kontaktanfragen sollte der Betreiber einmalig löschen.
+
+### Datenschutz-Durchsicht der ganzen Seite (21.11.2026)
+
+Behoben:
+- **Buchungsformular ohne Datenschutzhinweis** (Art. 13 DSGVO): Hinweis mit Zweck, Speicherung, Mailjet und Link zur Datenschutzerklärung ergänzt.
+- **Kontaktformular:** Text der Checkbox sprach von „Zustimmung“, obwohl die Verarbeitung auf Art. 6 Abs. 1 lit. b/f beruht – jetzt „zur Kenntnis genommen“ mit Angabe, wohin die Daten gehen.
+- **Datenschutzerklärung:** Mailjet (statt Resend) ergänzt; **Microsoft 365 als Postfach-Anbieter** fehlte und ist ergänzt; **Grundlage der US-Übermittlung bei Mapbox** fehlte und ist ergänzt.
+
+Geprüft, ohne Befund: Google Maps, Mapbox und Webcams werden erst nach Einwilligung („Externe Medien“) geladen; keine Analyse-/Marketingdienste; keine Google Fonts; Wetter wird serverseitig ohne Besucher-IP abgerufen; Favoriten nur im Browser; Logs ohne Formularinhalte; Referrer werden nicht an Dritte weitergegeben.
+
+Offen beim Betreiber:
+- DPA mit Mailjet abschließen; Unterauftragnehmer prüfen; vollständige Anschrift von Mailjet in die Datenschutzerklärung übernehmen.
+- Zertifizierung von Mapbox und Microsoft unter dem EU-US Data Privacy Framework prüfen (dataprivacyframework.gov).
+- Buchungsanfragen werden nicht automatisch gelöscht: regelmäßig (z. B. alle 6–12 Monate) unter Admin → Anfragen erledigte Anfragen löschen. Mails mit Anfragen im Postfach ebenfalls nach Erledigung löschen.
+- Verzeichnis der Verarbeitungstätigkeiten um Mailjet und Microsoft 365 ergänzen.
+- Cookie-Banner: „Alle akzeptieren“ ist farbig hervorgehoben, „Nur notwendige“ nur umrandet. Rechtlich meist hingenommen, die Datenschutzbehörden empfehlen aber gleichwertige Gestaltung.
+- Alte Website www.urlaub-gosch.de (Drupal) nutzt Google Analytics ohne erkennbare Einwilligung – mit dem Domain-Umzug abschalten.
+
+### Nachtrag 21.11.2026: offene Punkte selbst erledigt bzw. geprüft
+
+- **Cookie-Banner:** „Nur notwendige“ ist jetzt genauso gestaltet wie „Alle akzeptieren“ (beide Ansichten).
+- **Online geprüft:** Mailjet SAS, 43 rue de Dunkerque, 75010 Paris (Sinch-Gruppe); Rechenzentren Google Cloud in Deutschland/Belgien; US-Unterauftragnehmer für Support und Abrechnung – Datenschutzerklärung entsprechend präzisiert. Mapbox und Microsoft sind laut eigener Erklärung unter dem EU-US Data Privacy Framework zertifiziert – Datenschutzerklärung angepasst. (Nicht auf der offiziellen Liste dataprivacyframework.gov gegengeprüft.)
+- **Datenbank (nur gezählt, nichts geändert):** 0 Kontaktanfragen, 0 Buchungsanfragen gespeichert – es muss nichts gelöscht werden.
+- **DNS (nur gelesen):** SPF `v=spf1 include:spf.protection.outlook.com include:planet-ocean.email -all`, DMARC `p=none`. Für Mailjet muss der SPF-Eintrag ergänzt werden (siehe docs/mailjet-setup.md).
+- **Alte Website www.urlaub-gosch.de (geprüft):** lädt Google Analytics (`googletagmanager.com`, UA-7485004-2) und Google Fonts direkt beim Seitenaufruf, also vor einer Einwilligung – **Datenschutzverstoß** (Übermittlung der IP-Adresse an Google ohne Einwilligung). Nicht in diesem Code behebbar; Betreiber/Hoster sollte das Google-Analytics-Modul sofort abschalten (Universal Analytics sammelt seit 2024 ohnehin keine Daten mehr) oder die alte Seite mit dem Domain-Umzug ablösen.
+- **Impressum:** Angabe „Verantwortlich nach § 18 Abs. 2 MStV“ ergänzt (wegen Blog/redaktioneller Inhalte; eingetragen: Birgit Gosch – bitte bestätigen). Hinweis auf „Analyse-Tools“ korrigiert, da keine eingesetzt werden.
+
+### Nachtrag 24.11.2026: Anfrageformular der Objektseiten
+
+- **Fehler behoben:** Das Formular verlangte Anfrageart, Anschrift, Mobilnummer, Personenzahl und Haustiere als Pflichtfelder, der Server verwarf diese Angaben jedoch (weder gespeichert noch gemailt). Jetzt sind alle Pflichtfelder auch serverseitig Pflicht (Format- und Längenprüfung, keine Zeilenumbrüche), werden gespeichert (im vorhandenen Nachrichtenfeld, keine Schemaänderung), per Mailjet gemeldet und unter Admin → Anfragen angezeigt. Betreff ohne Gastdaten.
+- **Datenschutzerklärung** nennt alle abgefragten Angaben und den Zweck.
+- **Geprüft:** 79/79 Tests; lokal 7 von 7 unvollständigen Anfragen abgelehnt; eine vollständige Test-Anfrage wurde mit echtem Mailjet-Versand, aber ohne Datenbank (Platzhalter statt Neon) verarbeitet – Mail von Mailjet angenommen, nichts gespeichert.
+- **Verzeichnis der Verarbeitungstätigkeiten** als Entwurf: `docs/verarbeitungsverzeichnis.md` (vom Betreiber zu prüfen und zu ergänzen).

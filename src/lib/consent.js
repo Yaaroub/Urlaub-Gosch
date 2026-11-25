@@ -50,6 +50,27 @@ export const CONSENT_VERSION = 1;
 
 
 /* =========================================================
+   GÜLTIGKEIT
+
+   Eine gespeicherte Auswahl gilt 12 Monate. Danach wird
+   sie gelöscht und der Banner fragt erneut. Einträge ohne
+   gültiges Datum (oder mit Datum in der Zukunft) gelten
+   als abgelaufen.
+========================================================= */
+
+export const CONSENT_MAX_AGE_MONTHS = 12;
+
+export function isConsentExpired(updatedAt, now = new Date()) {
+  const saved = new Date(updatedAt);
+  if (typeof updatedAt !== "string" || Number.isNaN(saved.getTime())) return true;
+  if (saved.getTime() > now.getTime() + 24 * 60 * 60 * 1000) return true;
+  const expires = new Date(saved);
+  expires.setMonth(expires.getMonth() + CONSENT_MAX_AGE_MONTHS);
+  return now.getTime() >= expires.getTime();
+}
+
+
+/* =========================================================
    STANDARDWERTE
 ========================================================= */
 
@@ -115,6 +136,15 @@ export function readConsent() {
       !parsed ||
       typeof parsed !== "object"
     ) {
+      return null;
+    }
+
+    // Nach 12 Monaten erneut fragen: alte Auswahl verwerfen.
+    if (isConsentExpired(parsed.updatedAt)) {
+      try {
+        window.localStorage.removeItem(CONSENT_STORAGE_KEY);
+      } catch {}
+
       return null;
     }
 

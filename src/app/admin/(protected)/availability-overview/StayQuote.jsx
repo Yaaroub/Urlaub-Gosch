@@ -5,7 +5,7 @@ import { loadPrice } from "@/lib/price-loader";
 import { useEffect, useState } from "react";
 
 const money = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
-const date = (value) => new Intl.DateTimeFormat("de-DE", { timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
+const date = (value) => new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
 
 export function PriceSummary({ quote, arrival, departure, compact = false }) {
   if (!quote) return <span className="text-xs text-slate-500">Preis wird berechnet …</span>;

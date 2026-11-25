@@ -15,21 +15,15 @@ export function parseListQuery(searchParams) {
   return { status, q, page };
 }
 
-export function requestKind(url) {
-  const kind = new URL(url).searchParams.get("kind") ?? "booking";
-  return kind === "contact" || kind === "booking" ? kind : null;
-}
-
-export function buildListWhere({ status, q }, kind = "booking") {
+export function buildListWhere({ status, q }) {
   const where = {};
   if (status !== "ALL") where.status = status;
   if (q) {
     where.OR = [
       { guestName: { contains: q, mode: "insensitive" } },
       { guestEmail: { contains: q, mode: "insensitive" } },
+      { property: { title: { contains: q, mode: "insensitive" } } },
     ];
-    if (kind === "contact") where.OR.push({ subject: { contains: q, mode: "insensitive" } });
-    else where.OR.push({ property: { title: { contains: q, mode: "insensitive" } } });
   }
   return where;
 }
@@ -51,10 +45,18 @@ export function retentionCutoff(months, now = new Date()) {
 }
 
 /** The public form stores "Telefon: …\nNachricht: …" in one field; split it for display. */
+const DETAIL_LABELS = ["Art", "Anschrift", "Personen", "Haustiere"];
+
 export function splitRequestMessage(message) {
   const text = String(message || "");
   const phone = text.match(/^Telefon:\s*(.*)$/m)?.[1]?.trim();
   const body = text.match(/^Nachricht:\s*([\s\S]*)$/m)?.[1]?.trim();
-  if (phone === undefined && body === undefined) return { phone: "", text: text.trim() };
-  return { phone: phone && phone !== "-" ? phone : "", text: body && body !== "-" ? body : "" };
+  if (phone === undefined && body === undefined) return { phone: "", details: [], text: text.trim() };
+  // Form details stored between "Telefon:" and "Nachricht:" (newer requests).
+  const head = text.split(/^Nachricht:/m)[0];
+  const details = DETAIL_LABELS.flatMap((label) => {
+    const value = head.match(new RegExp(`^${label}:\\s*(.*)$`, "m"))?.[1]?.trim();
+    return value ? [{ label, value }] : [];
+  });
+  return { phone: phone && phone !== "-" ? phone : "", details, text: body && body !== "-" ? body : "" };
 }

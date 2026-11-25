@@ -5,7 +5,7 @@ import prisma from "@/lib/db";
 import { getFreeIntervals, getOverviewWindow } from "@/lib/availability-overview";
 import CustomerStayPrice from "./CustomerStayPrice";
 
-const formatDate = (value) => new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
+const formatDate = (value) => new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
 
 export default async function CustomerAlternatives({ arrival, departure, where, searchParams, exactCount }) {
   const window = getOverviewWindow(arrival, departure);

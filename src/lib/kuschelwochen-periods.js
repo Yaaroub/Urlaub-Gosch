@@ -5,6 +5,6 @@ export async function getKuschelwochenPeriods() {
 }
 
 export function formatKuschelwochenPeriod(period) {
-  const format = (date) => new Intl.DateTimeFormat("de-DE", { timeZone: "UTC" }).format(new Date(date));
+  const format = (date) => new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(new Date(date));
   return `${format(period.startDate)} – ${format(period.endDate)}`;
 }

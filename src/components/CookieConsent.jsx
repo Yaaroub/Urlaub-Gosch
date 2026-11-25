@@ -563,26 +563,30 @@ export default function CookieConsent() {
                   rounded-xl
 
                   border
-                  border-[#e8c375]/35
+                  border-[#e8c375]
 
-                  bg-transparent
+                  bg-[#e8c375]
 
-                  px-5
+                  px-6
                   py-3
 
                   text-sm
-                  font-bold
-                  text-[#e8c375]
+                  font-extrabold
+                  text-[#07131f]
+
+                  shadow-[0_10px_30px_rgba(232,195,117,0.12)]
 
                   transition
                   duration-200
 
-                  hover:border-[#e8c375]/60
-                  hover:bg-[#e8c375]/10
+                  hover:border-[#f2d58e]
+                  hover:bg-[#f2d58e]
 
                   focus:outline-none
                   focus-visible:ring-2
-                  focus-visible:ring-[#e8c375]/70
+                  focus-visible:ring-[#e8c375]
+                  focus-visible:ring-offset-2
+                  focus-visible:ring-offset-[#07131f]
                 "
               >
                 Nur notwendige
@@ -703,26 +707,30 @@ export default function CookieConsent() {
                   rounded-xl
 
                   border
-                  border-[#e8c375]/35
+                  border-[#e8c375]
 
-                  bg-transparent
+                  bg-[#e8c375]
 
-                  px-5
+                  px-6
                   py-3
 
                   text-sm
-                  font-bold
-                  text-[#e8c375]
+                  font-extrabold
+                  text-[#07131f]
+
+                  shadow-[0_10px_30px_rgba(232,195,117,0.12)]
 
                   transition
                   duration-200
 
-                  hover:border-[#e8c375]/60
-                  hover:bg-[#e8c375]/10
+                  hover:border-[#f2d58e]
+                  hover:bg-[#f2d58e]
 
                   focus:outline-none
                   focus-visible:ring-2
-                  focus-visible:ring-[#e8c375]/70
+                  focus-visible:ring-[#e8c375]
+                  focus-visible:ring-offset-2
+                  focus-visible:ring-offset-[#07131f]
                 "
               >
                 Nur notwendige

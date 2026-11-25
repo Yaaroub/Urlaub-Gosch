@@ -151,6 +151,12 @@ export default function ImpressumPage() {
                   label="Umsatzsteuer-ID"
                   value="DE 268 313 350"
                 />
+
+                <ContactBox
+                  icon={FileText}
+                  label="Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV"
+                  value="Birgit Gosch, Bahnhofstr. 25, 24217 Schönberg"
+                />
               </div>
             </InfoCard>
 
@@ -192,9 +198,10 @@ export default function ImpressumPage() {
               </p>
 
               <p>
-                Weitere Informationen zu eingesetzten Diensten, Analyse-Tools
-                und externen Plattformen finden Sie in der Datenschutzerklärung
-                und im Haftungsausschluss.
+                Weitere Informationen zu eingesetzten Diensten und externen
+                Inhalten finden Sie in der Datenschutzerklärung und im
+                Haftungsausschluss. Analyse- oder Marketing-Tools setzen wir
+                nicht ein.
               </p>
             </InfoCard>
 
