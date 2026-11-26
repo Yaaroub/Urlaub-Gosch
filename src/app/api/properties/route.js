@@ -10,6 +10,3 @@ export async function GET() {
   });
   return Response.json(items);
 }
-
-// Legacy write endpoint shares the same permission checks as the admin route.
-export { POST } from "@/app/api/admin/properties/route";

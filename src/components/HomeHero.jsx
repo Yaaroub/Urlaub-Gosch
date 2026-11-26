@@ -12,8 +12,23 @@ import {
   motion,
   useReducedMotion,
 } from "motion/react";
+import HeroWater from "@/components/HeroWater";
 
 const HERO_IMAGE = "/hero/hero.jpeg";
+
+// [top %, left %, delay s, size px] – glitter on the water surface.
+const SPARKLES = [
+  [57, 52, 0, 7], [59, 57, 1.4, 5], [58, 62, 2.6, 8], [61, 55, 3.3, 5],
+  [60, 66, 0.8, 7], [62, 60, 4.1, 5], [57.5, 70, 2.1, 8], [63, 68, 3.7, 6],
+  [59.5, 74, 1.1, 5], [61.5, 77, 4.6, 7], [58.5, 49, 2.9, 5], [64, 63, 0.4, 6],
+];
+
+// [top %, delay s, duration s, scale] – gulls gliding slowly across the sky.
+const GULLS = [
+  [14, 0, 46, 1],
+  [19, 7, 52, 0.75],
+  [11, 23, 58, 0.6],
+];
 
 const trustItems = [
   {
@@ -120,6 +135,8 @@ export default function HomeHero({
             },
           }}
         >
+          {/* Slow, continuous camera drift (CSS, see globals.css). */}
+          <div className="hero-drift absolute inset-0">
           <Image
             src={HERO_IMAGE}
             alt="Ferienhaus am Meer"
@@ -144,7 +161,35 @@ export default function HomeHero({
               2xl:object-[62%_center]
             "
           />
+          <HeroWater />
+          </div>
         </motion.div>
+
+        {/* Soft sunlight sweeping over sky and water now and then. */}
+        <div aria-hidden="true" className="hero-shimmer pointer-events-none absolute inset-0 hidden overflow-hidden md:block" />
+
+        {/* Atmosphere: sun rays, glitter on the water, gliding gulls (CSS only). */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden overflow-hidden md:block">
+          <div className="hero-rays" />
+          {SPARKLES.map(([top, left, delay, size], i) => (
+            <span
+              key={i}
+              className="hero-sparkle"
+              style={{ top: `${top}%`, left: `${left}%`, animationDelay: `${delay}s`, width: size, height: size }}
+            />
+          ))}
+          {GULLS.map(([top, delay, duration, scale], i) => (
+            <span
+              key={i}
+              className="hero-gull"
+              style={{ top: `${top}%`, animationDelay: `${delay}s`, animationDuration: `${duration}s`, "--gull-scale": scale }}
+            >
+              <svg viewBox="0 0 28 10" width="38" height="14" className="hero-gull-wings" style={{ animationDelay: `${i * -0.37}s` }}>
+                <path d="M1 7 Q7 1 14 7 Q21 1 27 7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+          ))}
+        </div>
 
         {/* ===================================================
             MOBILE OVERLAY
@@ -423,7 +468,32 @@ export default function HomeHero({
                   text-[#d2ad69]
                 "
               >
-                am Meer.
+                <span className="relative inline-block">
+                  <span className="hero-gold-text">am Meer.</span>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 220 16"
+                    preserveAspectRatio="none"
+                    className="hero-wave-line absolute -bottom-[0.12em] left-[0.04em] h-[0.16em] w-[92%] overflow-hidden text-[#d2ad69]"
+                  >
+                    <defs>
+                      <mask id="hero-wave-reveal">
+                        <rect className="hero-wave-reveal" x="0" y="0" width="220" height="16" fill="#fff" />
+                      </mask>
+                      <linearGradient id="hero-wave-fade" x1="0" x2="1">
+                        <stop offset="0" stopColor="currentColor" stopOpacity="0.2" />
+                        <stop offset="0.12" stopColor="currentColor" />
+                        <stop offset="0.88" stopColor="currentColor" />
+                        <stop offset="1" stopColor="currentColor" stopOpacity="0.2" />
+                      </linearGradient>
+                    </defs>
+                    <g mask="url(#hero-wave-reveal)">
+                      <g className="hero-wave-flow">
+                        <path d="M-110 9 c18 -7 37 -7 55 0 s37 7 55 0 c18 -7 37 -7 55 0 s37 7 55 0 c18 -7 37 -7 55 0 s37 7 55 0 c18 -7 37 -7 55 0 s37 7 55 0 " fill="none" stroke="url(#hero-wave-fade)" strokeWidth="2.4" strokeLinecap="round" />
+                      </g>
+                    </g>
+                  </svg>
+                </span>
               </span>
             </motion.h1>
 

@@ -59,10 +59,9 @@ test("anonymous booking POST cannot reach the database", async () => {
   const route = await load("../src/app/api/bookings/route.js", { "@/lib/db": {}, "@/lib/admin-permissions": deny, "@/lib/public-calendar": publicCalendar, "@/lib/booking-lock": { withPropertyBookingLock: async () => { throw new Error("Lock must not be reached"); }, overlapWhere: () => ({}) } });
   assert.equal((await route.POST({ json: () => { throw new Error("Body must not be processed"); } })).status, 401);
 });
-test("public property writes use the protected admin implementation", async () => {
-  const protectedPost = async () => Response.json({ error: "Forbidden" }, { status: 403 });
-  const route = await load("../src/app/api/properties/route.js", { "@/lib/db": {}, "@/lib/public-property-select": { publicPropertySelect }, "@/app/api/admin/properties/route": { POST: protectedPost } });
-  assert.equal(route.POST, protectedPost);
+test("public property list offers no write method", async () => {
+  const route = await load("../src/app/api/properties/route.js", { "@/lib/db": {}, "@/lib/public-property-select": { publicPropertySelect } });
+  assert.equal(route.POST, undefined);
 });
 test("public property selection does not expose iCal source tokens or guest information", async () => {
   let selection;
